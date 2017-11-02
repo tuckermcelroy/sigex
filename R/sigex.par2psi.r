@@ -21,6 +21,7 @@ sigex.par2psi <- function(param,flag,mdl)
 	xi <- NULL
 	zeta <- NULL
 	boundlist <- mdl[[5]]
+	N <- length(param[[2]][[1]])
 	for(i in 1:length(mdl[[3]]))
 	{
 		bounds <- boundlist[[i]]

@@ -1,8 +1,9 @@
-sigex.transform <- function(data.ts,transform,aggregate=FALSE)
+sigex.specar <- function(data.ts,diff=FALSE,subseries)
 {
+
 	##########################################################################
 	#
-	#	sigex.transform
+	#	sigex.specar
 	# 	    Copyright (C) 2017  Tucker McElroy
 	#
 	#    This program is free software: you can redistribute it and/or modify
@@ -22,37 +23,30 @@ sigex.transform <- function(data.ts,transform,aggregate=FALSE)
 
 	################# Documentation #####################################
 	#
-	#	Purpose: applies aggregation, followed by transformations to the data
+	#	Purpose: plot AR spectrum of input time series
 	#
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object, 
 	#			corresponding to N time series of length T
-	#		transform: a character indicating an instantaneous 
-	#			transformation to be applied; current options are
-	#			"none", "log", and "logistic"
-	#		aggregate: a boolean, set to TRUE if all series are to
-	#			be aggregated into a total 
+	#		diff: boolean, if TRUE difference the series
+	#			and plot Growth Rate, else in Levels
+	#		subseries: index between 1 and N, indicating which series
+	#			to examine
 	#	Outputs:
-	#		data.ts: a T x N0 matrix ts object, where N0=1 if 
-	#			aggregate=TRUE, otherwise N0=N
+	#		NA
 	#
 	####################################################################
 
-	if(aggregate) { 
-		data <- as.matrix(rowSums(data.ts))
-		new.names <- "Total"
-	} else { 
-		data <- data.ts 
-		new.names <- colnames(data.ts)
+	period <- frequency(data.ts)
+	freqs <- floor(period/2)
+	if(diff) {
+		spec.ar(diff(data.ts)[,subseries],
+			main= paste(colnames(data.ts)[subseries],"Growth Rate"))
+		abline(v=seq(1,freqs),col=2)
+	} else {
+		spec.ar(data.ts[,subseries],
+			main= paste(colnames(data.ts)[subseries],"Levels"))
+		abline(v=seq(1,freqs),col=2)
 	}
-	if(transform=="log") data <- log(data)
-	if(transform=="logistic") data <- log(data) - log(1-data)
-	if(transform=="none") data <- data
-	
-	data.ts <- ts(data,start=start(data.ts),frequency=frequency(data.ts),
-		names=new.names)
- 
-	return(data.ts)
+
 }
-
-

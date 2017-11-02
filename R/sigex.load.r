@@ -1,8 +1,9 @@
-sigex.transform <- function(data.ts,transform,aggregate=FALSE)
+sigex.load <- function(data,start.date,period,epithets,plot=FALSE)
 {
+
 	##########################################################################
 	#
-	#	sigex.transform
+	#	sigex.load
 	# 	    Copyright (C) 2017  Tucker McElroy
 	#
 	#    This program is free software: you can redistribute it and/or modify
@@ -22,37 +23,23 @@ sigex.transform <- function(data.ts,transform,aggregate=FALSE)
 
 	################# Documentation #####################################
 	#
-	#	Purpose: applies aggregation, followed by transformations to the data
+	#	Purpose: load data into a time series object
 	#
 	#	Inputs:
-	#		data.ts: a T x N matrix ts object, 
-	#			corresponding to N time series of length T
-	#		transform: a character indicating an instantaneous 
-	#			transformation to be applied; current options are
-	#			"none", "log", and "logistic"
-	#		aggregate: a boolean, set to TRUE if all series are to
-	#			be aggregated into a total 
+	#		data: a T x N matrix, corresponding to N time series of length T
+	#		start.date: date of first time obersvation; the
+	#			 format is c(year,season)
+	#		period: number of seasons per year
+	#		epithets: vector of N character strings, giving a short name for
+	#			 each series
+	#		plot: boolean, whether to plot the series (max of N=10 allowed)
 	#	Outputs:
-	#		data.ts: a T x N0 matrix ts object, where N0=1 if 
-	#			aggregate=TRUE, otherwise N0=N
+	#		data.ts: a T x N matrix ts object
 	#
 	####################################################################
 
-	if(aggregate) { 
-		data <- as.matrix(rowSums(data.ts))
-		new.names <- "Total"
-	} else { 
-		data <- data.ts 
-		new.names <- colnames(data.ts)
-	}
-	if(transform=="log") data <- log(data)
-	if(transform=="logistic") data <- log(data) - log(1-data)
-	if(transform=="none") data <- data
+	data.ts <- ts(data,start=start.date,frequency=period,names=epithets)
+ 	if(plot) { plot(data.ts) }
 	
-	data.ts <- ts(data,start=start(data.ts),frequency=frequency(data.ts),
-		names=new.names)
- 
 	return(data.ts)
 }
-
-
