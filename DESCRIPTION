@@ -1,0 +1,13 @@
+Package: sigex
+Type: Package
+Title: SigEx: Multivariate Signal Extraction
+Version: 0.1.0
+Author: Tucker McElroy
+Maintainer: James Livsey <james.a.livsey@census.gov>
+            Tucker McElroy <tucker.s.mcelroy@census.gov>
+Description: Multivariate signal extraction routines which includes: high
+    frequency applications, canonical models, forecasting, Wiener-Kolmogorov
+    signal extraction and calculation of standard errors.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
