@@ -5,18 +5,17 @@ library(normalQuadProb)
 N = 3
 T = 500
 t = 1:T
-b0 = 1
-b1 = 1/24
-#sig1 = gen_Sigma(N, TRUE, .9)
+Phi = diag(N)
 sig1 = toeplitz(.9^(0:(N-1)))
-s1 = b0 + b1 * t + rmvnorm(n = T, mean = rep(0,N), sigma = sig1)
-s2 = 3*cos(2*pi*t/12) + rmvnorm(n = T, mean = rep(0,N), sigma = diag(N))
+s1 = gen_trendComp(n = T, Ndim = N, Sig = sig1)
+s2 = gen_monthComp(n = T, Ndim = N, Sig = diag(N), Phi = sig1)
 s0 = rmvnorm(n = T, mean = rep(0,N), sigma = diag(N))
 
 data = s1+s2+s0
-plot(ts(data))
+plot(ts(s1))
 
-spec.ar(data[,3])
+spec.ar(s1[,3])
+abline(v=1/24)
 
 # ---- Modeling ---------------------------------------------------------------
 transform = "none"
