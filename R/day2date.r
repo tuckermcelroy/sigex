@@ -1,8 +1,41 @@
 day2date <- function(day,start.date)
 {
-	# related to date2day, takes a day count past start.date, and 
-	#	returns resulting date in month-day-year format.
-	#	if day is negative, yields date before start.date
+
+	##########################################################################
+	#
+	#	day2date
+	# 	    Copyright (C) 2018  Tucker McElroy
+	#
+	#    This program is free software: you can redistribute it and/or modify
+	#    it under the terms of the GNU General Public License as published by
+	#    the Free Software Foundation, either version 3 of the License, or
+	#    (at your option) any later version.
+	#
+	#    This program is distributed in the hope that it will be useful,
+	#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+	#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	#    GNU General Public License for more details.
+	#
+	#    You should have received a copy of the GNU General Public License
+	#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	#
+	############################################################################
+
+	################# Documentation #####################################
+	#
+	#	Purpose: converts a day index to a date in month-day-year format
+	#
+	#	Inputs:
+	#		day: integer, the number of days past the given start.date 
+	#			for which the date is desired; negative values reckon
+	#			into the past
+	#		start.date: a given starting date in month-day-year format,
+	#			a 3-element vector
+	#	Outputs:
+	#		end.date: the ending date  in month-day-year format,
+	#			a 3-element vector
+	#
+	#####################################################################
 
 	year.counter <- start.date[3]
 	
@@ -51,5 +84,6 @@ day2date <- function(day,start.date)
 	if(((335+leap.flag) <= day.index) && (day.index <= (365+leap.flag))) month.counter <- 12
 	day.counter <- day.index - date2day(month.counter,1,year.counter) + 1
 
-	return(c(month.counter,day.counter,year.counter))
+	end.date <- c(month.counter,day.counter,year.counter)
+	return(end.date)
 }

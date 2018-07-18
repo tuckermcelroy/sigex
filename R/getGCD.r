@@ -1,17 +1,42 @@
 getGCD <- function(Sigma,Rank)
 {
 
-	#############################
-	#	getGCD
-	#		by Tucker McElroy
-	#	Gets Generalized Cholesky Decomposition of Sigma,
-	#	 allowing for zero Schur complements
-	#      Rank is the presumed rank of the matrix, less than or equal
-	#	  to the dimension of the matrix
-	#	Output consists of the lower cholesky matrix,
-	#	  and the diagonal matrix, of reduced dimension
+	##########################################################################
 	#
-	#############################
+	#	getGCD
+	# 	    Copyright (C) 2018  Tucker McElroy
+	#
+	#    This program is free software: you can redistribute it and/or modify
+	#    it under the terms of the GNU General Public License as published by
+	#    the Free Software Foundation, either version 3 of the License, or
+	#    (at your option) any later version.
+	#
+	#    This program is distributed in the hope that it will be useful,
+	#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+	#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	#    GNU General Public License for more details.
+	#
+	#    You should have received a copy of the GNU General Public License
+	#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	#
+	############################################################################
+
+	################# Documentation #####################################
+	#
+	#	Purpose: computes the generalized Cholesky decomposition
+	#
+	#	Inputs:
+	#		Sigma: symmetric, non-negative definite matrix 
+	#		Rank: presumed rank of Sigmma, less than or equal
+	#	  		to the dimension of the matrix
+	#	Outputs:
+	#		L.mat: rectangular, lower Cholesky factor
+	#		D.mat: vector of diagonal entries in Cholesky decomposition
+	#	Notes: Sigma = L D L', where D is diagonal of dimension equal to
+	#		the rank, with positive entries, and L is unit lower triangular
+	#		with number of columns equal to rank
+	#	
+	#####################################################################
 
 	N <- dim(Sigma)[1]
 	L.mat <- matrix(1,1,1)
@@ -43,12 +68,7 @@ getGCD <- function(Sigma,Rank)
 	L.mat <- matrix(L.mat[,dims],nrow=N,ncol=length(dims))
 	D.mat <- D.mat[dims]
 
-#	print(Lmat)
-#	print(Dmat)
-#	print(Lmat %*% diag(Dmat,nrow=length(dims)) %*% t(Lmat))
-
 	return(list(L.mat,D.mat))
-#	return(list(L.mat,D.mat,dims))
 }
 
 
