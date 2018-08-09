@@ -1,14 +1,45 @@
 VARMAauto <- function(phi,theta,sigma,maxlag)
 {
-	#### Function computes autocovariances of VARMA (p,q) from lag zero
-	#	to maxlag, with inputs phi and theta.
-	#	(1 - phi[1]z ... - phi[p]z^p) X_t = (1 + theta[1]z ...+ theta[q]z^q) WN
-	#  output: autocovariance string of length maxlag
-	#  for absent AR or MA portions, pass in NULL
-	#  phi and theta should be arrays of m x m matrices
-	#	sigma should be an m x m matrix
-	#  e.g. phi <- array(cbind(phi1,phi2,...,phip),c(m,m,p))
 
+	##########################################################################
+	#
+	#	VARMAauto
+	# 	    Copyright (C) 2017  Tucker McElroy
+	#
+	#    This program is free software: you can redistribute it and/or modify
+	#    it under the terms of the GNU General Public License as published by
+	#    the Free Software Foundation, either version 3 of the License, or
+	#    (at your option) any later version.
+	#
+	#    This program is distributed in the hope that it will be useful,
+	#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+	#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	#    GNU General Public License for more details.
+	#
+	#    You should have received a copy of the GNU General Public License
+	#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	#
+	############################################################################
+
+	################# Documentation #####################################
+	#
+	#	Purpose: computes autocovariances of VARMA 
+	#	Background: function computes autocovariances of VARMA (p,q) from lag zero
+	#		to maxlag, with array inputs phi and theta.  VARMA equation:
+	#	(1 - phi[1]B ... - phi[p]B^p) X_t = (1 + theta[1]B ...+ theta[q]B^q) WN_t
+	#	Note: for absent VAR or VMA portions, pass in NULL
+	#	Inputs:
+	#		phi: array of dimension m x m x p of VAR coefficients, e.g.,
+	#			phi <- array(cbind(phi1,phi2,...,phip),c(m,m,p))
+	#		theta: array of dimension m x m x q of VMA coefficients, e.g.,
+	#			theta <- array(cbind(theta1,theta2,...,thetaq),c(m,m,q))
+	#		sigma: m x m covariance matrix of white noise
+	#	Outputs:
+	#		autocovariances at lags 0 through maxlag, as array of dimension m x m x (maxlag+1)
+	#
+	####################################################################
+
+	 
 polymulMat <- function(amat,bmat)
 {
 	p <- dim(amat)[3]

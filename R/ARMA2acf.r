@@ -1,9 +1,9 @@
-polysum <- function(a,b)
+ARMA2acf <- function(ar = numeric(0), ma = numeric(0), lag.max = r)
 {
 
 	##########################################################################
 	#
-	#	polysum
+	#	ARMA2acf
 	# 	    Copyright (C) 2017  Tucker McElroy
 	#
 	#    This program is free software: you can redistribute it and/or modify
@@ -23,25 +23,18 @@ polysum <- function(a,b)
 
 	################# Documentation #####################################
 	#
-	#	Purpose: compute the sum of two polynomials,
-	#		assuming both are symmetric power series
-	#	Inputs:	
-	#		a: symmetric vector of polynomial coefficients, 
-	#			where a[1] is the zeroth coefficient,
-	#			a[2] is the first coefficient, etc.
-	#		b: symmetric vector of polynomial coefficients, 
-	#			where b[1] is the zeroth coefficient,
-	#			b[2] is the first coefficient, etc.
-	#	Outputs: 
-	#		c: symmetric vector of polynomial coefficients for c(z) = a(z) + b(z),
-	#			where c[1] is the zeroth coefficient, c[2] is the first coefficient, etc.
+	#	Purpose: compute the autocovariance function of an ARMA process
+	#	Inputs:
+	#		ar: numeric vector of AR coefficients 
+	#		ma: numeric vector of MA coefficients 
+	#		lag.max: Largest autocovariance lag required
+	#	Outputs:
+	#		autocovariances at lags 0 through lag.max
 	#
-	##########################################################################################
+	############################################
 
-      n <- length(a)
-      m <- length(b)
-      if (m > n) out <- b + c(rep(0,(m-n)/2),a,rep(0,(m-n)/2))
-      if (n > m) out <- a + c(rep(0,(n-m)/2),b,rep(0,(n-m)/2))
-      if (n==m) out <- a + b
-      return(out)
+	autocorrs <- ARMAacf(ar,ma,lag.max,pacf=FALSE)
+	autovar <- 1 + sum(ARMAtoMA(ar,ma,lag.max = 1000)^2)
+	return(autocorrs*autovar)
 }
+

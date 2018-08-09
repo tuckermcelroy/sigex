@@ -41,6 +41,7 @@ sigex.prep <- function(data.ts,transform,aggregate,subseries,range=NULL,plot=FAL
 	#	Outputs:
 	#		data.ts: a T x N0 matrix ts object, where N0=1 if 
 	#			aggregate=TRUE, otherwise N0=N
+	#	Requires: sigex.transform
 	#
 	####################################################################
 

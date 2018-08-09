@@ -1,22 +1,52 @@
 sigex.par2psi <- function(param,flag,mdl)
 {
 
-	#################################
-	#   sigex.par2psi
-	#	by Tucker McElroy	
+	##########################################################################
 	#
-	#	Takes list parameter param, with flag for fixed values, and produces
-	#		full parameter vector (complex) psi as the inverse
-	#		of sigex.psi2par
-	#		psi = [xi,zeta,beta]
-	#			xi ~ all pre-parameters for covariance matrices
-	#			zeta ~ all pre-parameters for t.s. models
-	#			beta ~ all regression parameters
-	#	Also produces the flag vector:
-	#		1 if the corresponding component is real
-	#		0 if the corresponding component has an imaginary part
+	#	sigex.par2psi
+	# 	    Copyright (C) 2017  Tucker McElroy
 	#
-	#################################
+	#    This program is free software: you can redistribute it and/or modify
+	#    it under the terms of the GNU General Public License as published by
+	#    the Free Software Foundation, either version 3 of the License, or
+	#    (at your option) any later version.
+	#
+	#    This program is distributed in the hope that it will be useful,
+	#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+	#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	#    GNU General Public License for more details.
+	#
+	#    You should have received a copy of the GNU General Public License
+	#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	#
+	############################################################################
+
+	################# Documentation #####################################
+	#
+	#	Purpose: transform param to psi
+	#	Background:	
+	#		param is the name for the model parameters entered into 
+	#		a list object with a more intuitive structure, whereas
+	#		psi refers to a vector of real numbers containing all
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
+	#		manifold) together with imaginary component flagging 
+	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#	Notes: this is a functional inverse to sigex.psi2par
+	#	Format: psi has three portions, psi = [xi,zeta,beta]
+	#		xi ~ all hyper-parameters for covariance matrices
+	#		zeta ~ all hyper-parameters for t.s. models
+	#		beta ~ all regression parameters
+	#	Inputs:
+	#		param: see background.  Must have form specified by mdl
+	#		flag: string of zeros and ones, of length same as psi,
+	#			with a 1 if the corresponding hyper-parameter is to
+	#			be estimated, and 0 if it is fixed
+	#		mdl: the specified sigex model, a list object
+	#	Outputs:
+	#		psi: see background.
+	#	Requires: sigex.par2zeta
+	#
+	####################################################################
 
 	xi <- NULL
 	zeta <- NULL
@@ -32,7 +62,7 @@ sigex.par2psi <- function(param,flag,mdl)
 		D.mat <- param[[2]][[i]]
 		new.xi <- c(L.mat[lower.tri(diag(N))[,as.vector(vrank)]],D.mat)
 		xi <- c(xi,new.xi)
-		new.zeta <- sigex.par2zeta(param[[3]][[i]],mdlType,delta,bounds)
+		new.zeta <- sigex.par2zeta(param[[3]][[i]],mdlType,bounds)
 		zeta <- c(zeta,new.zeta)
 	}
 

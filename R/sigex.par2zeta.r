@@ -1,24 +1,53 @@
-sigex.par2zeta <- function(mdlPar,mdlType,delta,bounds)
+sigex.par2zeta <- function(mdlPar,mdlType,bounds)
 {
 
-	#################################
-	#   sigex.par2zeta
-	#	by Tucker McElroy	
+	##########################################################################
 	#
-	#	Takes mdlPar as param portion for mdlType, and produces
-	#		full parameter vector zeta 
-	#		psi = [xi,zeta,beta]
-	#			xi ~ all pre-parameters for covariance matrices
-	#			zeta ~ all pre-parameters for t.s. models
-	#			beta ~ all regression parameters
-	#	Also produces the flag vector:
-	#		1 if the corresponding component is real
-	#		0 if the corresponding component has an imaginary part
-	#	bounds gives bounds for rho and omega:
-	#			rho in (bounds[1],bounds[2])
-	#			omega in (bounds[3],bounds[4])
+	#	sigex.par2zeta
+	# 	    Copyright (C) 2017  Tucker McElroy
 	#
-	#################################
+	#    This program is free software: you can redistribute it and/or modify
+	#    it under the terms of the GNU General Public License as published by
+	#    the Free Software Foundation, either version 3 of the License, or
+	#    (at your option) any later version.
+	#
+	#    This program is distributed in the hope that it will be useful,
+	#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+	#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	#    GNU General Public License for more details.
+	#
+	#    You should have received a copy of the GNU General Public License
+	#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	#
+	############################################################################
+
+	################# Documentation #####################################
+	#
+	#	Purpose: transform param to zeta
+	#	Background:	
+	#		param is the name for the model parameters entered into 
+	#		a list object with a more intuitive structure, whereas
+	#		psi refers to a vector of real numbers containing all
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
+	#		manifold) together with imaginary component flagging 
+	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#	Notes: this is a functional inverse to sigex.zeta2par
+	#	Format: psi has three portions, psi = [xi,zeta,beta]
+	#		xi ~ all hyper-parameters for covariance matrices
+	#		zeta ~ all hyper-parameters for t.s. models
+	#		beta ~ all regression parameters
+	#	Inputs:
+	#		mdlPar: see background.  This is the portion of param
+	#			corresponding to mdlType, cited as param[[3]]
+	#		mdlType: this is a component of mdl (the specified sigex model),
+	#			 cited as mdl[[2]]
+	#		bounds: gives bounds for rho and omega, cycle parameters in zeta
+	#			rho lies in (bounds[1],bounds[2])
+	#			omega lies in (bounds[3],bounds[4])
+	#	Outputs:
+	#		zeta: see background.
+	#
+	####################################################################
 
 	# defaults
 	low.rho <- bounds[1]
@@ -26,11 +55,10 @@ sigex.par2zeta <- function(mdlPar,mdlType,delta,bounds)
 	low.omega <- bounds[3]
 	upp.omega <- bounds[4]
 		
-	if(mdlType %in% c("wn","canonWN")) { zeta <- NULL; zeta.flag <- NULL } 
+	if(mdlType %in% c("wn","canonWN")) { zeta <- NULL } 
 	if(mdlType == "AR1") 
 	{ 
-		phi <- mdlPar[1]
-		zeta <- phi
+		zeta <- (mdlPar[1] - low.rho)/(upp.rho - low.rho)
 		zeta <- log(1 + zeta) - log(1 - zeta)
 	}
 	if(mdlType %in% c("cycleBW1","cycleBW2","cycleBW3","cycleBW4","cycleBW5",

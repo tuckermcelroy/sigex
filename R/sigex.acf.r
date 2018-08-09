@@ -1,24 +1,69 @@
-sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,maxlag)
+sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 {
 	
-	###########################
+	##########################################################################
+	#
 	#	sigex.acf
-	#		by Tucker McElroy
+	# 	    Copyright (C) 2017  Tucker McElroy
 	#
-	#   Computes acf of a latent multivariate component process
-	#	L.par is the entries of unit lower triangular in GCD of
-	#		the white noise covariance matrix
-	#	D.par is the log entries of diagonal matrix in GCD
-	#	mdl is the   model object
-	#	mdlPar is that portion of param corresponding to mdlType
-	#	N is the cross-sectional dimension
-	#	comp is the component, and delta is a given
-	#	    differencing polynomial; the acf of
-	#		delta (B) x_t 
-	#		is calculated at lags 0 through maxlag-1.
+	#    This program is free software: you can redistribute it and/or modify
+	#    it under the terms of the GNU General Public License as published by
+	#    the Free Software Foundation, either version 3 of the License, or
+	#    (at your option) any later version.
 	#
-	##############################
+	#    This program is distributed in the hope that it will be useful,
+	#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+	#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	#    GNU General Public License for more details.
+	#
+	#    You should have received a copy of the GNU General Public License
+	#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	#
+	############################################################################
 
+	################# Documentation #####################################
+	#
+	#	Purpose: compute the autocovariance function of a differenced latent component
+	#	Background:	
+	#		A sigex model consists of process x = sum y, for 
+	#		stochastic components y.  Each component process y_t
+	#		is either stationary or is reduced to stationarity by
+	#		application of a differencing polynomial delta(B), i.e.
+	#			w_t = delta(B) y_t   is stationary.
+	#		We have a model for each w_t process, and can compute its
+	#		autocovariance function (acf), and denote its autocovariance
+	#		generating function (acgf) via gamma_w (B).
+	#			Sometimes we may over-difference,
+	#		which means applying a differencing polynomial eta(B) that
+	#		contains delta(B) as a factor: eta(B) = delta(B)*nu(B).
+	#		Then  eta(B) y_t = nu(B) w_t, and the corresponding 
+	#		acgf is   nu(B) * nu(B^{-1}) * gamma_w (B). 
+	#	Notes: this function computes the over-differenced acgf, 
+	#		it is presumed that the given eta(B) contains the needed delta(B)
+	#		for that particular component.
+	#	Inputs:
+	#		L.par: unit lower triangular matrix in GCD of the component's	
+	#			white noise covariance matrix.  (Cf. sigex.param2gcd background)
+	#		D.par: vector of logged entries of diagonal matrix in GCD
+	#			of the component's white noise covariance matrix.
+	#			(Cf. sigex.param2gcd background)
+	#		mdl: the specified sigex model, a list object
+	#		comp: index of the latent component
+	#		mdlPar: see background to sigex.par2zeta.  This is the portion of param
+	#			corresponding to mdl[[2]], cited as param[[3]]
+	#		delta: differencing polynomial (corresponds to eta(B) in Background)
+	#			written in format c(delta0,delta1,...,deltad)
+ 	#		maxlag: number of autocovariances required
+	#	Outputs:
+	#		x.acf: matrix of dimension N x N*maxlag, consisting of autocovariance
+	#			matrices stacked horizontally, i.e.
+	#			x.acf = [ gamma(0), gamma(1), ..., gamma(maxlag-1)]
+	#	Requires: polymult, polysum, ARMA2acf, VARMAauto, specFact,
+	#		specFactmvar, sigex.getcycle
+	#
+	####################################################################
+
+	N <- length(mdl[[2]])
 	mdlType <- mdl[[2]][comp]
 	d.delta <- length(delta)
 	xi.mat <- L.par %*% diag(exp(D.par),nrow=length(D.par)) %*% t(L.par)
@@ -32,7 +77,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,maxlag)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-		psi.acf <- ARMAacvf(ar = -1*cycle.AR[-1],ma = polymul(cycle.MA,delta)[-1],
+		psi.acf <- ARMA2acv(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
 			lag.max=maxlag)[1:maxlag]
 		x.acf <- psi.acf %x% xi.mat
 	}
@@ -43,15 +88,15 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,maxlag)
 		freq0 <- sum(canon.delta)^2 
 		freqpi <- sum(canon.delta*((-1)^(seq(0,canon.d-1))))^2
 		freqmax <- max(freq0,freqpi)								
-		ma.poly <- polymul(rev(canon.delta),canon.delta)
+		ma.poly <- polymult(rev(canon.delta),canon.delta)
 		psi.acf <- c(1,rep(0,canon.d-1))
 		psi.acf <- psi.acf - freqmax^{-1}*ma.poly[canon.d:(2*canon.d-1)]				
 		psi.acf <- c(rev(psi.acf),psi.acf[-1])
 		psi.ma <- Re(specFact(psi.acf))		
  		psi.scale <- psi.ma[1]^2
 		psi.ma <- psi.ma/psi.ma[1]	
-		psi.MA <- polymul(delta,psi.ma)
-		psi.acf <- ARMAacvf(ar = NULL, ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]	
+		psi.MA <- polymult(delta,psi.ma)
+		psi.acf <- ARMA2acv(ar = NULL, ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]	
 		psi.acf <- psi.acf*psi.scale
 		x.acf <- psi.acf %x% xi.mat
 	}
@@ -63,7 +108,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,maxlag)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-		psi.acf <- ARMAacvf(ar = -1*cycle.AR[-1],ma = polymul(cycle.MA,delta)[-1],
+		psi.acf <- ARMA2acv(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
 			lag.max=maxlag)[1:maxlag]
 		x.acf <- psi.acf %x% xi.mat
 	}
@@ -85,11 +130,11 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,maxlag)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-#		psi.acf <- ARMAacvf(ar = -1*cycle.AR[-1],ma = polymul(cycle.MA,delta)[-1],
+#		psi.acf <- ARMA2acv(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
 #			lag.max=maxlag)[1:maxlag]
-		psi.marep <- ARMAtoMA(ar = -1*cycle.AR[-1],ma = polymul(cycle.MA,delta)[-1],
+		psi.marep <- ARMAtoMA(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
 			lag.max=maxlag)[1:maxlag]
-		psi.acf <- ARMAacvf(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
+		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
 		x.acf <- psi.acf %x% xi.mat
 	}
 	if(mdlType %in% c("canonCycleBW1","canonCycleBW2","canonCycleBW3","canonCycleBW4",
@@ -111,8 +156,8 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,maxlag)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-#		psi.acf <- ARMAacvf(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
-		psi.acf <- polymul(cycle.MA,rev(cycle.MA))
+#		psi.acf <- ARMA2acv(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
+		psi.acf <- polymult(cycle.MA,rev(cycle.MA))
 		freq0 <- ((1-2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2-2*rho*cos(pi*omega))^2)^cycle.order
 		freqpi <- ((1+2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2+2*rho*cos(pi*omega))^2)^cycle.order
 		lambda.crit1 <- (1+rho^2*cos(pi*omega)^2 - sin(pi*omega)*sqrt(sin(pi*omega)^2 + cos(pi*omega)^2*(1-rho^2)^2))/(2*rho*cos(pi*omega))
@@ -125,15 +170,15 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,maxlag)
 			(1+4*rho^2*cos(pi*omega)^2 + rho^4 - 4*rho*(1+rho^2)*cos(pi*omega)*cos(lambda.crit2) + 2*rho^2*cos(2*lambda.crit2)))^cycle.order
 		freqmin <- min(freq0,freqpi,freqcrit1,freqcrit2) 
 #		psi.acf <- c(rev(psi.acf),psi.acf[-1])
-		psi.acf <- polysum(psi.acf,-freqmin*polymul(cycle.AR,rev(cycle.AR))) + 1e-10
+		psi.acf <- polysum(psi.acf,-freqmin*polymult(cycle.AR,rev(cycle.AR))) + 1e-10
 	 	psi.ma <- Re(specFact(psi.acf))
 		psi.scale <- psi.ma[1]^2
 		psi.ma <- psi.ma/psi.ma[1]	
-		psi.MA <- polymul(delta,psi.ma)
+		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- cycle.AR
-#		psi.acf <- ARMAacvf(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
+#		psi.acf <- ARMA2acv(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
 		psi.marep <- ARMAtoMA(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
-		psi.acf <- ARMAacvf(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
+		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
  		psi.acf <- psi.acf*psi.scale
 	#	psi.acf <- filter(rev(filter(psi.acf,delta,method="convolution",sides=2)),
 	#		delta,method="convolution",sides=2)
@@ -169,11 +214,11 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,maxlag)
 		psi.ma <- Re(specFact(ma.acf))	
 		psi.scale <- psi.ma[1]^2
 		psi.ma <- psi.ma/psi.ma[1]	
-		psi.MA <- polymul(delta,psi.ma)
+		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- cycle.AR
-#		psi.acf <- ARMAacvf(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
+#		psi.acf <- ARMA2acv(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
 		psi.marep <- ARMAtoMA(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
-		psi.acf <- ARMAacvf(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
+		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
 
 #	Alternate method based on Trimbur (2010) formulas; our method uses ARMA factorization
 #		alphas <- NULL
@@ -226,15 +271,15 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,maxlag)
 		freq0 <- (1 -2*rho*cos(pi*omega) + rho^2)^(-cycle.order)
 		freqpi <- (1 +2*rho*cos(pi*omega) + rho^2)^(-cycle.order)
 		freqmin <- min(freq0,freqpi)
-		ma.acf <- polysum(ma.acf,-freqmin*polymul(cycle.AR,rev(cycle.AR))) + 1e-10
+		ma.acf <- polysum(ma.acf,-freqmin*polymult(cycle.AR,rev(cycle.AR))) + 1e-10
 		psi.ma <- Re(specFact(ma.acf))	
 		psi.scale <- psi.ma[1]^2
 		psi.ma <- psi.ma/psi.ma[1]	
-		psi.MA <- polymul(delta,psi.ma)
+		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- cycle.AR
-#		psi.acf <- ARMAacvf(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
+#		psi.acf <- ARMA2acv(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
 		psi.marep <- ARMAtoMA(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
-		psi.acf <- ARMAacvf(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
+		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
 		psi.acf <- psi.acf*psi.scale
 		x.acf <- psi.acf %x% xi.mat
 	}
@@ -248,7 +293,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,maxlag)
 	if(mdlType == "ARMA22")
 	{
 		ma.poly <- c(1,mdlPar[3:4])
-		psi.acf <- ARMAacvf(ar = mdlPar[1:2], ma = polymul(ma.poly,delta)[-1], 
+		psi.acf <- ARMA2acv(ar = mdlPar[1:2], ma = polymult(ma.poly,delta)[-1], 
 			lag.max=maxlag)[1:maxlag]
 		x.acf <- psi.acf %x% xi.mat
 	}
