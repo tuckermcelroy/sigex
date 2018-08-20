@@ -1,24 +1,69 @@
-sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,grid)
+sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 {
 
-	###########################
+	##########################################################################
+	#
 	#	sigex.spectra
-	#		by Tucker McElroy
+	# 	    Copyright (C) 2017  Tucker McElroy
 	#
-	#   Computes scalar part of spectrum of a differenced latent 
-	#	multivariate component process
-	#	L.par is the entries of unit lower triangular in GCD of
-	#		the white noise covariance matrix
-	#	D.par is the log entries of diagonal matrix in GCD
-	#	mdl is the   model object
-	#	mdlPar is that portion of param corresponding to mdlType
-	#	N is the cross-sectional dimension
-	#	comp is the component, and delta is a given
-	#	    differencing polynomial;  the spectrum of
-	#		delta (B) x_t is calculated at grid number of frequencies
+	#    This program is free software: you can redistribute it and/or modify
+	#    it under the terms of the GNU General Public License as published by
+	#    the Free Software Foundation, either version 3 of the License, or
+	#    (at your option) any later version.
 	#
-	##############################################
+	#    This program is distributed in the hope that it will be useful,
+	#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+	#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	#    GNU General Public License for more details.
+	#
+	#    You should have received a copy of the GNU General Public License
+	#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	#
+	############################################################################
 
+	################# Documentation #####################################
+	#
+	#	Purpose: computes scalar part of spectrum of a differenced latent 
+	#		multivariate component process
+	#	Background:	
+	#		A sigex model consists of process x = sum y, for 
+	#		stochastic components y.  Each component process y_t
+	#		is either stationary or is reduced to stationarity by
+	#		application of a differencing polynomial delta(B), i.e.
+	#			w_t = delta(B) y_t   is stationary.
+	#		We have a model for each w_t process, and can compute its
+	#		autocovariance function (acf), and denote its autocovariance
+	#		generating function (acgf) via gamma_w (B).
+	#			Sometimes we may over-difference,
+	#		which means applying a differencing polynomial eta(B) that
+	#		contains delta(B) as a factor: eta(B) = delta(B)*nu(B).
+	#		Then  eta(B) y_t = nu(B) w_t, and the corresponding 
+	#		acgf is   nu(B) * nu(B^{-1}) * gamma_w (B). 
+	#	Notes: this function computes the over-differenced acgf, 
+	#		it is presumed that the given eta(B) contains the needed delta(B)
+	#		for that particular component.
+	#	Inputs:
+	#		L.par: unit lower triangular matrix in GCD of the component's	
+	#			white noise covariance matrix.  (Cf. sigex.param2gcd background)
+	#		D.par: vector of logged entries of diagonal matrix in GCD
+	#			of the component's white noise covariance matrix.
+	#			(Cf. sigex.param2gcd background)
+	#		mdl: the specified sigex model, a list object
+	#		comp: index of the latent component
+	#		mdlPar: see background to sigex.par2zeta.  This is the portion of param
+	#			corresponding to mdl[[2]], cited as param[[3]]
+	#		delta: differencing polynomial (corresponds to eta(B) in Background)
+	#			written in format c(delta0,delta1,...,deltad)
+ 	#		grid: desired number of frequencies for output spectrum
+	#	Outputs:
+	#		f.spec: array of dimension N x N x (grid+1), consisting of spectrum
+	#			at frequencies pi*j/grid for 0 <= j <= grid
+	#	Requires: polymult, polysum, ARMA2acf, VARMAauto, specFact,
+	#		specFactmvar, sigex.getcycle
+	#
+	####################################################################
+
+	N <- dim(L.par)[1]
 	mdlType <- mdl[[2]][comp]
 	d.delta <- length(delta)
 	xi.mat <- L.par %*% diag(exp(D.par),nrow=length(D.par)) %*% t(L.par)
@@ -34,7 +79,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,grid)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-		cycle.MA <- polymul(delta,cycle.MA) 
+		cycle.MA <- polymult(delta,cycle.MA) 
 		comp.MA <- array(t(cycle.MA %x% diag(N)),c(N,N,length(cycle.MA)))
 		comp.AR <- array(t(cycle.AR %x% diag(N)),c(N,N,length(cycle.AR)))
 		comp.sigma <- xi.mat
@@ -46,14 +91,14 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,grid)
 		freq0 <- sum(canon.delta)^2 
 		freqpi <- sum(canon.delta*((-1)^(seq(0,canon.d-1))))^2
 		freqmax <- max(freq0,freqpi)
-		ma.poly <- polymul(rev(canon.delta),canon.delta)
+		ma.poly <- polymult(rev(canon.delta),canon.delta)
 		psi.acf <- c(1,rep(0,canon.d-1))
 		psi.acf <- psi.acf - freqmax^{-1}*ma.poly[canon.d:(2*canon.d-1)]				
 		psi.acf <- c(rev(psi.acf),psi.acf[-1])
 		psi.ma <- Re(specFact(psi.acf))		
  		psi.scale <- psi.ma[1]^2
 		psi.ma <- psi.ma/psi.ma[1]	
- 		psi.MA <- polymul(delta,psi.ma)
+ 		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- 1
 		comp.MA <- array(t(psi.MA %x% diag(N)),c(N,N,length(psi.MA)))
 		comp.AR <- array(t(psi.AR %x% diag(N)),c(N,N,length(psi.AR)))
@@ -67,7 +112,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,grid)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-		cycle.MA <- polymul(delta,cycle.MA) 
+		cycle.MA <- polymult(delta,cycle.MA) 
 		comp.MA <- array(t(cycle.MA %x% diag(N)),c(N,N,length(cycle.MA)))
 		comp.AR <- array(t(cycle.AR %x% diag(N)),c(N,N,length(cycle.AR)))
 		comp.sigma <- xi.mat
@@ -90,7 +135,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,grid)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-		cycle.MA <- polymul(delta,cycle.MA) 
+		cycle.MA <- polymult(delta,cycle.MA) 
 		comp.MA <- array(t(cycle.MA %x% diag(N)),c(N,N,length(cycle.MA)))
 		comp.AR <- array(t(cycle.AR %x% diag(N)),c(N,N,length(cycle.AR)))
 		comp.sigma <- xi.mat
@@ -114,7 +159,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,grid)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-		psi.acf <- ARMAacvf(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
+		psi.acf <- ARMA2acf(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
 		freq0 <- ((1-2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2-2*rho*cos(pi*omega))^2)^cycle.order
 		freqpi <- ((1+2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2+2*rho*cos(pi*omega))^2)^cycle.order
 		lambda.crit1 <- (1+rho^2*cos(pi*omega)^2 - sin(pi*omega)*sqrt(sin(pi*omega)^2 + cos(pi*omega)^2*(1-rho^2)^2))/(2*rho*cos(pi*omega))
@@ -127,11 +172,11 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,grid)
 			(1+4*rho^2*cos(pi*omega)^2 + rho^4 - 4*rho*(1+rho^2)*cos(pi*omega)*cos(lambda.crit2) + 2*rho^2*cos(2*lambda.crit2)))^cycle.order
 		freqmin <- min(freq0,freqpi,freqcrit1,freqcrit2)
 		psi.acf <- c(rev(psi.acf),psi.acf[-1])
-		psi.acf <- polysum(psi.acf,-freqmin*polymul(cycle.AR,rev(cycle.AR)))
+		psi.acf <- polysum(psi.acf,-freqmin*polymult(cycle.AR,rev(cycle.AR)))
 		psi.ma <- Re(specFact(psi.acf))	
 		psi.scale <- psi.ma[1]^2
 		psi.ma <- psi.ma/psi.ma[1]	
-		psi.MA <- polymul(delta,psi.ma)
+		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- cycle.AR
 		comp.MA <- array(t(psi.MA %x% diag(N)),c(N,N,length(psi.MA)))
 		comp.AR <- array(t(psi.AR %x% diag(N)),c(N,N,length(psi.AR)))
@@ -166,7 +211,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,N,delta,grid)
 		psi.ma <- Re(specFact(ma.acf))	
 		psi.scale <- psi.ma[1]^2
 		psi.ma <- psi.ma/psi.ma[1]	
-		psi.MA <- polymul(delta,psi.ma)
+		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- cycle.AR
 		comp.MA <- array(t(psi.MA %x% diag(N)),c(N,N,length(psi.MA)))
 		comp.AR <- array(t(psi.AR %x% diag(N)),c(N,N,length(psi.AR)))
@@ -202,11 +247,11 @@ if(mdlType %in% c("canonCycleBAL1","canonCycleBAL2","canonCycleBAL3","canonCycle
 		freq0 <- (1 -2*rho*cos(pi*omega) + rho^2)^(-cycle.order)
 		freqpi <- (1 +2*rho*cos(pi*omega) + rho^2)^(-cycle.order)
 		freqmin <- min(freq0,freqpi)
-		ma.acf <- polysum(ma.acf,-freqmin*polymul(cycle.AR,rev(cycle.AR)))
+		ma.acf <- polysum(ma.acf,-freqmin*polymult(cycle.AR,rev(cycle.AR)))
 		psi.ma <- Re(specFact(ma.acf))	
 		psi.scale <- psi.ma[1]^2
 		psi.ma <- psi.ma/psi.ma[1]	
-		psi.MA <- polymul(delta,psi.ma)
+		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- cycle.AR
 		comp.MA <- array(t(psi.MA %x% diag(N)),c(N,N,length(psi.MA)))
 		comp.AR <- array(t(psi.AR %x% diag(N)),c(N,N,length(psi.AR)))
@@ -216,7 +261,7 @@ if(mdlType %in% c("canonCycleBAL1","canonCycleBAL2","canonCycleBAL3","canonCycle
 	{
 		ar.poly <- c(1,-1*mdlPar[1:2])
 		ma.poly <- c(1,mdlPar[3:4])
-		ma.poly <- polymul(delta,ma.poly)
+		ma.poly <- polymult(delta,ma.poly)
 		comp.MA <- array(t(ma.poly %x% diag(N)),c(N,N,length(ma.poly)))
 		comp.AR <- array(t(ar.poly %x% diag(N)),c(N,N,length(ar.poly)))
 		comp.sigma <- xi.mat

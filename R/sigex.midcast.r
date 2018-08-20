@@ -1,9 +1,9 @@
-sigex.cast <- function(psi,mdl,data.ts,leads)
+sigex.midcast <- function(psi,mdl,data.ts,leads)
 {
 
 	##########################################################################
 	#
-	#	sigex.cast
+	#	sigex.midcast
 	# 	    Copyright (C) 2017  Tucker McElroy
 	#
 	#    This program is free software: you can redistribute it and/or modify
@@ -23,8 +23,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 
 	################# Documentation #####################################
 	#
-	#	Purpose: computes forecasts and aftcasts, without uncertainty;
-	#		a faster version of sigex.midcast, if you don't need midcasts
+	#	Purpose: computes predictors for variables at various indices
 	#	Background:	
 	#		psi refers to a vector of real numbers containing all
 	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
@@ -40,11 +39,17 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 	#			to be a subset of {1,2,...,T}.  Include integers greater than
 	#			T to get forecasts, or less than 1 to get aftcasts. 
 	#	Outputs:
-	#		x.casted: N x (T+H) matrix of aftcasts, data, and forecasts, where H
-	#			is the total number of forecasts and aftcasts	
+	#		list containing casts.x and casts.var 
+	#		casts.x: N x H matrix of forecasts, midcasts, aftcasts, where H
+	#			is the total number of time indices with missing values,
+	#			given by cardinality( leads setminus {1,2,...,T} )	
+	#		casts.var: NH x NH matrix of covariances of casting errors.
+	#			note that casts.var.array <- array(casts.var,c(N,H,N,H)) 
+	#			corresponds to cast.var.array[,j,,k] equal to the 
+	#			covariance between the jth and kth casting errors
 	#	Notes: presumes that regression effects have already been removed.
 	#	Requires: sigex.param2gcd, sigex.zeta2par, sigex.zetalen, sigex.acf, sigex.delta,
-	#			mvar.forecast2
+	#			mvar.midcast2
 	#
 	####################################################################
 
@@ -54,14 +59,20 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 	psi <- Re(psi)
 	boundlist <- mdl[[5]]
 
-	indices <- union(seq(1,T),leads)
-	aft.index <- min(indices)
-	fore.index <- max(indices)
+	z <- x
+	leads.mid <- intersect(seq(1,T),leads)
+	leads.out <- setdiff(leads,leads.mid)
+	leads.fore <- leads.out[leads.out>0]
+	leads.aft <- setdiff(leads.out,leads.fore)
+	if(length(leads.mid)>0) { z[,leads.mid] <- rep(1i,N) }
+	if(length(leads.fore)>0) { z <- cbind(z,matrix(1i,nrow=N,ncol=length(leads.fore))) }
+	if(length(leads.aft)>0) { z <- cbind(matrix(1i,nrow=N,ncol=length(leads.aft)),z) }
+	TH <- dim(z)[2]
 
 	L.par <- mdl[[3]]
 	D.par <- mdl[[3]]
 	zeta.par <- vector("list",length(mdl[[3]]))
-	acf.mat <- matrix(0,nrow=N*length(indices),ncol=N)
+	acf.mat <- matrix(0,nrow=N*TH,ncol=N)
 	
 	# get xi portion
 	ind <- 0
@@ -105,67 +116,32 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,N,bounds)
 		}
 		ind <- ind + zetalen
-	
+
 		delta <- sigex.delta(mdl,i)
-		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,length(indices))		
+		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,TH)		
 	}
 
-	x.acf <- array(acf.mat,dim=c(N,length(indices),N))
+	x.acf <- array(acf.mat,dim=c(N,TH,N))
 	reg.vec <- beta.par	
 
-	# subtract regression effects
+	# subtract regression effects from available sample only
 	ind <- 0
-	data.diff <- data.ts
+	my.times <- seq(1+length(leads.aft),T+length(leads.aft))
 	for(k in 1:N)
 	{
 		reg.mat <- mdl[[4]][[k]]
 		len <- dim(reg.mat)[2]
-		data.diff[,k] <- data.diff[,k] - reg.mat %*% reg.vec[(ind+1):(ind+len)]
+		z[k,my.times] <- z[k,my.times] - reg.mat %*% reg.vec[(ind+1):(ind+len)]
 		ind <- ind+len
 	}
 
-	# difference the data
-	fulldiff <-  sigex.delta(mdl,0)
-	del <- length(fulldiff) - 1
-	x.diff <- as.matrix(filter(data.diff,fulldiff,method="convolution",
-		sides=1)[length(fulldiff):T,])
-	Tdiff <- dim(x.diff)[1]
-	x.diff <- t(x.diff)
- 
-	fore.cast <- NULL
-	aft.cast <- NULL
-	if(fore.index > T)
-	{
-		x.fore <- cbind(x.diff,matrix(1i,N,(fore.index-T)))
-		diff.cast <- mvar.forecast2(x.acf,x.fore,FALSE)[[1]]
-		if(del > 0) {
-			fore.cast <- as.matrix(filter(init = matrix(data.diff[del:1,],ncol=N),
-				x=t(diff.cast)/fulldiff[1],filter=-1*fulldiff[-1]/fulldiff[1],
-				method="recursive"))
-		} else { fore.cast <- t(diff.cast) }
-		fore.cast <- as.matrix(fore.cast[(Tdiff+1):(Tdiff+fore.index-T),])
-		fore.cast <- t(fore.cast)		
-	}
-	if(aft.index < 1)
-	{
-		x.rev <- t(as.matrix(t(x.diff)[seq(Tdiff,1),]))
-		x.aft <- cbind(x.rev,matrix(1i,N,(1-aft.index)))
-		diff.cast <- mvar.forecast2(aperm(x.acf,c(3,2,1)),x.aft,FALSE)[[1]]
- 		if(del > 0) {
-			aft.cast <- as.matrix(filter(init = matrix(data.diff[(Tdiff+1):T,],ncol=N),
-				x=t(diff.cast)/fulldiff[del+1],filter=-1*rev(fulldiff)[-1]/fulldiff[del+1],
-				method="recursive"))
-		} else { aft.cast <- t(diff.cast) }
-		aft.cast <- as.matrix(aft.cast[(Tdiff+1):(Tdiff+1-aft.index),])
-		aft.cast <- as.matrix(aft.cast[seq(1-aft.index,1),])
-		aft.cast <- t(aft.cast)		
-	}
-	x.casted <- cbind(aft.cast,t(data.diff),fore.cast)
-	x.real <- x.casted
-	if(length(aft.cast) > 0) { x.real[,1:dim(aft.cast)[2]] <- NA }
-	if(length(fore.cast) > 0) { x.real[,(dim(x.real)[2]-dim(fore.cast)[2]):dim(x.real)[2]] <- NA }
-
-	return(x.casted)
+	delta <- sigex.delta(mdl,0)
+	attempt <- try(mvar.midcast2(x.acf,z,delta))
+	if(!inherits(attempt, "try-error")) {
+		casts.x <- attempt[[1]]
+		casts.var <- attempt[[2]] }
+	
+	return(list(casts.x,casts.var))
 }
 
 
