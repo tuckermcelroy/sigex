@@ -1,3 +1,23 @@
+#' applies some preliminary transformations to the data
+#'
+#' @param data.ts a T x N matrix ts object,
+#'			corresponding to N time series of length T
+#' @param transform a character indicating an instantaneous
+#'			transformation to be applied; current options are
+#'			"none", "log", and "logistic"
+#' @param aggregate a boolean, set to TRUE if all subseries are to
+#'			be aggregated into a total
+#' @param subseries sequence of indices between 1 and N,
+#'			indicating which series	to examine
+#' @param range if set to NULL, take full span of data, otherwise
+#'			subset the times corresponding to indices in range
+#' @param plot boolean, whether to plot the series (max of N=10 allowed)
+#'
+#' @return data.ts: a T x N0 matrix ts object, where N0=1 if
+#'			aggregate=TRUE, otherwise N0=N
+#' @export
+#'
+
 sigex.prep <- function(data.ts,transform,aggregate,subseries,range=NULL,plot=FALSE)
 {
 
@@ -26,20 +46,20 @@ sigex.prep <- function(data.ts,transform,aggregate,subseries,range=NULL,plot=FAL
 	#	Purpose: applies some preliminary transformations to the data
 	#
 	#	Inputs:
-	#		data.ts: a T x N matrix ts object, 
+	#		data.ts: a T x N matrix ts object,
 	#			corresponding to N time series of length T
-	#		transform: a character indicating an instantaneous 
+	#		transform: a character indicating an instantaneous
 	#			transformation to be applied; current options are
 	#			"none", "log", and "logistic"
 	#		aggregate: a boolean, set to TRUE if all subseries are to
-	#			be aggregated into a total 
+	#			be aggregated into a total
 	#		subseries: sequence of indices between 1 and N,
 	#			indicating which series	to examine
 	#		range: if set to NULL, take full span of data, otherwise
 	#			subset the times corresponding to indices in range
 	#		plot: boolean, whether to plot the series (max of N=10 allowed)
 	#	Outputs:
-	#		data.ts: a T x N0 matrix ts object, where N0=1 if 
+	#		data.ts: a T x N0 matrix ts object, where N0=1 if
 	#			aggregate=TRUE, otherwise N0=N
 	#
 	####################################################################
@@ -47,7 +67,7 @@ sigex.prep <- function(data.ts,transform,aggregate,subseries,range=NULL,plot=FAL
 	if(length(range)==0) { range <- seq(1,dim(data.ts)[1]) }
 
  	data.ts <- sigex.transform(data.ts[range,subseries,drop=FALSE],transform,aggregate)
-	if(plot) { plot(data.ts,xlab="Year") } 
+	if(plot) { plot(data.ts,xlab="Year") }
 
 	return(data.ts)
 }

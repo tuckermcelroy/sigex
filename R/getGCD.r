@@ -1,3 +1,15 @@
+#' computes the generalized Cholesky decomposition
+#'
+#' @param Sigma symmetric, non-negative definite matrix
+#' @param Rank presumed rank of Sigmma, less than or equal
+#'	  		to the dimension of the matrix
+#'
+#' @return list of length 2 giving L.mat and D.mat.
+#'    L.mat: rectangular, lower Cholesky factor
+#'		D.mat: vector of diagonal entries in Cholesky decomposition
+#' @export
+#'
+
 getGCD <- function(Sigma,Rank)
 {
 
@@ -26,7 +38,7 @@ getGCD <- function(Sigma,Rank)
 	#	Purpose: computes the generalized Cholesky decomposition
 	#
 	#	Inputs:
-	#		Sigma: symmetric, non-negative definite matrix 
+	#		Sigma: symmetric, non-negative definite matrix
 	#		Rank: presumed rank of Sigmma, less than or equal
 	#	  		to the dimension of the matrix
 	#	Outputs:
@@ -35,7 +47,7 @@ getGCD <- function(Sigma,Rank)
 	#	Notes: Sigma = L D L', where D is diagonal of dimension equal to
 	#		the rank, with positive entries, and L is unit lower triangular
 	#		with number of columns equal to rank
-	#	
+	#
 	#####################################################################
 
 	N <- dim(Sigma)[1]
@@ -45,7 +57,7 @@ getGCD <- function(Sigma,Rank)
 	if(N > 1) {
 	for(j in 2:N)
 	{
-		
+
 		D.inv <- 1/D.mat
 		D.inv[D.mat==0] <- 0
 		new.sigma <- Sigma[j,1:(j-1)]
@@ -61,7 +73,7 @@ getGCD <- function(Sigma,Rank)
 		if(new.d <= 0) { new.d <- 0 }
 		D.mat <- c(D.mat,new.d)
 	} }
-	
+
 	rank.index <- rank(D.mat,ties.method="first")
 	dims <- seq(1,N)[rank.index > (N-Rank)]
 

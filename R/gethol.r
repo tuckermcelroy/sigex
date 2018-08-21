@@ -1,6 +1,24 @@
+#' generates holiday regressors from holiday dates
+#'
+#' @param hol.dates list of dates in month-day-year format;
+#'			this is a matrix with one row for each holiday date,
+#'			and 3 columns for month, day in month, and year
+#' @param hol.fore number of days before holiday, where effect begins
+#' @param hol.aft number of days after holiday, where effect ends
+#' @param start.date start date of time series in month-day-year format,
+#'  		a 3-element vector
+#' @param end.date end date of time series in month-day-year format,
+#'			a 3-element vector
+#'
+#' @return subset.hol.reg: regressors corresponding to the holiday effect,
+#'			with an activity window determined by hol.fore and hol.aft,
+#'			and at dates between start.date and end.date
+#' @export
+#'
+
 gethol <- function(hol.dates,hol.fore,hol.aft,start.date,end.date)
 {
-	
+
 	##########################################################################
 	#
 	#	gethol
@@ -87,9 +105,9 @@ gethol <- function(hol.dates,hol.fore,hol.aft,start.date,end.date)
 		if(year >= start.date[3]) {
 			i1 <- date2day(1,1,year) + ny
 			i2 <- date2day(12,31,year) + ny
-			hol.new <- hol.reg[i1:i2] 
+			hol.new <- hol.reg[i1:i2]
 			if(date2day(12,31,year)==365) {
-				hol.new <- hol.new - hol.means[-leap.index]  
+				hol.new <- hol.new - hol.means[-leap.index]
 			} else { hol.new <- hol.new - hol.means }
 			if(year==start.date[3]) { hol.new <- hol.new[start.day:length(hol.new)] }
 			if(year==end.date[3]) { hol.new <- hol.new[1:end.day] }
@@ -97,7 +115,7 @@ gethol <- function(hol.dates,hol.fore,hol.aft,start.date,end.date)
 		}
 		ny <- ny + date2day(12,31,year)
 	}
-		
+
 	return(subset.hol.reg)
 }
 

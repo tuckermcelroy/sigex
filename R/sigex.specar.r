@@ -1,3 +1,16 @@
+#' plot AR spectrum of input time series
+#'
+#' @param data.ts a T x N matrix ts object,
+#'			corresponding to N time series of length T
+#' @param diff boolean, if TRUE difference the series
+#'			and plot Growth Rate, else in Levels
+#' @param subseries index between 1 and N, indicating which series
+#'			to examine
+#'
+#' @return NA
+#' @export
+#'
+
 sigex.specar <- function(data.ts,diff=FALSE,subseries)
 {
 
@@ -26,7 +39,7 @@ sigex.specar <- function(data.ts,diff=FALSE,subseries)
 	#	Purpose: plot AR spectrum of input time series
 	#
 	#	Inputs:
-	#		data.ts: a T x N matrix ts object, 
+	#		data.ts: a T x N matrix ts object,
 	#			corresponding to N time series of length T
 	#		diff: boolean, if TRUE difference the series
 	#			and plot Growth Rate, else in Levels

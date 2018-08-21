@@ -1,3 +1,13 @@
+#' converts month-day-year date, and returns day index
+#'
+#' @param month 1 through 12, corresponding to the date's month
+#' @param day 1 through 31, corresponding to the date's day
+#' @param year 0 through ???, corresponding to the date's year (A.D.)
+#'
+#' @return day.count: day index within a year of the given date, from 1 to 366
+#' @export
+#'
+
 date2day <- function(month,day,year)
 {
 
@@ -23,7 +33,7 @@ date2day <- function(month,day,year)
 
 	################# Documentation #####################################
 	#
-	#	Purpose: converts month-day-year date, and returns day index 
+	#	Purpose: converts month-day-year date, and returns day index
 	#
 	#	Inputs:
 	#		month: 1 through 12, corresponding to the date's month
@@ -35,15 +45,15 @@ date2day <- function(month,day,year)
 	#####################################################################
 
 	leap.flag <- 0
-	if(((year %% 4 == 0) && (year %% 100 != 0)) || (year %% 400 == 0)){ 
+	if(((year %% 4 == 0) && (year %% 100 != 0)) || (year %% 400 == 0)){
 		leap.flag <- 1}
-	
+
 	day.count <- 0
 	if(month==1) { day.count <- day } else {
 	for(month.count in 1:(month-1))
 	{
 		if(month.count==1) day.add <- 31
-		if(month.count==2){ 
+		if(month.count==2){
 			day.add <- 28
 			if(leap.flag) day.add <- 29
 		}
@@ -61,5 +71,5 @@ date2day <- function(month,day,year)
 	day.count <- day.count + day
 	}
 
-	return(day.count)	
+	return(day.count)
 }

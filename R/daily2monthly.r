@@ -1,3 +1,17 @@
+#' converts a daily time series to a monthly time series
+#'
+#' @param daily.series the input daily time series
+#' @param start.date beginning date in month-day-year format,
+#'			a 3-element vector
+#' @param dayofweek day of the week, 1 through 7
+#'
+#' @return monthly.series: each monthly value is the aggregate of
+#'			all daily values in that month, of the specified
+#'			day of the week
+#' @export
+#'
+
+
 daily2monthly <- function(daily.series,start.date,dayofweek)
 {
 
@@ -34,7 +48,7 @@ daily2monthly <- function(daily.series,start.date,dayofweek)
 	#		monthly.series: each monthly value is the aggregate of
 	#			all daily values in that month, of the specified
 	#			day of the week
-	#	Requires: 
+	#	Requires:
 	# 		day2date, date2day, day2week
 	#
 	#####################################################################
@@ -43,7 +57,7 @@ daily2monthly <- function(daily.series,start.date,dayofweek)
 	my.dates <- t(apply(as.matrix(seq(0,T-1,1)),1,day2date,start.date))
 	my.days <- rep(1,floor(T/7)+3) %x% t(seq(1,7))
 	my.days <- matrix(t(my.days),ncol=1)
-	my.days <- my.days[day2week(my.dates[1,]):(T+day2week(my.dates[1,])-1)]	
+	my.days <- my.days[day2week(my.dates[1,]):(T+day2week(my.dates[1,])-1)]
  	dated.daily <- cbind(daily.series,my.days,my.dates)
 	sub.series <- dated.daily[dated.daily[,2]==dayofweek,]
 	monthly.series <- unique(sub.series[,c(3,5)])
