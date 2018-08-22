@@ -59,7 +59,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 	#			matrices stacked horizontally, i.e.
 	#			x.acf = [ gamma(0), gamma(1), ..., gamma(maxlag-1)]
 	#	Requires: polymult, polysum, ARMA2acf, VARMAauto, specFact,
-	#		specFactmvar, sigex.getcycle
+	#		specFactmvar, sigex.getcycle, sigex.canonize
 	#
 	####################################################################
 
@@ -110,6 +110,25 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		cycle.MA <- out[[2]]
 		psi.acf <- ARMA2acv(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
 			lag.max=maxlag)[1:maxlag]
+		x.acf <- psi.acf %x% xi.mat
+	}
+	if(mdlType == "MA1")
+	{
+		ar.poly <- 1
+		ma.poly <- c(1,mdlPar[1])
+		ma.poly <- polymult(delta,ma.poly)
+		psi.acf <- ARMA2acv(ar = NULL, ma = ma.poly[-1],lag.max=maxlag)[1:maxlag]	
+		x.acf <- psi.acf %x% xi.mat
+	}
+	if(mdlType == "canonMA1")
+	{
+		canon.delta <- mdl[[3]][[comp]]
+		psi.ma <- sigex.canonize(mdlPar[1],-1*canon.delta[-1])
+		psi.scale <- psi.ma[1]^2
+		psi.ma <- psi.ma/psi.ma[1]	
+		psi.MA <- polymult(delta,psi.ma)
+		psi.acf <- ARMA2acv(ar = NULL, ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]	
+		psi.acf <- psi.acf*psi.scale
 		x.acf <- psi.acf %x% xi.mat
 	}
 	if(mdlType %in% c("cycleBW1","cycleBW2","cycleBW3","cycleBW4","cycleBW5",

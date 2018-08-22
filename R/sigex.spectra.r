@@ -59,7 +59,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 	#		f.spec: array of dimension N x N x (grid+1), consisting of spectrum
 	#			at frequencies pi*j/grid for 0 <= j <= grid
 	#	Requires: polymult, polysum, ARMA2acf, VARMAauto, specFact,
-	#		specFactmvar, sigex.getcycle
+	#		specFactmvar, sigex.getcycle, sigex.canonize
 	#
 	####################################################################
 
@@ -116,6 +116,27 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 		comp.MA <- array(t(cycle.MA %x% diag(N)),c(N,N,length(cycle.MA)))
 		comp.AR <- array(t(cycle.AR %x% diag(N)),c(N,N,length(cycle.AR)))
 		comp.sigma <- xi.mat
+	}
+	if(mdlType == "MA1")
+	{
+		ar.poly <- 1
+		ma.poly <- c(1,mdlPar[1])
+		ma.poly <- polymult(delta,ma.poly)
+		comp.MA <- array(t(ma.poly %x% diag(N)),c(N,N,length(ma.poly)))
+		comp.AR <- array(t(ar.poly %x% diag(N)),c(N,N,length(ar.poly)))
+		comp.sigma <- xi.mat
+	}
+	if(mdlType == "canonMA1")
+	{
+		canon.delta <- mdl[[3]][[comp]]
+		psi.ma <- sigex.canonize(mdlPar[1],-1*canon.delta[-1])
+		psi.scale <- psi.ma[1]^2
+		psi.ma <- psi.ma/psi.ma[1]	
+		psi.MA <- polymult(delta,psi.ma)
+		psi.AR <- 1
+		comp.MA <- array(t(psi.MA %x% diag(N)),c(N,N,length(psi.MA)))
+		comp.AR <- array(t(psi.AR %x% diag(N)),c(N,N,length(psi.AR)))
+		comp.sigma <- psi.scale*xi.mat
 	}
 	if(mdlType %in% c("cycleBW1","cycleBW2","cycleBW3","cycleBW4","cycleBW5",
 		"cycleBW6","cycleBW7","cycleBW8","cycleBW9","cycleBW10"))

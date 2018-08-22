@@ -61,6 +61,11 @@ sigex.par2zeta <- function(mdlPar,mdlType,bounds)
 		zeta <- (mdlPar[1] - low.rho)/(upp.rho - low.rho)
 		zeta <- log(1 + zeta) - log(1 - zeta)
 	}
+	if(mdlType %in% c("MA1","canonMA1")) 
+	{ 
+		theta1 <- mdlPar[1]
+		zeta <- log(1 + theta1) - log(1 - theta1)
+	} 
 	if(mdlType %in% c("cycleBW1","cycleBW2","cycleBW3","cycleBW4","cycleBW5",
 		"cycleBW6","cycleBW7","cycleBW8","cycleBW9","cycleBW10",
 		"canonCycleBW1","canonCycleBW2","canonCycleBW3","canonCycleBW4",

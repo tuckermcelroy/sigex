@@ -1,19 +1,64 @@
-sigex.signal <- function(data,param,mdl,sigcomps)
+sigex.signal <- function(data.ts,param,mdl,sigcomps)
 {
 
-	###############################
-	#   sigex.signal
-	#	by Tucker McElroy	
+	##########################################################################
 	#
-	#	Computes signal extraction matrix and error cov matrix
-	#		param must be in format yielded by sigex.default
-	#		sigcomps provides indices of the desired components
-	#     Output is in array form of dimension c(T,N,T,N), which are NxN number 
-	#		of blocks each of size TxT, for filter matrix F and cov matrix V
+	#	sigex.signal
+	# 	    Copyright (C) 2017  Tucker McElroy
 	#
-	#################################
+	#    This program is free software: you can redistribute it and/or modify
+	#    it under the terms of the GNU General Public License as published by
+	#    the Free Software Foundation, either version 3 of the License, or
+	#    (at your option) any later version.
+	#
+	#    This program is distributed in the hope that it will be useful,
+	#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+	#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	#    GNU General Public License for more details.
+	#
+	#    You should have received a copy of the GNU General Public License
+	#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	#
+	############################################################################
 
-	x <- t(data)
+	################# Documentation ############################################
+	#
+	#	Purpose: computes signal extraction matrix and error covariance matrix
+	#	Background:	
+	#		A sigex model consists of process x = sum y, for 
+	#		stochastic components y.  Each component process y_t
+	#		is either stationary or is reduced to stationarity by
+	#		application of a differencing polynomial delta(B), i.e.
+	#			w_t = delta(B) y_t   is stationary.
+	#		We have a model for each w_t process, and can compute its
+	#		autocovariance function (acf), and denote its autocovariance
+	#		generating function (acgf) via gamma_w (B).
+	#		The signal extraction filter for y_t is determined from
+	#		this acgf and delta.
+	#		param is the name for the model parameters entered into 
+	#		a list object with a more intuitive structure, whereas
+	#		psi refers to a vector of real numbers containing all
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
+	#		manifold) together with imaginary component flagging 
+	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#	Inputs:
+	#		data.ts: a T x N matrix ts object
+	#		param: see background.  Must have form specified by mdl
+	#		mdl: the specified sigex model, a list object
+	#		sigcomps: indices of the latent components composing the signal
+	#	Outputs:
+	#		list object of f.mat and v.mat
+	#		f.mat: array of dimension c(T,N,T,N), where f.mat[,j,,k]
+	#			is the signal extraction matrix that utilizes input series k
+	#			to generate the signal estimate for series j.
+	#		v.mat:  array of dimension c(T,N,T,N), where v.mat[,j,,k]
+	#			is the error covariance matrix arising from input series k
+	#			used to generate the signal estimate for series j.
+	#	Requires: sigex.delta, sigex.blocktoep, sigex.acf
+	#
+	####################################################################
+ 
+	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
 
@@ -31,30 +76,26 @@ sigex.signal <- function(data,param,mdl,sigcomps)
 	delta.noise <- sigex.delta(mdl,sigcomps)
 	delta.noise <- array(t(delta.noise %x% diag(N)),c(N,N,length(delta.noise)))	
 	TdiffNoise <- T - dim(delta.noise)[3] + 1
-#	print("HERE")
 
 	delta.data2 <- array(0,c(N,N,T))
 	delta.data2[,,1:dim(delta.data)[3]] <- delta.data[,,1:dim(delta.data)[3]]
 	delta.data.mat <- sigex.blocktoep(delta.data2)[,dim(delta.data)[3]:T,,]
 	delta.data.mat <- matrix(delta.data.mat,ncol=N*T)
-#	print("HERE")
-
+ 
 	delta.signal2 <- array(0,c(N,N,T))
 	delta.signal2[,,1:dim(delta.signal)[3]] <- delta.signal[,,1:dim(delta.signal)[3]]
 	delta.signal.bigmat <- sigex.blocktoep(delta.signal2)[,dim(delta.signal)[3]:T,,]
 	delta.signal.bigmat <- matrix(delta.signal.bigmat,ncol=N*T)
 	delta.signal.smallmat <- sigex.blocktoep(delta.signal2)[,dim(delta.data)[3]:T,,dim(delta.noise)[3]:T]
 	delta.signal.smallmat <- matrix(delta.signal.smallmat,nrow=N*Tdiff)
-#	print("HERE")
-
+ 
 	delta.noise2 <- array(0,c(N,N,T))
 	delta.noise2[,,1:dim(delta.noise)[3]] <- delta.noise[,,1:dim(delta.noise)[3]]
 	delta.noise.bigmat <- sigex.blocktoep(delta.noise2)[,dim(delta.noise)[3]:T,,]
 	delta.noise.bigmat <- matrix(delta.noise.bigmat,ncol=N*T)
 	delta.noise.smallmat <- sigex.blocktoep(delta.noise2)[,dim(delta.data)[3]:T,,dim(delta.signal)[3]:T]
 	delta.noise.smallmat <- matrix(delta.noise.smallmat,nrow=N*Tdiff)
-#	print("HERE")
-
+ 
 	######################################
 	# compute autocovariances
 
@@ -67,8 +108,7 @@ sigex.signal <- function(data,param,mdl,sigcomps)
 		D.par[[i]] <- param[[2]][[i]]
 		mdlType <- mdl[[2]][i]	
 		delta <- sigex.delta(mdl,i)
-		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,
-			param[[3]][[i]],N,delta,T)		
+		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,T)		
 	}
 	x.acf <- array(acf.mat,dim=c(N,T,N))
 
@@ -77,8 +117,7 @@ sigex.signal <- function(data,param,mdl,sigcomps)
 	{
 		mdlType <- mdl[[2]][i]
 		delta <- sigex.delta(mdl,c(noisecomps,i))
-		acfsignal.mat <- acfsignal.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,
-			param[[3]][[i]],N,delta,TdiffSig)		
+		acfsignal.mat <- acfsignal.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,TdiffSig)		
 	}
 	signal.acf <- array(acfsignal.mat,dim=c(N,TdiffSig,N))
 
@@ -87,8 +126,7 @@ sigex.signal <- function(data,param,mdl,sigcomps)
 	{
 		mdlType <- mdl[[2]][i]
 		delta <- sigex.delta(mdl,c(sigcomps,i))
-		acfnoise.mat <- acfnoise.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,
-			param[[3]][[i]],N,delta,TdiffNoise)		
+		acfnoise.mat <- acfnoise.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,TdiffNoise)		
 	}
 	noise.acf <- array(acfnoise.mat,dim=c(N,TdiffNoise,N))
 
@@ -121,7 +159,6 @@ sigex.signal <- function(data,param,mdl,sigcomps)
 		newa <- aseq - bseq %*% afact
 		bseq <- rbind(bfact,newb)
 		aseq <- rbind(newa,afact)
-#		print(t)
 	} 
 	gamSeq <- cbind(x.acf[,Tdiff,],gamSeq)
 	gamFlip <- rbind(gamFlip,x.acf[,Tdiff,])
@@ -131,29 +168,18 @@ sigex.signal <- function(data,param,mdl,sigcomps)
 	Ominv <- solve(Om)
 	Gaminv <- rbind(cbind(Ominv, -1*Ominv %*% t(aseq)),
 		cbind(-1*aseq %*% Ominv, Gaminv + aseq %*% Ominv %*% t(aseq)))
-
-# Construct K matrix
-#	Kcommut <- function(vect,m,n)
-#	{
-#		return(matrix(t(matrix(vect,nrow=m,ncol=n)),ncol=1))
-#	}
-#	temp <- apply(Gaminv,2,Kcommut,N,Tdiff)
-#	KGaminv <- t(apply(t(temp),2,Kcommut,N,Tdiff))
-#	GaminvArray <- array(KGaminv,dim=c(Tdiff,N,Tdiff,N))
 	
 	signal.acf2 <- array(0,c(dim(signal.acf)[1],dim(signal.acf)[3],dim(signal.acf)[2]))
-	for(t in 1:dim(signal.acf2)[3]) { signal.acf2[,,t] <- signal.acf[,t,] }
+	signal.acf2 <- aperm(signal.acf,c(1,3,2))
 	signal.acf2[,,1] <- signal.acf[,1,]/2
 	signal.toep <- matrix(sigex.blocktoep(signal.acf2),N*(TdiffSig),N*(TdiffSig))
 	signal.toep <- signal.toep + t(signal.toep)
-#	print("HERE")
 
 	noise.acf2 <- array(0,c(dim(noise.acf)[1],dim(noise.acf)[3],dim(noise.acf)[2]))
-	for(t in 1:dim(noise.acf2)[3]) { noise.acf2[,,t] <- noise.acf[,t,] }
+	noise.acf2 <- aperm(noise.acf,c(1,3,2))
 	noise.acf2[,,1] <- noise.acf[,1,]/2
 	noise.toep <- matrix(sigex.blocktoep(noise.acf2),N*(TdiffNoise),N*(TdiffNoise))
 	noise.toep <- noise.toep + t(noise.toep)
-#	print("HERE")
 
 	# compute sig ex formulas
 	m.mat <- t(delta.signal.bigmat) %*% delta.signal.bigmat + t(delta.noise.bigmat) %*% delta.noise.bigmat

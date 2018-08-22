@@ -1,30 +1,60 @@
-sigex.momfit <- function(data,param,mdl)
+sigex.momfit <- function(data.ts,param,mdl)
 {
-	#################################
-	#   sigex.momfit
-	#	by Tucker McElroy	
-	#
-	#	Computes initial parameter estimates by method of moments;
-	#		ARMA model parameters are not estimated, but taken as given
-	#
-	#################################
 
-	x <- t(data)
+	##########################################################################
+	#
+	#	sigex.mlefit
+	# 	    Copyright (C) 2017  Tucker McElroy
+	#
+	#    This program is free software: you can redistribute it and/or modify
+	#    it under the terms of the GNU General Public License as published by
+	#    the Free Software Foundation, either version 3 of the License, or
+	#    (at your option) any later version.
+	#
+	#    This program is distributed in the hope that it will be useful,
+	#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+	#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	#    GNU General Public License for more details.
+	#
+	#    You should have received a copy of the GNU General Public License
+	#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	#
+	############################################################################
+
+	################# Documentation #####################################
+	#
+	#	Purpose: computes initial parameter estimates by method of moments
+	#	Background:	
+	#		param is the name for the model parameters entered into 
+	#		a list object with a more intuitive structure, whereas
+	#		psi refers to a vector of real numbers containing all
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
+	#		manifold) together with imaginary component flagging 
+	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#	Notes: does not handle missing values in data.ts.
+	#		ARMA model parameters are not estimated, but taken as given
+	#	Inputs:
+	#		data.ts: a T x N matrix ts object
+	#		param: see background; this is an initial specification for
+	#			the covariance matrix parameters, taking all ARMA
+	#			parameters as fixed.
+	#		mdl: the specified sigex model, a list object
+	#	Outputs:
+	#		par.new: type param, with the estimated covariance parameters filled in
+	#	Requires: sigex.delta, sigex.getcycle, polymult, polysum, specFact,
+	#		ARMA2acf, getGCD, sigex.canonize		
+	#
+	####################################################################
+  
+	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
 	par.new <- param
 
 	fulldiff <- sigex.delta(mdl,0)
-	if(N==1) { 
-		data <- filter(t(x),fulldiff,method="convolution",
-			sides=1)[length(fulldiff):T] 
-		data <- matrix(data,ncol=1)
-		Tdiff <- length(data)
-	} else {
-		data <- filter(t(x),fulldiff,method="convolution",
-			sides=1)[length(fulldiff):T,] 
-		Tdiff <- dim(data)[1]
-	}
+	data.diff <- filter(t(x),fulldiff,method="convolution",
+			sides=1)[length(fulldiff):T,,drop=FALSE] 
+	Tdiff <- dim(data.diff)[1]
  
 	# get OLS estimates of regressors
 	betas.ols <- NULL
@@ -35,10 +65,10 @@ sigex.momfit <- function(data,param,mdl)
 		reg.diff <- as.matrix(filter(reg,fulldiff,method="convolution",
 			sides=1)[length(fulldiff):T,])
 		reg.mat <- t(reg.diff) %*% reg.diff
-		reg.y <- t(reg.diff) %*% data[,k]
+		reg.y <- t(reg.diff) %*% data.diff[,k]
 		beta.ols <- solve(reg.mat) %*% reg.y
 		# significance thresholding
-		resid <- data[,k] - reg.diff %*% beta.ols
+		resid <- data.diff[,k] - reg.diff %*% beta.ols
 		error.cov <- solve(reg.mat) * sum(resid^2)/length(resid)
 		beta.ols[beta.ols < 2*sqrt(diag(error.cov))] <- 0
 		betas.ols <- rbind(betas.ols,beta.ols)
@@ -46,8 +76,8 @@ sigex.momfit <- function(data,param,mdl)
 	}
 	
 	mu <- mu.ols
-	data <- data - mu
-	data.acf <- acf(data,plot=FALSE,lag.max=T-1,type="covariance")$acf
+	data.diff <- data.diff - mu
+	data.acf <- acf(data.diff,plot=FALSE,lag.max=T-1,type="covariance")$acf
 
 	ma.pols <- NULL
 	ar.pols <- NULL
@@ -75,6 +105,18 @@ sigex.momfit <- function(data,param,mdl)
 		{ 
 			phi <- param[[3]][[i]][1]
 			ar.pol <- polymult(c(1,-1*phi),ar.pol)
+		}
+		if(mdlType == "MA1")
+		{
+			theta <- param[[3]][[i]][1]
+			ma.pol <- polymult(c(1,theta),ma.pol)
+		}
+		if(mdlType == "canonMA1")
+		{
+			canon.delta <- mdl[[3]][[i]]
+			theta <- param[[3]][[i]][1]
+			psi.ma <- sigex.canonize(theta,-1*canon.delta[-1])
+			ma.pol <- polymult(psi.ma,ma.pol)
 		}
 		if(mdlType %in% c("cycleBW1","cycleBW2","cycleBW3","cycleBW4","cycleBW5",
 			"cycleBW6","cycleBW7","cycleBW8","cycleBW9","cycleBW10"))
@@ -116,7 +158,7 @@ sigex.momfit <- function(data,param,mdl)
 			out <- sigex.getcycle(cycle.order,rho,omega)
 			cycle.AR <- out[[1]]
 			cycle.MA <- out[[2]]
-			psi.acf <- ARMAacvf(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
+			psi.acf <- ARMA2acf(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
 			freq0 <- ((1-2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2-2*rho*cos(pi*omega))^2)^cycle.order
 			freqpi <- ((1+2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2+2*rho*cos(pi*omega))^2)^cycle.order
 			lambda.crit1 <- (1+rho^2*cos(pi*omega)^2 - sin(pi*omega)*sqrt(sin(pi*omega)^2 + cos(pi*omega)^2*(1-rho^2)^2))/(2*rho*cos(pi*omega))
@@ -227,10 +269,10 @@ sigex.momfit <- function(data,param,mdl)
 			ma.scale <- ma.prod[1]^2
 			ma.prod <- ma.prod/ma.prod[1]
 			ar.prod <- polymult(ar.pols[[i]],ar.pols[[j]])	
-			G.mat[i,j] <- ARMAacvf(ar = -1*ar.prod[-1],
+			G.mat[i,j] <- ARMA2acf(ar = -1*ar.prod[-1],
 				ma = ma.prod[-1],lag.max=1)[1]*ma.scale
 		}
-		g.acf <- ARMAacvf(ar = -1*ar.pols[[i]][-1],ma = ma.pols[[i]][-1],lag.max=Tdiff-1)
+		g.acf <- ARMA2acf(ar = -1*ar.pols[[i]][-1],ma = ma.pols[[i]][-1],lag.max=Tdiff-1)
 		new.acf <- g.acf[1]*data.acf[1,,]
 		for(k in 2:Tdiff)
 		{
@@ -238,11 +280,8 @@ sigex.momfit <- function(data,param,mdl)
 		}
 		est.acf[,i,] <- new.acf	
 	}	
-#	print(G.mat)		
 	G.mat.inv <- solve(G.mat)
-	par.est.mat <- G.mat.inv %x% diag(N) %*% 
-		matrix(est.acf,c(length(mdl[[3]])*N,N))
-#	par.est.mat <- solve(G.mat %x% diag(N),matrix(est.acf,c(length(mdl[[3]])*N,N)))
+	par.est.mat <- G.mat.inv %x% diag(N) %*% matrix(est.acf,c(length(mdl[[3]])*N,N))
 	
 	for(i in 1:length(mdl[[3]]))
 	{
@@ -251,11 +290,9 @@ sigex.momfit <- function(data,param,mdl)
 			eig.mat <- eigen(temp.mat)
 			new.mat <- eig.mat$vectors %*% diag(pmax(0,eig.mat$values)) %*% t(eig.mat$vectors)	
 		}
-#		gcd.est <- getGCD(temp.mat - min(0,min(eig.mat$values))*diag(N),N)	
 		gcd.est <- getGCD(new.mat,N)
 		par.new[[1]][[i]] <- gcd.est[[1]]
 		par.new[[2]][[i]] <- log(gcd.est[[2]])
-#		dims <- gcd.est[[3]]
 	}
 	par.new[[4]] <- betas.ols
 

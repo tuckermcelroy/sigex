@@ -46,6 +46,8 @@ sigex.zetalen <- function(mdlType)
 	if(mdlType == "wn") { zetalen <- 0 }
 	if(mdlType == "canonWN") { zetalen <- 0 }
 	if(mdlType == "AR1") { zetalen <- 1 }
+	if(mdlType == "MA1") { zetalen <- 1 }
+	if(mdlType == "canonMA1") { zetalen <- 1 }
 	if(mdlType %in% c("cycleBW1","cycleBW2","cycleBW3","cycleBW4","cycleBW5",
 		"cycleBW6","cycleBW7","cycleBW8","cycleBW9","cycleBW10"))
 		{ zetalen <- 2 }
