@@ -1,18 +1,48 @@
-sigex.mvar2uvar <- function(data,param,mdl)
+sigex.mvar2uvar <- function(data.ts,param,mdl)
 {
 
-
-	###############################
-	#   sigex.mvar2uvar
-	#	by Tucker McElroy	
+	##########################################################################
 	#
-	#	Transforms multivariate parameters to implied univariate form
-	#		param must be in format yielded by sigex.default
-	#     Output is same format as param
+	#	sigex.mvar2uvar
+	# 	    Copyright (C) 2017  Tucker McElroy
 	#
-	#################################	
+	#    This program is free software: you can redistribute it and/or modify
+	#    it under the terms of the GNU General Public License as published by
+	#    the Free Software Foundation, either version 3 of the License, or
+	#    (at your option) any later version.
+	#
+	#    This program is distributed in the hope that it will be useful,
+	#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+	#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	#    GNU General Public License for more details.
+	#
+	#    You should have received a copy of the GNU General Public License
+	#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	#
+	############################################################################
 
-	x <- t(data)
+	################# Documentation #####################################
+	#
+	#	Purpose: transform multivariate parameters to implied univariate form
+	#	Background:	
+	#		param is the name for the model parameters entered into 
+	#		a list object with a more intuitive structure, whereas
+	#		psi refers to a vector of real numbers containing all
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
+	#		manifold) together with imaginary component flagging 
+	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#	Inputs:
+	#		data.ts: a T x N matrix ts object
+	#		param: see background
+	#		mdl: the specified sigex model, a list object
+	#	Outputs:
+	#		mdl.uni: output univariate model
+	#		univ.param: param for univariate model
+	#	Requires: sigex.default
+	#
+	####################################################################
+ 
+	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
 

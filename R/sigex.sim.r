@@ -1,18 +1,52 @@
 sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 {
 
-	###########################
-	#	sigex.sim
-	#		by Tucker McElroy
+	##########################################################################
 	#
-	#	generates simlen x N simulations with student t disturbances
-	#		of dof degrees of freedom, according to model mdl
-	#		with parameters psi, after a burn-in period of burnin.
-	#	note: if a subset model is desired, or no regressors, feed in
-	#		an altered simulation mdl, or zero out portions of psi
-	#	init is t x N initial values to start the sim; pass NULL if omitted
-	#		
-	##############################
+	#	sigex.sim
+	# 	    Copyright (C) 2017  Tucker McElroy
+	#
+	#    This program is free software: you can redistribute it and/or modify
+	#    it under the terms of the GNU General Public License as published by
+	#    the Free Software Foundation, either version 3 of the License, or
+	#    (at your option) any later version.
+	#
+	#    This program is distributed in the hope that it will be useful,
+	#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+	#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	#    GNU General Public License for more details.
+	#
+	#    You should have received a copy of the GNU General Public License
+	#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	#
+	############################################################################
+
+	################# Documentation #####################################
+	#
+	#	Purpose: simulate a stochastic process
+	#	Background:	
+	#		param is the name for the model parameters entered into 
+	#		a list object with a more intuitive structure, whereas
+	#		psi refers to a vector of real numbers containing all
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
+	#		manifold) together with imaginary component flagging 
+	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#	Inputs:
+	#		psi: see background. 
+	#		mdl: the specified sigex model, a list object
+	#		simlen: length of the simulation
+	#		burnin: initial stretch of simulation, later discarded
+	#		dof: innovations of simulation are student t with dof
+	#			degrees of freedom, set dof=Inf to get Gaussian
+	#		init: initial values for process, should have length d,
+	#			where d is the order of the full differencing polynomial
+	#	Outputs:
+	#		sims: matrix of dimension simlen x N of simulated stochastic process
+	#			corresponding to mdl with parameter psi.
+	#	Requires: sigex.delta, sigex.param2gcd, sigex.zeta2par, sigex.zetalen,
+	#			sigex.acf
+	#
+	####################################################################
 
 	N <- length(mdl[[4]])
 	psi <- Re(psi)
@@ -65,13 +99,12 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 		zetalen <- sigex.zetalen(mdlType)
 		if(zetalen > 0) {
 			subzeta <- zeta[(ind+1):(ind+zetalen)]
-			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,delta,N,bounds)
+			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,N,bounds)
 		}
 		ind <- ind + zetalen
 	
 		delta <- sigex.delta(mdl,i)
-		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,
-			zeta.par[[i]],N,delta,T)		
+		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T)		
 	}
 
 	x.acf <- array(acf.mat,dim=c(N,T,N))
@@ -111,11 +144,10 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	new.sim <- chol(Lam) %*% matrix(eps[T,],ncol=1) + alphat
 	sim <- rbind(sim,new.sim)
 	sim <- matrix(sim,nrow=N)
-	sim <- cbind(t(init),sim)
 	delta <- sigex.delta(mdl,0)
 	delta.recurse <- -delta[-1]/delta[1]
 	
-	sims <- as.matrix(filter(t(sim),delta.recurse,method="recursive")[-seq(1,d),])
+	sims <- as.matrix(filter(t(sim),delta.recurse,method="recursive",init)[-seq(1,d),])
 	sims <- as.matrix(sims[(burnin+1):(burnin+simlen),])
 
 	# add fixed effects here, regressors must have length simlen

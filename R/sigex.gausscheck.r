@@ -1,4 +1,4 @@
-sigex.gausscheck <- function(resid)
+sigex.gausscheck <- function(resids)
 {
 
 	##########################################################################
@@ -30,13 +30,13 @@ sigex.gausscheck <- function(resid)
 	#		Gaussian white noise.  We can test whether the 
 	#		marginal distribution is normal with Shapiro-Wilks.
 	#	Inputs:
-	#		resid: a T x N matrix of residuals
+	#		resids: a T x N matrix of residuals
 	#	Outputs:
 	#		tests: output of shapiro.tests routine of R
 	#
 	####################################################################
 	
-	x <- t(resid)
+	x <- t(resids)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
 #	if(T > 5000) { T <- 5000 }
@@ -44,7 +44,7 @@ sigex.gausscheck <- function(resid)
 	tests <- NULL
 	for(i in 1:N)
 	{
-		tests <- c(tests,shapiro.test(resid[1:T,i])$p.value)
+		tests <- c(tests,shapiro.test(resids[1:T,i])$p.value)
 	}
 
 	return(tests)

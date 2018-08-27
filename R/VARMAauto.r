@@ -126,9 +126,10 @@ if (p > 0)
 	}
 	Bmat <- Bmat[,,,1:(q+1)]
 	Bmat <- matrix(Bmat,m^2*(q+1),m^2*(q+1))
-	Binv <- solve(Bmat)
-
-	gamMix <- Binv %*% gamMAvec
+# modification suggested by A. Roy
+#	Binv <- solve(Bmat)
+#	gamMix <- Binv %*% gamMAvec
+	gamMix <- solve(Bmat,gamMAvec)
 	if (p <= q) gamMixTemp <- gamMix[1:((p+1)*m^2)] else 
 		gamMixTemp <- c(gamMix,rep(0,(p-q)*m^2))
 	gamARMA <- solve(Amat) %*% gamMixTemp 
