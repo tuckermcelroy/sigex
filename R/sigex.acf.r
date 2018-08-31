@@ -63,7 +63,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 	#
 	####################################################################
 
-	N <- length(mdl[[2]])
+	N <- dim(as.matrix(L.par))[1]
 	mdlType <- mdl[[2]][comp]
 	d.delta <- length(delta)
 	xi.mat <- L.par %*% diag(exp(D.par),nrow=length(D.par)) %*% t(L.par)

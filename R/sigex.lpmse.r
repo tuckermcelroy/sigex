@@ -71,7 +71,7 @@ quad <- function(z)
 	return(out/len)
 }
 
-	N <- length(mdl[[2]])
+	N <- dim(as.matrix(param[[1]][[1]]))[1]
 	lambda <- pi*seq(0,grid)/grid
 	f.sig <- t(rep(0,grid+1) %x% diag(N))
 	for(i in 1:length(mdl[[3]]))
