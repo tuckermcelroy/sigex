@@ -1,3 +1,17 @@
+#' load data into a time series object
+#'
+#' @param data a T x N matrix, corresponding to N time series of length T
+#' @param start.date date of first time obersvation; the
+#'			 format is c(year,season)
+#' @param period number of seasons per year
+#' @param epithets vector of N character strings, giving a short name for
+#'			 each series
+#' @param plot boolean, whether to plot the series (max of N=10 allowed)
+#'
+#' @return data.ts: a T x N matrix ts object
+#' @export
+#'
+
 sigex.load <- function(data,start.date,period,epithets,plot=FALSE)
 {
 
@@ -40,6 +54,6 @@ sigex.load <- function(data,start.date,period,epithets,plot=FALSE)
 
 	data.ts <- ts(data,start=start.date,frequency=period,names=epithets)
  	if(plot) { plot(data.ts) }
-	
+
 	return(data.ts)
 }

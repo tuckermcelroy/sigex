@@ -1,3 +1,16 @@
+#' converts a day index to a date in month-day-year format
+#'
+#' @param day integer, the number of days past the given start.date
+#'			for which the date is desired; negative values reckon
+#'			into the past
+#' @param start.date a given starting date in month-day-year format,
+#'			a 3-element vector
+#'
+#' @return end.date: the ending date  in month-day-year format,
+#'			a 3-element vector
+#' @export
+#'
+
 day2date <- function(day,start.date)
 {
 
@@ -26,7 +39,7 @@ day2date <- function(day,start.date)
 	#	Purpose: converts a day index to a date in month-day-year format
 	#
 	#	Inputs:
-	#		day: integer, the number of days past the given start.date 
+	#		day: integer, the number of days past the given start.date
 	#			for which the date is desired; negative values reckon
 	#			into the past
 	#		start.date: a given starting date in month-day-year format,
@@ -38,7 +51,7 @@ day2date <- function(day,start.date)
 	#####################################################################
 
 	year.counter <- start.date[3]
-	
+
 	day.index <- day + date2day(start.date[1],start.date[2],start.date[3])
 	day.counting <- day.index
 
@@ -46,7 +59,7 @@ day2date <- function(day,start.date)
 	while(day.index > 0)
 	{
 		leap.flag <- 0
-		if(((year.counter %% 4 == 0) && (year.counter %% 100 != 0)) || 
+		if(((year.counter %% 4 == 0) && (year.counter %% 100 != 0)) ||
 			(year.counter %% 400 == 0)){ leap.flag <- 1 }
 		day.counting <- day.index
 		day.index <- day.index - 365
@@ -61,7 +74,7 @@ day2date <- function(day,start.date)
  	while(day.index <= 0)
 	{
 		leap.flag <- 0
-		if(((year.counter %% 4 == 0) && (year.counter %% 100 != 0)) || 
+		if(((year.counter %% 4 == 0) && (year.counter %% 100 != 0)) ||
 			(year.counter %% 400 == 0)){ leap.flag <- 1 }
 		day.counting <- day.index
 		day.index <- day.index + 365
@@ -69,7 +82,7 @@ day2date <- function(day,start.date)
 		year.counter <- year.counter - 1
 	}
 	year.counter <- year.counter + 1  }
-	
+
 	if((1 <= day.index) && (day.index <= 31)) month.counter <- 1
 	if((32 <= day.index) && (day.index <= (59+leap.flag))) month.counter <- 2
 	if(((60+leap.flag) <= day.index) && (day.index <= (90+leap.flag))) month.counter <- 3

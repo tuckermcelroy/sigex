@@ -1,3 +1,15 @@
+#' converts a date in month-day-year format and finds the day of week
+#'
+#' @param date a given date in month-day-year format,
+#'			a 3-element vector
+#'
+#' @return dayofweek: number 1 through 7, where 1 is Sunday, 2 is Monday, etc.
+#'
+#' @note calibrated according to Jan 1, 1600 being a Saturday
+#'
+#' @export
+#'
+
 day2week <- function(date)
 {
 
@@ -30,9 +42,9 @@ day2week <- function(date)
 	#			a 3-element vector
 	#	Outputs:
 	#		dayofweek: number 1 through 7, where 1 is Sunday, 2 is Monday, etc.
-	#	Notes: 
+	#	Notes:
 	#		calibrated according to Jan 1, 1600 being a Saturday
-	#	
+	#
 	#####################################################################
 
 	month <- date[1]
