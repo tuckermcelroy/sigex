@@ -2,11 +2,11 @@ sigex.delta <- function(mdl,omits)
 {
 	#################################
 	#   sigex.delta
-	#	by Tucker McElroy	
+	#	by Tucker McElroy
 	#
-	#	Multiplies all the delta polynomials for each series, 
+	#	Multiplies all the delta polynomials for each series,
 	#		except the ones corresponding to indices of "omits";
-	#		has no effect if that component is already 
+	#		has no effect if that component is already
 	#			omitted from a series
 	#
 	#################################
@@ -16,7 +16,7 @@ sigex.delta <- function(mdl,omits)
 	{
 		polyn <- mdl[[3]][[i]]
 		if (i %in% omits) polyn <- 1
-		prod <- polymul(prod,polyn)		
+		prod <- polymult(prod,polyn)
 	}
 	return(prod)
 }
