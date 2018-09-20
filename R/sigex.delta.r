@@ -57,6 +57,3 @@ sigex.delta <- function(mdl,omits)
 	}
 	return(prod)
 }
-
-
-

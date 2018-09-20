@@ -42,5 +42,3 @@ polymult <- function(a,b)
 	prod <- B %*% matrix(aa,length(aa),1)
 	return(rev(prod[,1]))
 }
-
-
