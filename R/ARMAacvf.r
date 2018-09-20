@@ -1,9 +1,9 @@
-ARMAacvf <- function (ar = numeric(0), ma = numeric(0), lag.max = r, pacf = FALSE) 
+ARMAacvf <- function (ar = numeric(0), ma = numeric(0), lag.max = r, pacf = FALSE)
 {
 #	Just like ARMAacf, but computes autocovariances rather than autocorrelations
     p <- length(ar)
     q <- length(ma)
-    if (!p && !q) 
+    if (!p && !q)
 #        stop("empty model supplied")
 	{
 		Acf <- c(1,rep(0,lag.max))
@@ -16,7 +16,7 @@ ARMAacvf <- function (ar = numeric(0), ma = numeric(0), lag.max = r, pacf = FALS
                 p <- r
             }
             A <- matrix(0, p + 1, 2 * p + 1)
-            ind <- as.matrix(expand.grid(1:(p + 1), 1:(p + 1)))[, 
+            ind <- as.matrix(expand.grid(1:(p + 1), 1:(p + 1)))[,
                 2:1]
             ind[, 2] <- ind[, 1] + ind[, 2] - 1
             A[ind] <- c(1, -ar)
@@ -25,7 +25,7 @@ ARMAacvf <- function (ar = numeric(0), ma = numeric(0), lag.max = r, pacf = FALS
             if (q > 0) {
                 psi <- c(1, ARMAtoMA(ar, ma, q))
                 theta <- c(1, ma, rep(0, q + 1))
-                for (k in 1 + 0:q) rhs[k] <- sum(psi * theta[k + 
+                for (k in 1 + 0:q) rhs[k] <- sum(psi * theta[k +
                   0:q])
             }
             ind <- (p + 1):1
@@ -42,13 +42,13 @@ ARMAacvf <- function (ar = numeric(0), ma = numeric(0), lag.max = r, pacf = FALS
     else if (q > 0) {
         x <- c(1, ma)
         Acf <- filter(c(x, rep(0, q)), rev(x), sides = 1)[-(1:q)]
-        if (lag.max > q) 
+        if (lag.max > q)
             Acf <- c(Acf, rep(0, lag.max - q))
         Acf <- Acf/Acf[1]
     }
     names(Acf) <- 0:lag.max
-    if (pacf) 
-        .C(R_uni_pacf, as.double(Acf), pacf = double(lag.max), 
+    if (pacf)
+        .C(R_uni_pacf, as.double(Acf), pacf = double(lag.max),
             as.integer(lag.max))$pacf
     else Acf
 	# Up to here, it is ARMAacf; the following computes the variance.
@@ -77,6 +77,7 @@ ARMAacvf <- function (ar = numeric(0), ma = numeric(0), lag.max = r, pacf = FALS
 		}
 		bottom <- t(autocorrs) %*% c(1,-ar)
 	}
-	lagzerovar <- top/bottom
+	lagzerovar <- as.numeric(top/bottom)
 	Acf <- Acf*lagzerovar
+	return(Acf)
 }
