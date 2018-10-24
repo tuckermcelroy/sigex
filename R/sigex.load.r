@@ -53,7 +53,7 @@ sigex.load <- function(data,start.date,period,epithets,plot=FALSE)
 	####################################################################
 
 	data.ts <- ts(data,start=start.date,frequency=period,names=epithets)
- 	if(plot) { plot(data.ts) }
+ 	if(plot) { plot(data.ts,xlab="Year") }
 
 	return(data.ts)
 }

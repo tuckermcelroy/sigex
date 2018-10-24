@@ -42,7 +42,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 	#	Outputs:
 	#		par.new: type param, with the estimated covariance parameters filled in
 	#	Requires: sigex.delta, sigex.getcycle, polymult, polysum, specFact,
-	#		ARMA2acf, getGCD, sigex.canonize		
+	#		ARMAauto, getGCD, sigex.canonize		
 	#
 	####################################################################
   
@@ -158,7 +158,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 			out <- sigex.getcycle(cycle.order,rho,omega)
 			cycle.AR <- out[[1]]
 			cycle.MA <- out[[2]]
-			psi.acf <- ARMA2acf(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
+			psi.acf <- ARMAauto(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
 			freq0 <- ((1-2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2-2*rho*cos(pi*omega))^2)^cycle.order
 			freqpi <- ((1+2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2+2*rho*cos(pi*omega))^2)^cycle.order
 			lambda.crit1 <- (1+rho^2*cos(pi*omega)^2 - sin(pi*omega)*sqrt(sin(pi*omega)^2 + cos(pi*omega)^2*(1-rho^2)^2))/(2*rho*cos(pi*omega))
@@ -269,10 +269,10 @@ sigex.momfit <- function(data.ts,param,mdl)
 			ma.scale <- ma.prod[1]^2
 			ma.prod <- ma.prod/ma.prod[1]
 			ar.prod <- polymult(ar.pols[[i]],ar.pols[[j]])	
-			G.mat[i,j] <- ARMA2acf(ar = -1*ar.prod[-1],
+			G.mat[i,j] <- ARMAauto(ar = -1*ar.prod[-1],
 				ma = ma.prod[-1],lag.max=1)[1]*ma.scale
 		}
-		g.acf <- ARMA2acf(ar = -1*ar.pols[[i]][-1],ma = ma.pols[[i]][-1],lag.max=Tdiff-1)
+		g.acf <- ARMAauto(ar = -1*ar.pols[[i]][-1],ma = ma.pols[[i]][-1],lag.max=Tdiff-1)
 		new.acf <- g.acf[1]*data.acf[1,,]
 		for(k in 2:Tdiff)
 		{

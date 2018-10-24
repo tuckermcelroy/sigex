@@ -10,7 +10,8 @@
 #' @param subseries sequence of indices between 1 and N,
 #'			indicating which series	to examine
 #' @param range if set to NULL, take full span of data, otherwise
-#'			subset the times corresponding to indices in range
+#'			subset the times corresponding to start and end date
+#'			indicated by range[[1]] and range[[2]]
 #' @param plot boolean, whether to plot the series (max of N=10 allowed)
 #'
 #' @return data.ts: a T x N0 matrix ts object, where N0=1 if
@@ -56,7 +57,8 @@ sigex.prep <- function(data.ts,transform,aggregate,subseries,range=NULL,plot=FAL
 	#		subseries: sequence of indices between 1 and N,
 	#			indicating which series	to examine
 	#		range: if set to NULL, take full span of data, otherwise
-	#			subset the times corresponding to indices in range
+	#			subset the times corresponding to start and end date
+	#			indicated by range[[1]] and range[[2]]
 	#		plot: boolean, whether to plot the series (max of N=10 allowed)
 	#	Outputs:
 	#		data.ts: a T x N0 matrix ts object, where N0=1 if
@@ -64,9 +66,21 @@ sigex.prep <- function(data.ts,transform,aggregate,subseries,range=NULL,plot=FAL
 	#
 	####################################################################
 
-	if(length(range)==0) { range <- seq(1,dim(data.ts)[1]) }
-
- 	data.ts <- sigex.transform(data.ts[range,subseries,drop=FALSE],transform,aggregate)
+	start.date <- start(data.ts)
+	period <- frequency(data.ts)
+	if(length(range)==0) 
+	{ 
+		times <- seq(1,dim(data.ts)[1]) 
+		begin.date <- start.date
+		end.date <- end(data.ts)
+	} else {
+		begin.date <- range[[1]]
+		end.date <- range[[2]]
+		times <- seq((begin.date[1]-start.date[1])*period+(begin.date[2]-start.date[2])+1,
+				(end.date[1]-start.date[1])*period+(end.date[2]-start.date[2])+1,1)	
+	}
+	data.ts <- sigex.transform(ts(data.ts[times,subseries,drop=FALSE],
+				start=begin.date,frequency=period),transform,aggregate)
 	if(plot) { plot(data.ts,xlab="Year") }
 
 	return(data.ts)

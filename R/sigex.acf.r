@@ -58,7 +58,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 	#		x.acf: matrix of dimension N x N*maxlag, consisting of autocovariance
 	#			matrices stacked horizontally, i.e.
 	#			x.acf = [ gamma(0), gamma(1), ..., gamma(maxlag-1)]
-	#	Requires: polymult, polysum, ARMA2acf, VARMAauto, specFact,
+	#	Requires: polymult, polysum, ARMAauto, VARMAauto, specFact,
 	#		specFactmvar, sigex.getcycle, sigex.canonize
 	#
 	####################################################################
@@ -77,7 +77,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-		psi.acf <- ARMA2acv(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
+		psi.acf <- ARMAauto(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
 			lag.max=maxlag)[1:maxlag]
 		x.acf <- psi.acf %x% xi.mat
 	}
@@ -96,7 +96,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
  		psi.scale <- psi.ma[1]^2
 		psi.ma <- psi.ma/psi.ma[1]	
 		psi.MA <- polymult(delta,psi.ma)
-		psi.acf <- ARMA2acv(ar = NULL, ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]	
+		psi.acf <- ARMAauto(ar = NULL, ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]	
 		psi.acf <- psi.acf*psi.scale
 		x.acf <- psi.acf %x% xi.mat
 	}
@@ -108,7 +108,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-		psi.acf <- ARMA2acv(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
+		psi.acf <- ARMAauto(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
 			lag.max=maxlag)[1:maxlag]
 		x.acf <- psi.acf %x% xi.mat
 	}
@@ -117,7 +117,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		ar.poly <- 1
 		ma.poly <- c(1,mdlPar[1])
 		ma.poly <- polymult(delta,ma.poly)
-		psi.acf <- ARMA2acv(ar = NULL, ma = ma.poly[-1],lag.max=maxlag)[1:maxlag]	
+		psi.acf <- ARMAauto(ar = NULL, ma = ma.poly[-1],lag.max=maxlag)[1:maxlag]	
 		x.acf <- psi.acf %x% xi.mat
 	}
 	if(mdlType == "canonMA1")
@@ -127,7 +127,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		psi.scale <- psi.ma[1]^2
 		psi.ma <- psi.ma/psi.ma[1]	
 		psi.MA <- polymult(delta,psi.ma)
-		psi.acf <- ARMA2acv(ar = NULL, ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]	
+		psi.acf <- ARMAauto(ar = NULL, ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]	
 		psi.acf <- psi.acf*psi.scale
 		x.acf <- psi.acf %x% xi.mat
 	}
@@ -149,11 +149,11 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-		psi.acf <- ARMA2acv(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
+		psi.acf <- ARMAauto(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
 			lag.max=maxlag)[1:maxlag]
 #		psi.marep <- ARMAtoMA(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
 #			lag.max=maxlag)[1:maxlag]
-#		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
+#		psi.acf <- ARMAauto(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
 		x.acf <- psi.acf %x% xi.mat
 	}
 	if(mdlType %in% c("canonCycleBW1","canonCycleBW2","canonCycleBW3","canonCycleBW4",
@@ -175,7 +175,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-#		psi.acf <- ARMA2acv(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
+#		psi.acf <- ARMAauto(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
 		psi.acf <- polymult(cycle.MA,rev(cycle.MA))
 		freq0 <- ((1-2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2-2*rho*cos(pi*omega))^2)^cycle.order
 		freqpi <- ((1+2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2+2*rho*cos(pi*omega))^2)^cycle.order
@@ -195,9 +195,9 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		psi.ma <- psi.ma/psi.ma[1]	
 		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- cycle.AR
-		psi.acf <- ARMA2acv(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
+		psi.acf <- ARMAauto(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
 #		psi.marep <- ARMAtoMA(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
-#		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
+#		psi.acf <- ARMAauto(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
  		psi.acf <- psi.acf*psi.scale
 	#	psi.acf <- filter(rev(filter(psi.acf,delta,method="convolution",sides=2)),
 	#		delta,method="convolution",sides=2)
@@ -235,9 +235,9 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		psi.ma <- psi.ma/psi.ma[1]	
 		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- cycle.AR
-		psi.acf <- ARMA2acv(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
+		psi.acf <- ARMAauto(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
 #		psi.marep <- ARMAtoMA(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
-#		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
+#		psi.acf <- ARMAauto(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
 
 #	Alternate method based on Trimbur (2010) formulas; our method uses ARMA factorization
 #		alphas <- NULL
@@ -296,9 +296,9 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		psi.ma <- psi.ma/psi.ma[1]	
 		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- cycle.AR
-		psi.acf <- ARMA2acv(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
+		psi.acf <- ARMAauto(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
 #		psi.marep <- ARMAtoMA(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
-#		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
+#		psi.acf <- ARMAauto(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
 		psi.acf <- psi.acf*psi.scale
 		x.acf <- psi.acf %x% xi.mat
 	}
@@ -312,7 +312,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 	if(mdlType == "ARMA22")
 	{
 		ma.poly <- c(1,mdlPar[3:4])
-		psi.acf <- ARMA2acv(ar = mdlPar[1:2], ma = polymult(ma.poly,delta)[-1], 
+		psi.acf <- ARMAauto(ar = mdlPar[1:2], ma = polymult(ma.poly,delta)[-1], 
 			lag.max=maxlag)[1:maxlag]
 		x.acf <- psi.acf %x% xi.mat
 	}

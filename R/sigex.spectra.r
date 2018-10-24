@@ -58,7 +58,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 	#	Outputs:
 	#		f.spec: array of dimension N x N x (grid+1), consisting of spectrum
 	#			at frequencies pi*j/grid for 0 <= j <= grid
-	#	Requires: polymult, polysum, ARMA2acf, VARMAauto, specFact,
+	#	Requires: polymult, polysum, ARMAauto, VARMAauto, specFact,
 	#		specFactmvar, sigex.getcycle, sigex.canonize
 	#
 	####################################################################
@@ -180,7 +180,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-		psi.acf <- ARMA2acf(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
+		psi.acf <- ARMAauto(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
 		freq0 <- ((1-2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2-2*rho*cos(pi*omega))^2)^cycle.order
 		freqpi <- ((1+2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2+2*rho*cos(pi*omega))^2)^cycle.order
 		lambda.crit1 <- (1+rho^2*cos(pi*omega)^2 - sin(pi*omega)*sqrt(sin(pi*omega)^2 + cos(pi*omega)^2*(1-rho^2)^2))/(2*rho*cos(pi*omega))
