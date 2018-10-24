@@ -149,11 +149,11 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		cycle.AR <- out[[1]]
 		cycle.MA <- out[[2]]
-#		psi.acf <- ARMA2acv(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
-#			lag.max=maxlag)[1:maxlag]
-		psi.marep <- ARMAtoMA(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
+		psi.acf <- ARMA2acv(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
 			lag.max=maxlag)[1:maxlag]
-		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
+#		psi.marep <- ARMAtoMA(ar = -1*cycle.AR[-1],ma = polymult(cycle.MA,delta)[-1],
+#			lag.max=maxlag)[1:maxlag]
+#		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
 		x.acf <- psi.acf %x% xi.mat
 	}
 	if(mdlType %in% c("canonCycleBW1","canonCycleBW2","canonCycleBW3","canonCycleBW4",
@@ -195,9 +195,9 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		psi.ma <- psi.ma/psi.ma[1]	
 		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- cycle.AR
-#		psi.acf <- ARMA2acv(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
-		psi.marep <- ARMAtoMA(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
-		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
+		psi.acf <- ARMA2acv(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
+#		psi.marep <- ARMAtoMA(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
+#		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
  		psi.acf <- psi.acf*psi.scale
 	#	psi.acf <- filter(rev(filter(psi.acf,delta,method="convolution",sides=2)),
 	#		delta,method="convolution",sides=2)
@@ -235,9 +235,9 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		psi.ma <- psi.ma/psi.ma[1]	
 		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- cycle.AR
-#		psi.acf <- ARMA2acv(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
-		psi.marep <- ARMAtoMA(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
-		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
+		psi.acf <- ARMA2acv(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
+#		psi.marep <- ARMAtoMA(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
+#		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
 
 #	Alternate method based on Trimbur (2010) formulas; our method uses ARMA factorization
 #		alphas <- NULL
@@ -296,9 +296,9 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		psi.ma <- psi.ma/psi.ma[1]	
 		psi.MA <- polymult(delta,psi.ma)
 		psi.AR <- cycle.AR
-#		psi.acf <- ARMA2acv(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
-		psi.marep <- ARMAtoMA(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
-		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
+		psi.acf <- ARMA2acv(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
+#		psi.marep <- ARMAtoMA(ar = -1*psi.AR[-1],ma = psi.MA[-1],lag.max=maxlag)[1:maxlag]
+#		psi.acf <- ARMA2acv(ar = NULL,ma = psi.marep,lag.max=maxlag)[1:maxlag]
 		psi.acf <- psi.acf*psi.scale
 		x.acf <- psi.acf %x% xi.mat
 	}
