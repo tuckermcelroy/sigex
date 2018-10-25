@@ -33,10 +33,11 @@ sigex.canonize <- function(ma.coef,ar.coef)
 	#		The minimum value of the original spectrum is subtracted off to
 	#		get the canonized spectrum.	
 	#	Inputs:
-	#		ma.coef: q coefficients of monic MA polynomial
-	#		ar.coef: p coefficients (minus convention) of monic AR polynomial
+	#		ma.coef: q coefficients of MA polynomial with unit constant coefficient
+	#		ar.coef: p coefficients (minus convention) of AR polynomial with unit constant coefficient
 	#	Outputs:
-	#		ma.stab: coefficients of non-monic MA polynomial, the degree is max(p,q)
+	#		ma.stab: coefficients of MA polynomial (wihtout a unit constant coefficient),
+	#			 the degree is max(p,q)
 	#	Requires: polymult, polysum, specFact
 	#
 	####################################################################

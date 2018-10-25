@@ -614,7 +614,6 @@ starts <- cbind(South,West,NE,MW)
 start.date = c(1964,1)
 period <- 12
   
-###########################
 ## create ts object and plot
 dataALL.ts <- sigex.load(starts,start.date,period,c("South","West","NE","MW"),TRUE)
  
@@ -639,7 +638,7 @@ end.date <- end(data.ts)
 range <- list(begin.date,end.date)
 data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 
-######################
+#######################
 ## spectral exploratory
 
 ## levels
@@ -797,9 +796,9 @@ sigex.gausscheck(resid.mle2)
 acf(resid.mle2,lag.max=40)
   
 ## check on standard errors  
-print(eigen(hess)$values)
+print(eigen(hess2)$values)
 tstats <- sigex.tstats(mdl.mle2,psi.mle2,hess2)
-stderrs <- sigex.psi2par(tstats,mdl.mle2,data)
+stderrs <- sigex.psi2par(tstats,mdl.mle2,data.ts)
 print(tstats)
 
 ## nested model comparison
