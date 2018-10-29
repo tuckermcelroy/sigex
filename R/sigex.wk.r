@@ -95,7 +95,7 @@ quad <- function(z)
 	frf.wksig <- sigex.wkmse(data.ts,param,mdl,sigcomps,grid)
 	mse.wksig <- Re(apply(frf.wksig,c(1,2),quad))
 
-	if(plotit && (N <= 3)) {
+	if(plotit && (N <= 4)) {
 	par(mfrow = c(N,N))
 	for(i in 1:N) 
 	{
