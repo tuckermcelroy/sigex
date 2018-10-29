@@ -617,7 +617,7 @@ period <- 12
 ## create ts object and plot
 dataALL.ts <- sigex.load(starts,start.date,period,c("South","West","NE","MW"),TRUE)
  
-############################
+#############################
 ## select span and transforms 
 
 ## all data for NE-MW with log transform
@@ -665,30 +665,36 @@ N <- dim(data.ts)[2]
 T <- dim(data.ts)[1]
 
 
-###############
+################
 ## Default Model
  
 def <- c(0,1,0,1)
 
-## stochastic latent components
+## model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"wn",c(1,-2,1),def)			# trend-cycle (annual cycle)
-mdl <- sigex.add(mdl,seq(1,N),"wn",c(1,-sqrt(3),1),def)      	# first atomic seas
-mdl <- sigex.add(mdl,seq(1,N),"wn",c(1,-1,1),def)      		# second atomic seas
-mdl <- sigex.add(mdl,seq(1,N),"wn",c(1,0,1),def)      		# third atomic seas
-mdl <- sigex.add(mdl,seq(1,N),"wn",c(1,1,1),def)      		# fourth atomic seas
-mdl <- sigex.add(mdl,seq(1,N),"wn",c(1,sqrt(3),1),def)      	# fifth atomic seas
-mdl <- sigex.add(mdl,seq(1,N),"wn",c(1,1),def)      			# sixth atomic seas
-mdl <- sigex.add(mdl,seq(1,N),"wn",1,def)   				# irregular
-
-## fixed effects
+# trend:
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-2,1))
+# first atomic seasonal:
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-sqrt(3),1))      	
+# second atomic seasonal:
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-1,1))      		
+# third atomic seasonal:
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,0,1))
+# fourth atomic seasonal:
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,1,1))
+# fifth atomic seasonal:
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,sqrt(3),1))
+# sixth atomic seasonal:
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,1))
+# irregular:
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,1)
+# regressors:
 mdl <- sigex.meaninit(mdl,data.ts,0)
  
 ## parameter initialization and checks
 par.default <- sigex.default(mdl,data.ts)[[1]]
 flag.default <- sigex.default(mdl,data.ts)[[2]]
 psi.default <- sigex.par2psi(par.default,flag.default,mdl)
-#sigex.lik(psi.default,mdl,data.ts)
 resid.init <- sigex.resid(psi.default,mdl,data.ts)
 resid.init <- sigex.load(t(resid.init),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 acf(resid.init,lag.max=40)
@@ -720,98 +726,15 @@ acf(resid.mom,lag.max=40)
 log(sigex.conditions(data.ts,psi.mom,mdl.mom))
 
 ## model checking
-sigex.portmanteau(resid.mom,48,length(psi.mom))
+sigex.portmanteau(resid.mom,4*period,length(psi.mom))
 sigex.gausscheck(resid.mom)
 
 ## bundle  
 analysis.mom <- sigex.bundle(data.ts,transform,mdl.mom,psi.mom)
 
 
-
-##########################
-### Part V: MLE Estimation
-
-## setup, and fix parameters as desired
-mdl.mle <- mdl
-psi.mle <- psi.default
-flag.mle <- Im(psi.mle)
-par.mle <- sigex.psi2par(psi.mle,mdl.mle,data.ts)
-
-## run fitting
-fit.mle <- sigex.mlefit(data.ts,par.mle,flag.mle,mdl.mle,"bfgs")
-
-## manage output
-psi.mle[flag.mle==1] <- fit.mle[[1]]$par 
-psi.mle <- psi.mle + 1i*flag.mle
-hess <- fit.mle[[1]]$hessian
-par.mle <- fit.mle[[2]]
-
-##  model checking 
-resid.mle <- sigex.resid(psi.mle,mdl.mle,data)
-resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-sigex.portmanteau(resid.mle,48,length(psi.mle))
-sigex.gausscheck(resid.mle)
-acf(resid.mle,lag.max=40)
-      
-## check on standard errors and condition numbers
-print(eigen(hess)$values)
-taus <- log(sigex.conditions(data.ts,psi.mle,mdl.mle))
-print(taus)
-tstats <- sigex.tstats(mdl.mle,psi.mle,hess)
-stderrs <- sigex.psi2par(tstats,mdl,data.ts)
-print(tstats)
-
-## bundle  
-analysis.mle <- sigex.bundle(data.ts,transform,mdl.mle,psi.mle)
-
-
-
-#########################################
-### Part VI: Reduced model MLE Estimation
-
-## setup, and initialize at previous MLEs
-thresh <- -6.22
-mdl.mle2 <- mdl.mle
-par.mle2 <- par.mle
-psi.mle2 <- psi.mle
-mdl.mle2 <- sigex.reduce(data.ts,par.mle,flag.mle,mdl.mle,thresh,TRUE)[[1]]
-par.mle2 <- sigex.reduce(data.ts,par.mle,flag.mle,mdl.mle,thresh,TRUE)[[2]]
-flag.mle2 <- sigex.default(mdl.mle2,data.ts)[[2]]
-psi.mle2 <- sigex.par2psi(par.mle2,flag.mle2,mdl.mle2)
-
-## run fitting
-fit.mle2 <- sigex.mlefit(data.ts,par.mle2,flag.mle2,mdl.mle2,"bfgs")
-
-## manage output
-psi.mle2[flag.mle2==1] <- fit.mle2[[1]]$par 
-psi.mle2 <- psi.mle2 + 1i*flag.mle2
-hess2 <- fit.mle2[[1]]$hessian
-par.mle2 <- fit.mle2[[2]]
-
-## model checking
-resid.mle2 <- sigex.resid(psi.mle2,mdl.mle2,data.ts)
-resid.mle2 <- sigex.load(t(resid.mle2),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-sigex.portmanteau(resid.mle2,48,length(psi.mle2))
-sigex.gausscheck(resid.mle2)
-acf(resid.mle2,lag.max=40)
-  
-## check on standard errors  
-print(eigen(hess2)$values)
-tstats <- sigex.tstats(mdl.mle2,psi.mle2,hess2)
-stderrs <- sigex.psi2par(tstats,mdl.mle2,data.ts)
-print(tstats)
-
-## nested model comparison
-test.glr <- sigex.glr(data.ts,psi.mle2,psi.mle,mdl.mle2,mdl.mle)
-pchisq(test.glr[1],df=test.glr[2])
-
-## bundle 
-analysis.mle <- sigex.bundle(data.ts,transform,mdl.mle2,psi.mle2)
- 
-
-
-############################################
-### Part VII: Signal Extraction based on MOM
+##########################################
+### Part V: Signal Extraction based on MOM
 
 ## load up the MOM fit for signal extraction
 data.ts <- analysis.mom[[1]]
@@ -877,76 +800,5 @@ len <- 500
 wk.trend <- sigex.wk(data.ts,param,mdl,1,TRUE,grid,len)
 wk.seas <- sigex.wk(data.ts,param,mdl,seq(2,7),TRUE,grid,len)
 wk.sa <- sigex.wk(data.ts,param,mdl,c(1,8),TRUE,grid,len)
-
-
-
-#############################################
-### Part VIII: Signal Extraction based on MLE
-
-## load up the MLE fit for signal extraction
-data.ts <- analysis.mle[[1]]
-mdl <- analysis.mle[[3]]
-psi <- analysis.mle[[4]]
-param <- sigex.psi2par(psi,mdl,data.ts)
-
-## get signal filters
-signal.trend <- sigex.signal(data.ts,param,mdl,1)
-signal.seas <- sigex.signal(data.ts,param,mdl,seq(2,7))
-signal.sa <- sigex.signal(data.ts,param,mdl,c(1,8))
-
-## get extractions 
-extract.trend <- sigex.extract(data.ts,signal.trend,mdl,param)
-extract.seas <- sigex.extract(data.ts,signal.seas,mdl,param)
-extract.sa <- sigex.extract(data.ts,signal.sa,mdl,param)
- 
-## get fixed effects
-reg.trend <- NULL
-for(i in 1:N) {
-reg.trend <- cbind(reg.trend,param[[4]][i]*mdl[[4]][[i]]) }
-
-## plotting
-trendcol <- "tomato"
-cyccol <- "orchid"
-seascol <- "seagreen"
-sacol <- "navyblue"
-fade <- 60
-par(mfrow=c(2,2))
-for(i in 1:N)
-{
-	plot(data.ts[,i],xlab="Year",ylab="",ylim=c(min(data.ts[,i]),max(data.ts[,i])),lwd=1)
-	sigex.graph(extract.sa,reg.trend,begin.date,period,i,0,sacol,fade)
-	sigex.graph(extract.trend,reg.trend,begin.date,period,i,0,trendcol,fade)
-	sigex.graph(extract.seas,NULL,begin.date,period,i,3,seascol,fade)
-}
-dev.off()
-
-## spectral diagnostics: trend
-par(mfrow=c(2,2))
-for(i in 1:N)
-{
-	sigex.specar(ts(extract.trend[[1]],frequency=period,names=colnames(data.ts)),FALSE,i)
-}
-dev.off()
-
-## spectral diagnostics: sa
-par(mfrow=c(2,2))
-for(i in 1:N)
-{
-	sigex.specar(ts(extract.sa[[1]],frequency=period,names=colnames(data.ts)),FALSE,i)
-}
-dev.off()
-
-## transfer function analysis
-grid <- 1200
-frf.trend <- sigex.getfrf(data.ts,param,mdl,1,TRUE,grid)
-frf.seas <- sigex.getfrf(data.ts,param,mdl,seq(2,7),TRUE,grid)
-frf.sa <- sigex.getfrf(data.ts,param,mdl,c(1,8),TRUE,grid)
-
-## filter analysis
-len <- 500
-wk.trend <- sigex.wk(data.ts,param,mdl,1,TRUE,grid,len)
-wk.seas <- sigex.wk(data.ts,param,mdl,seq(2,7),TRUE,grid,len)
-wk.sa <- sigex.wk(data.ts,param,mdl,c(1,8),TRUE,grid,len)
-
 
 
