@@ -64,7 +64,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 	####################################################################
 
 	N <- dim(as.matrix(L.par))[1]
-	mdlType <- mdl[[2]][comp]
+	mdlType <- mdl[[2]][[comp]]
 	mdlClass <- mdlType[[1]]
 	mdlOrder <- mdlType[[2]]
 	mdlBounds <- mdlType[[3]]

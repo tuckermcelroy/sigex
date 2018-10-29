@@ -1,5 +1,5 @@
 #######################################
-###  Script for Housing Stats Data
+###  Script for Housing Starts Data
 #########################################
 
 ## wipe
@@ -624,8 +624,8 @@ dataALL.ts <- sigex.load(starts,start.date,period,c("South","West","NE","MW"),TR
 transform <- "log"
 aggregate <- FALSE
 subseries <- c(3,4)
-begin.date <- start(data.ts)
-end.date <- end(data.ts)
+begin.date <- start(dataALL.ts)
+end.date <- end(dataALL.ts)
 range <- NULL
 data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 
@@ -634,7 +634,7 @@ transform <- "none"
 aggregate <- FALSE
 subseries <- c(1,2,3,4)
 begin.date <- c(2004,1)
-end.date <- end(data.ts)
+end.date <- end(dataALL.ts)
 range <- list(begin.date,end.date)
 data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 

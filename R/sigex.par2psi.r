@@ -53,7 +53,7 @@ sigex.par2psi <- function(param,flag,mdl)
 	N <- length(param[[2]][[1]])
 	for(i in 1:length(mdl[[3]]))
 	{
-		mdlType <- mdl[[2]][i]
+		mdlType <- mdl[[2]][[i]]
 		delta <- mdl[[3]][[i]]
 		vrank <- mdl[[1]][[i]]
 		L.mat <- param[[1]][[i]]

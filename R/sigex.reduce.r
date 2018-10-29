@@ -83,7 +83,7 @@ sigex.reduce <- function(data.ts,param,flag,mdl,thresh,modelflag)
 	mdl.red <- NULL
 	for(j in 1:length(mdl[[3]])) {
 		ranks <- seq(1,N)[log.conds[j,] > thresh]
-		mdlType <- mdl[[2]][j]
+		mdlType <- mdl[[2]][[j]]
 		mdl.red <- sigex.add(mdl.red,ranks,mdlType[[1]],mdlType[[2]],
 			mdlType[[3]],mdl[[3]][[j]])
 		par.red[[1]][[j]] <- as.matrix(param[[1]][[j]][,ranks])

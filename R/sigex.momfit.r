@@ -84,7 +84,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 	for(i in 1:length(mdl[[3]]))
 	{
 		delta.poly <- sigex.delta(mdl,i)
-		mdlType <- mdl[[2]][i]
+		mdlType <- mdl[[2]][[i]]
 		mdlClass <- mdlType[[1]]
 		mdlOrder <- mdlType[[2]]
 		mdlBounds <- mdlType[[3]]

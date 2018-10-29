@@ -106,7 +106,7 @@ sigex.midcast <- function(psi,mdl,data.ts,leads)
 	ind <- 0
 	for(i in 1:length(mdl[[3]]))
 	{
-		mdlType <- mdl[[2]][i]	
+		mdlType <- mdl[[2]][[i]]
 		delta <- mdl[[3]][[i]]
 		zetalen <- sigex.zetalen(mdlType)
 		if(zetalen > 0) {

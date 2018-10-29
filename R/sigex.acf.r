@@ -63,7 +63,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 	#
 	####################################################################
 
-	mdlType <- mdl[[2]][comp]
+	mdlType <- mdl[[2]][[comp]]
 	mdlClass <- mdlType[[1]]
 	mdlOrder <- mdlType[[2]]
 	mdlBounds <- mdlType[[3]]

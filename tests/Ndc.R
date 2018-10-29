@@ -1,0 +1,498 @@
+###############################################
+###  Script for Non-Defense Capitalization Data
+###############################################
+
+## wipe
+rm(list=ls())
+
+library(devtools)
+
+setwd("C:\\Users\\Tucker\\Documents\\GitHub\\sigex")
+load_all(".")
+
+######################
+### Part I: load data
+
+ndc <- structure(list(V1 = c(10.5647828036, 10.5701367418, 10.5564895928, 
+10.5875435331, 10.5905160521, 10.5713938452, 10.5972095678, 10.5895597644, 
+10.5893835064, 10.6221806401, 10.6191542545, 10.586786397, 10.6041067479, 
+10.599356027, 10.6248333875, 10.6158734759, 10.6069067944, 10.6382324267, 
+10.6264362243, 10.6505071986, 10.6434228946, 10.6871150862, 10.6615559935, 
+10.6770389139, 10.6685134366, 10.684805854, 10.6991010646, 10.7074379106, 
+10.717568356, 10.7243020908, 10.7273120567, 10.7310126423, 10.7559861513, 
+10.780455166, 10.7682323265, 10.7912141873, 10.7613013547, 10.7943168764, 
+10.7899168364, 10.8062674224, 10.781827165, 10.8015328441, 10.8228336121, 
+10.8093238265, 10.8373824184, 10.8800640253, 10.79176968, 10.8099501461, 
+10.8632782899, 10.8279250095, 10.8673295863, 10.8876425192, 10.8436705768, 
+10.8746830496, 10.8923407772, 10.8733948778, 10.9082286256, 10.9309797087, 
+10.8800263648, 10.9283994783, 10.9505784506, 10.9642075786, 10.9568932484, 
+10.9922178413, 11.0100680109, 11.002433119, 11.0070873827, 10.9910051892, 
+11.0085953662, 11.0254745125, 11.0075184672, 11.038576408, 11.0488243814, 
+11.0188422352, 11.0272476347, 11.0472643932, 11.0191699805, 11.0162985606, 
+11.0546764784, 11.0548978363, 11.0637592216, 11.0555142178, 11.0540595801, 
+11.0502072327, 11.0389941324, 11.0654501567, 11.0762947143, 11.0678407642, 
+11.0852914321, 11.1045210413, 11.0665289814, 11.0977130054, 11.055719594, 
+11.0718124536, 11.1209933711, 11.0503025313, 11.0786904434, 11.1385374234, 
+11.1322651583, 11.1210673603, 11.1106103903, 11.1303024779, 11.1475124551, 
+11.1154136454, 11.1237125712, 11.1304490796, 11.0963488521, 11.1123434153, 
+11.0879716803, 11.0287093146, 11.0345024923, 11.0320469176, 10.992201009, 
+10.9897235701, 10.9637400906, 10.9428274297, 10.9301203714, 10.9471683577, 
+10.9058458828, 10.9230025198, 10.9264958788, 10.9039907481, 10.9227138623, 
+10.9135418142, 10.9012292308, 10.9101307404, 10.9132504124, 10.8910751663, 
+10.8991438398, 10.868911247, 10.8464786362, 10.8632974383, 10.8772544255, 
+10.8448610648, 10.8639674038, 10.8822459127, 10.8828845303, 10.8606514776, 
+10.8940505288, 10.887399549, 10.9053135725, 10.888539129, 10.8686065431, 
+10.8682445866, 10.9070379639, 10.8972947268, 10.8972762184, 10.9092715789, 
+10.9134507603, 10.9221724047, 10.9366186537, 10.9566316532, 10.9196960149, 
+10.9621455257, 10.9818631197, 10.9701790851, 10.977772995, 11.0018498099, 
+10.9992290578, 11.0056103389, 10.994940944, 11.0178583544, 11.0032491805, 
+11.0453668443, 11.063414421, 11.0984549294, 11.0592360326, 11.0908277996, 
+11.1025784598, 11.0822810008, 11.1004961631, 11.1011756494, 11.0891945481, 
+11.1143118318, 11.1154731684, 11.1059041466, 11.1256440273, 11.1190677299, 
+11.1027743949, 11.1293930669, 11.1393804467, 11.1467195308, 11.1508071614, 
+11.1596020413, 11.1335666039, 11.1784312707, 11.1808316291, 11.1684049275, 
+11.1675436557, 11.1599721586, 11.1973650442, 11.1598725251, 11.1604844026, 
+11.1855180187, 11.1887453695, 11.188468752, 11.1729390609, 11.152945064, 
+11.1671056758, 11.0944359057, 11.0898359555, 11.1008133141, 11.0357119065, 
+11.0112082336, 11.0003650039, 10.9478196343, 10.9460055668, 10.9508065468, 
+10.9505609026, 10.9259204945, 10.9670769714, 10.9549208784, 10.9700930451, 
+10.9876797023, 10.9659889542, 10.9767307499, 10.9952262723, 10.9924198072, 
+10.9910388938, 11.009886116, 11.0342442945, 11.0256698727, 11.030460515, 
+11.0340828871, 11.0341797347, 11.0636025088, 11.0505566165, 11.0459572243, 
+11.0790917461, 11.0794311841, 11.0850613619, 11.096667321, 11.1165737039, 
+11.1528447279, 11.1463156186, 11.1597017017, 11.1486646783, 11.1769211189, 
+11.1896576648, 11.1942892172, 11.2158527717, 11.2111579907, 11.2173053024, 
+11.2136835003, 11.2094256152, 11.1850600829, 11.2001033465, 11.2017017839, 
+11.2304962388, 11.2203246486, 11.2074595262, 11.2141689634, 11.2312387179, 
+11.1869598401, 11.253688306, 11.2242695852, 11.2034203255, 11.2037609551, 
+11.2021521637, 11.2001306917, 11.2298859326, 11.2330792783, 11.2042240253, 
+11.2239892731, 11.2340048982, 11.2096558692, 11.2107116497, 11.2332644708, 
+11.2318481993, 11.2654379903, 11.275657634, 11.2360646312, 11.2245231332, 
+11.2468483163, 11.2522228192, 11.2378963386, 11.2461695714, 11.2469657446, 
+11.2354841102, 11.2327220244, 11.2410511227, 11.2477743208, 11.2399874954, 
+11.2221586396, 11.2449937309, 11.1736131993, 11.2022203854, 11.1722082311, 
+11.1731216849, 11.1832262396, 11.1932847797, 11.179674036, 11.1798693866
+), V2 = c(10.4907463003, 10.5838533987, 10.5942569083, 10.6184696077, 
+10.5813941837, 10.5708552801, 10.532496132, 10.5663301528, 10.5830681214, 
+10.5336416838, 10.6096003155, 10.5270166662, 10.6322190348, 10.5470505037, 
+10.5964847218, 10.5789034591, 10.6628671313, 10.6220831575, 10.6552573522, 
+10.6025671017, 10.6414885887, 10.638520162, 10.6526841989, 10.6608059993, 
+10.672298637, 10.6345324561, 10.7096062118, 10.6874347574, 10.7466698126, 
+10.7325414275, 10.7371138096, 10.7382644952, 10.7578390489, 10.7917902479, 
+10.7531469081, 10.7691163696, 10.8041975324, 10.7938243767, 10.7961206361, 
+10.8394828677, 10.8059227381, 10.7795602741, 10.8156899385, 10.9282021034, 
+10.8587297305, 10.8995871186, 10.9682672527, 10.8613040312, 10.863890859, 
+10.9399939145, 10.8342333054, 10.9180839732, 10.9055155167, 10.9205462705, 
+10.8377360738, 10.9311944277, 10.9263880195, 10.9065796393, 10.865955514, 
+10.8954978144, 10.9685947626, 10.9486287385, 10.977363061, 10.9460937044, 
+11.0123636543, 11.0408076023, 11.0434177128, 11.03945985, 11.0571244987, 
+11.2105763555, 10.9837661345, 11.0153121727, 11.0450954717, 11.0083635167, 
+11.0548820266, 11.0597081538, 11.0463718775, 11.0235840604, 11.0653406457, 
+11.0640569083, 11.0174481182, 11.0423296604, 10.9784558453, 11.0623479215, 
+11.0357441376, 11.0264671977, 11.0339053087, 11.0551507567, 11.041528866, 
+11.1020809136, 11.1045962592, 11.1098624695, 11.0933107213, 11.0747615299, 
+11.1512954076, 11.1430494838, 11.0355184985, 11.1139840313, 11.1443803485, 
+11.1174057372, 11.2403946963, 11.1256587569, 11.1517977651, 11.2256699682, 
+11.0932498644, 11.1413979079, 11.1871122189, 11.0548662167, 11.0782580911, 
+11.0700388242, 10.9865631021, 10.9997470756, 10.9975059722, 10.9253807708, 
+10.9511924373, 10.870186187, 10.823391748, 10.8696155193, 10.8734327889, 
+10.8000448547, 10.8857158265, 10.8350609079, 10.8491040498, 10.8967022878, 
+10.8162721451, 10.8832599973, 10.9571024753, 10.8362813565, 10.8487349637, 
+10.868911247, 10.8379914138, 10.8386000387, 10.8382270545, 10.8824525689, 
+10.8531550317, 10.8768766965, 10.881400056, 10.8752508335, 10.8715354712, 
+10.9094361563, 10.8985155249, 10.9036965493, 10.9124486193, 10.8605362769, 
+10.8956090574, 10.9632030756, 10.907715899, 10.9270888974, 10.9420313147, 
+11.0456381432, 10.9217751493, 10.988609251, 10.9430396201, 11.0274263992, 
+11.0008156837, 11.0134518295, 11.0313511528, 10.9773972286, 11.0244971386, 
+11.1995152439, 11.1577921892, 11.0980916069, 11.1411803921, 11.049889505, 
+11.1142522397, 11.3183450748, 11.2683539662, 11.1255851067, 11.1480311198, 
+11.2548280844, 11.1804133766, 11.1797856696, 11.1851433595, 11.1709702241, 
+11.1229005414, 11.3770370109, 11.2445099284, 11.2426772033, 11.2811321117, 
+11.170857602, 11.2218911132, 11.3281729558, 11.3387387306, 11.2462479116, 
+11.3152425239, 11.3539297335, 11.231000124, 11.2699872863, 11.253597586, 
+11.3238451189, 11.3477913542, 11.3436425346, 11.2827321222, 11.2844049838, 
+11.2820899059, 11.2887939258, 11.2463915195, 11.238133293, 11.1940003728, 
+11.1396564551, 11.0740483405, 11.0384478423, 10.9240482056, 10.8257404752, 
+10.713261545, 10.742184243, 10.6768312751, 10.8071995022, 10.8020826359, 
+10.8816632881, 10.8253626627, 10.8180768378, 10.8805911238, 10.8484823525, 
+10.7683376107, 10.9664035765, 10.9955282958, 10.9612604854, 11.0565248932, 
+11.0175630013, 11.069275507, 11.0347928852, 11.0579759518, 11.1432231753, 
+11.1232254324, 11.0540754028, 10.9895885673, 11.0909650543, 11.0594406458, 
+11.1827672529, 11.1080801647, 11.1651677866, 11.1222504423, 11.1681649755, 
+11.2711723244, 11.1845741641, 11.1808734448, 11.2549575225, 11.3571250918, 
+11.3527801867, 11.3280285949, 11.2676513288, 11.2500140508, 11.2378700069, 
+11.2263494473, 11.3209171426, 11.0962881799, 11.2248433125, 11.2857989923, 
+11.2103869128, 11.2696174709, 11.2608679035, 11.336939794, 11.2069572148, 
+11.2509501249, 11.3564236902, 11.4296634141, 11.2244430723, 11.22446976, 
+11.3044241904, 11.2447583968, 11.373444983, 11.3504300646, 11.2548669176, 
+11.2225196866, 11.2859244833, 11.2524564035, 11.2559277746, 11.2853596498, 
+11.7907087052, 11.3201534923, 11.2895818937, 11.2136295455, 11.2386859682, 
+11.1686589316, 11.2447845477, 11.198529739, 11.2727883373, 11.2525861489, 
+11.1621331842, 11.2497538747, 11.2684816655, 11.2277602226, 11.1315039784, 
+11.2677152253, 11.197255356, 11.0315291852, 11.2137239646, 11.1314893347, 
+11.1344430282, 11.2143037725, 11.1971182288, 11.0819579164)), class = "data.frame", row.names = c(NA, 
+-293L))
+
+
+#############################################################
+### Part II: Metadata Specifications and Exploratory Analysis
+
+start.date = c(1992,3)
+period <- 12
+  
+## create ts object and plot
+dataALL.ts <- sigex.load(ndc,start.date,period,c("Shipments","NewOrders"),TRUE)
+ 
+#############################
+## select span and transforms 
+
+## all data with no transform
+transform <- "none"
+aggregate <- FALSE
+subseries <- c(1,2)
+begin.date <- start(dataALL.ts)
+end.date <- end(dataALL.ts)
+range <- NULL
+data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
+
+#######################
+## spectral exploratory
+
+## levels
+par(mfrow=c(2,1))
+for(i in subseries)
+{
+	sigex.specar(data.ts,FALSE,i)
+}
+dev.off()
+
+## growth rates
+par(mfrow=c(2,1))
+for(i in subseries)
+{
+	sigex.specar(data.ts,TRUE,i)
+}
+dev.off()
+
+
+###############################
+### Part III: Model Declaration
+
+N <- dim(data.ts)[2]
+T <- dim(data.ts)[1]
+
+
+################
+## Default Model
+ 
+## choose a model
+# A: BW cycle and stabilized RW trend
+cycle.class <- "bw"
+cycle.order <- 2
+cycle.bounds <- c(0,1,0,1)
+trend.class <- "arma.stab"
+trend.order <- c(0,0)
+trend.bounds <- c(0,1,0,1)
+
+# B: stabilized BW cycle and stabilized RW trend
+cycle.class <- "bw.stab"
+cycle.order <- 2
+cycle.bounds <- c(0,1,0,1)
+trend.class <- "arma.stab"
+trend.order <- c(0,0)
+trend.bounds <- c(0,1,0,1)
+ 
+# C: BAL cycle and stabilized RW trend
+cycle.class <- "bal"
+cycle.order <- 2
+cycle.bounds <- c(0,1,0,1)
+trend.class <- "arma.stab"
+trend.order <- c(0,0)
+trend.bounds <- c(0,1,0,1)
+
+# D: stabilized BAL cycle and stabilized RW trend
+cycle.class <- "bal.stab"
+cycle.order <- 2
+cycle.bounds <- c(0,1,0,1)
+trend.class <- "arma.stab"
+trend.order <- c(0,0)
+trend.bounds <- c(0,1,0,1)
+
+## model construction
+
+mdl <- NULL
+# trend:
+mdl <- sigex.add(mdl,seq(1,N),list(trend.class,trend.order,trend.bounds),c(1,-1))		
+# cycle:
+mdl <- sigex.add(mdl,seq(1,N),list(cycle.class,cycle.order,cycle.bounds),1)			
+# irregular:
+mdl <- sigex.add(mdl,seq(1,N),list("arma",c(0,0),0),1)	
+# regressors:
+mdl <- sigex.meaninit(mdl,data.ts,0)				
+ 
+## parameter initialization and checks
+par.default <- sigex.default(mdl,data.ts)[[1]]
+flag.default <- sigex.default(mdl,data.ts)[[2]]
+psi.default <- sigex.par2psi(par.default,flag.default,mdl)
+#sigex.lik(psi.default,mdl,data.ts)
+resid.init <- sigex.resid(psi.default,mdl,data.ts)
+resid.init <- sigex.load(t(resid.init),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+acf(resid.init,lag.max=40)
+
+
+
+###########################
+### Part IV: MOM Estimation
+
+## fitting
+mdl.mom <- mdl
+par.mom <- sigex.momfit(data.ts,par.default,mdl.mom)
+psi.mom <- sigex.par2psi(par.mom,flag.default,mdl.mom)
+resid.mom <- sigex.resid(psi.mom,mdl.mom,data.ts)
+resid.mom <- sigex.load(t(resid.mom),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+
+## compute a reduced rank model
+thresh <- -6.22
+reduced.mom <- sigex.reduce(data.ts,par.mom,flag.default,mdl.mom,thresh,FALSE)
+mdl.mom <- reduced.mom[[1]]
+par.mom <- reduced.mom[[2]]
+flag.mom <- sigex.default(mdl.mom,data.ts)[[2]]
+psi.mom <- sigex.par2psi(par.mom,flag.mom,mdl.mom)
+resid.mom <- sigex.resid(psi.mom,mdl.mom,data.ts)
+resid.mom <- sigex.load(t(resid.mom),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+acf(resid.mom,lag.max=40)
+
+## examine condition numbers
+log(sigex.conditions(data.ts,psi.mom,mdl.mom))
+
+## model checking
+sigex.portmanteau(resid.mom,48,length(psi.mom))
+sigex.gausscheck(resid.mom)
+
+## bundle  
+analysis.mom <- sigex.bundle(data.ts,transform,mdl.mom,psi.mom)
+
+
+
+##########################
+### Part V: MLE Estimation
+
+## setup, and fix parameters as desired
+mdl.mle <- mdl
+psi.mle <- psi.default
+flag.mle <- Im(psi.mle)
+par.mle <- sigex.psi2par(psi.mle,mdl.mle,data.ts)
+
+## run fitting
+fit.mle <- sigex.mlefit(data.ts,par.mle,flag.mle,mdl.mle,"bfgs")
+
+## manage output
+psi.mle[flag.mle==1] <- fit.mle[[1]]$par 
+psi.mle <- psi.mle + 1i*flag.mle
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+
+##  model checking 
+resid.mle <- sigex.resid(psi.mle,mdl.mle,data)
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+sigex.portmanteau(resid.mle,48,length(psi.mle))
+sigex.gausscheck(resid.mle)
+acf(resid.mle,lag.max=40)
+      
+## check on standard errors and condition numbers
+print(eigen(hess)$values)
+taus <- log(sigex.conditions(data.ts,psi.mle,mdl.mle))
+print(taus)
+tstats <- sigex.tstats(mdl.mle,psi.mle,hess)
+stderrs <- sigex.psi2par(tstats,mdl,data.ts)
+print(tstats)
+
+## bundle  
+analysis.mle <- sigex.bundle(data.ts,transform,mdl.mle,psi.mle)
+
+
+
+#########################################
+### Part VI: Reduced model MLE Estimation
+
+## setup, and initialize at previous MLEs
+thresh <- -6.22
+mdl.mle2 <- mdl.mle
+par.mle2 <- par.mle
+psi.mle2 <- psi.mle
+mdl.mle2 <- sigex.reduce(data.ts,par.mle,flag.mle,mdl.mle,thresh,TRUE)[[1]]
+par.mle2 <- sigex.reduce(data.ts,par.mle,flag.mle,mdl.mle,thresh,TRUE)[[2]]
+flag.mle2 <- sigex.default(mdl.mle2,data.ts)[[2]]
+psi.mle2 <- sigex.par2psi(par.mle2,flag.mle2,mdl.mle2)
+
+## run fitting
+fit.mle2 <- sigex.mlefit(data.ts,par.mle2,flag.mle2,mdl.mle2,"bfgs")
+
+## manage output
+psi.mle2[flag.mle2==1] <- fit.mle2[[1]]$par 
+psi.mle2 <- psi.mle2 + 1i*flag.mle2
+hess2 <- fit.mle2[[1]]$hessian
+par.mle2 <- fit.mle2[[2]]
+
+## model checking
+resid.mle2 <- sigex.resid(psi.mle2,mdl.mle2,data.ts)
+resid.mle2 <- sigex.load(t(resid.mle2),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+sigex.portmanteau(resid.mle2,48,length(psi.mle2))
+sigex.gausscheck(resid.mle2)
+acf(resid.mle2,lag.max=40)
+  
+## check on standard errors  
+print(eigen(hess2)$values)
+tstats <- sigex.tstats(mdl.mle2,psi.mle2,hess2)
+stderrs <- sigex.psi2par(tstats,mdl.mle2,data.ts)
+print(tstats)
+
+## nested model comparison
+test.glr <- sigex.glr(data.ts,psi.mle2,psi.mle,mdl.mle2,mdl.mle)
+pchisq(test.glr[1],df=test.glr[2])
+
+## bundle 
+analysis.mle <- sigex.bundle(data.ts,transform,mdl.mle2,psi.mle2)
+ 
+
+
+############################################
+### Part VII: Signal Extraction based on MOM
+
+## load up the MOM fit for signal extraction
+data.ts <- analysis.mom[[1]]
+mdl <- analysis.mom[[3]]
+psi <- analysis.mom[[4]]
+param <- sigex.psi2par(psi,mdl,data.ts)
+ 
+## get signal filters
+signal.trend <- sigex.signal(data.ts,param,mdl,1)
+signal.seas <- sigex.signal(data.ts,param,mdl,seq(2,7))
+signal.sa <- sigex.signal(data.ts,param,mdl,c(1,8))
+
+## get extractions 
+extract.trend <- sigex.extract(data.ts,signal.trend,mdl,param)
+extract.seas <- sigex.extract(data.ts,signal.seas,mdl,param)
+extract.sa <- sigex.extract(data.ts,signal.sa,mdl,param)
+ 
+## get fixed effects
+reg.trend <- NULL
+for(i in 1:N) {
+reg.trend <- cbind(reg.trend,param[[4]][i]*mdl[[4]][[i]]) }
+
+## plotting
+trendcol <- "tomato"
+cyccol <- "orchid"
+seascol <- "seagreen"
+sacol <- "navyblue"
+fade <- 60
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+	plot(data.ts[,i],xlab="Year",ylab="",ylim=c(min(data.ts[,i]),max(data.ts[,i])),lwd=1)
+	sigex.graph(extract.sa,reg.trend,begin.date,period,i,0,sacol,fade)
+	sigex.graph(extract.trend,reg.trend,begin.date,period,i,0,trendcol,fade)
+	sigex.graph(extract.seas,NULL,begin.date,period,i,3,seascol,fade)
+}
+dev.off()
+
+## spectral diagnostics: trend
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+	sigex.specar(ts(extract.trend[[1]],frequency=period,names=colnames(data.ts)),FALSE,i)
+}
+dev.off()
+
+## spectral diagnostics: sa
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+	sigex.specar(ts(extract.sa[[1]],frequency=period,names=colnames(data.ts)),FALSE,i)
+}
+dev.off()
+
+## transfer function analysis
+grid <- 1200
+frf.trend <- sigex.getfrf(data.ts,param,mdl,1,TRUE,grid)
+frf.seas <- sigex.getfrf(data.ts,param,mdl,seq(2,7),TRUE,grid)
+frf.sa <- sigex.getfrf(data.ts,param,mdl,c(1,8),TRUE,grid)
+
+## filter analysis
+len <- 500
+wk.trend <- sigex.wk(data.ts,param,mdl,1,TRUE,grid,len)
+wk.seas <- sigex.wk(data.ts,param,mdl,seq(2,7),TRUE,grid,len)
+wk.sa <- sigex.wk(data.ts,param,mdl,c(1,8),TRUE,grid,len)
+
+
+
+#############################################
+### Part VIII: Signal Extraction based on MLE
+
+## load up the MLE fit for signal extraction
+data.ts <- analysis.mle[[1]]
+mdl <- analysis.mle[[3]]
+psi <- analysis.mle[[4]]
+param <- sigex.psi2par(psi,mdl,data.ts)
+
+## get signal filters
+signal.trend <- sigex.signal(data.ts,param,mdl,1)
+signal.seas <- sigex.signal(data.ts,param,mdl,seq(2,7))
+signal.sa <- sigex.signal(data.ts,param,mdl,c(1,8))
+
+## get extractions 
+extract.trend <- sigex.extract(data.ts,signal.trend,mdl,param)
+extract.seas <- sigex.extract(data.ts,signal.seas,mdl,param)
+extract.sa <- sigex.extract(data.ts,signal.sa,mdl,param)
+ 
+## get fixed effects
+reg.trend <- NULL
+for(i in 1:N) {
+reg.trend <- cbind(reg.trend,param[[4]][i]*mdl[[4]][[i]]) }
+
+## plotting
+trendcol <- "tomato"
+cyccol <- "orchid"
+seascol <- "seagreen"
+sacol <- "navyblue"
+fade <- 60
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+	plot(data.ts[,i],xlab="Year",ylab="",ylim=c(min(data.ts[,i]),max(data.ts[,i])),lwd=1)
+	sigex.graph(extract.sa,reg.trend,begin.date,period,i,0,sacol,fade)
+	sigex.graph(extract.trend,reg.trend,begin.date,period,i,0,trendcol,fade)
+	sigex.graph(extract.seas,NULL,begin.date,period,i,3,seascol,fade)
+}
+dev.off()
+
+## spectral diagnostics: trend
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+	sigex.specar(ts(extract.trend[[1]],frequency=period,names=colnames(data.ts)),FALSE,i)
+}
+dev.off()
+
+## spectral diagnostics: sa
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+	sigex.specar(ts(extract.sa[[1]],frequency=period,names=colnames(data.ts)),FALSE,i)
+}
+dev.off()
+
+## transfer function analysis
+grid <- 1200
+frf.trend <- sigex.getfrf(data.ts,param,mdl,1,TRUE,grid)
+frf.seas <- sigex.getfrf(data.ts,param,mdl,seq(2,7),TRUE,grid)
+frf.sa <- sigex.getfrf(data.ts,param,mdl,c(1,8),TRUE,grid)
+
+## filter analysis
+len <- 500
+wk.trend <- sigex.wk(data.ts,param,mdl,1,TRUE,grid,len)
+wk.seas <- sigex.wk(data.ts,param,mdl,seq(2,7),TRUE,grid,len)
+wk.sa <- sigex.wk(data.ts,param,mdl,c(1,8),TRUE,grid,len)
+
+
+
