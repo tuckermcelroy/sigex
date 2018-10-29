@@ -61,7 +61,7 @@ sigex.getfrf <- function(data.ts,param,mdl,sigcomps,plotit=TRUE,grid)
 
 	frf.comp <- sigex.frf(data.ts,param,mdl,sigcomps,grid)
 
-	if(plotit && (N <= 3)) {
+	if(plotit && (N <= 4)) {
 	par(mfrow = c(N,N))
 	for(i in 1:N) 
 	{

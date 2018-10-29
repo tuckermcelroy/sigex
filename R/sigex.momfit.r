@@ -83,147 +83,77 @@ sigex.momfit <- function(data.ts,param,mdl)
 	ar.pols <- NULL
 	for(i in 1:length(mdl[[3]]))
 	{
-		ma.pol <- sigex.delta(mdl,i)
-		ar.pol <- 1
+		delta.poly <- sigex.delta(mdl,i)
 		mdlType <- mdl[[2]][i]
-	 
-		if(mdlType == "canonWN")
+		mdlClass <- mdlType[[1]]
+		mdlOrder <- mdlType[[2]]
+		mdlBounds <- mdlType[[3]]
+		mdlPar <- param[[3]][[i]]	 
+
+		# ARMA model
+		if(mdlClass == "arma")
 		{
+			p.order <- mdlOrder[1]
+			q.order <- mdlOrder[2]
+			ar.poly <- NULL
+			ma.poly <- NULL
+			if(p.order > 0) ar.poly <- mdlPar[1:p.order]
+			if(q.order > 0) ma.poly <- mdlPar[(p.order+1):(p.order+q.order)]
+			ma.poly <- polymult(c(1,ma.poly),delta.poly)
+			ar.poly <- c(1,-1*ar.poly)
+ 		}
+
+		# Stabilized ARMA model
+		if(mdlClass == "arma.stab")
+		{
+			p.order <- mdlOrder[1]
+			q.order <- mdlOrder[2]
+			ar.poly <- NULL
+			ma.poly <- NULL
+			if(p.order > 0) ar.poly <- mdlPar[1:p.order]
+			if(q.order > 0) ma.poly <- mdlPar[(p.order+1):(p.order+q.order)]
 			canon.delta <- mdl[[3]][[i]]
-			canon.d <- length(canon.delta)
-			freq0 <- sum(canon.delta)^2 
-			freqpi <- sum(canon.delta*((-1)^(seq(0,canon.d-1))))^2
-			freqmax <- max(freq0,freqpi)
-			ma.poly <- polymult(rev(canon.delta),canon.delta)
-			psi.acf <- c(1,rep(0,canon.d-1))
-			psi.acf <- psi.acf - freqmax^{-1}*ma.poly[canon.d:(2*canon.d-1)]				
-			psi.acf <- c(rev(psi.acf),psi.acf[-1])
-			psi.ma <- Re(specFact(psi.acf))		
- 			ma.pol <- polymult(psi.ma,ma.pol)
-		}	
-	 	if(mdlType == "AR1") 
-		{ 
-			phi <- param[[3]][[i]][1]
-			ar.pol <- polymult(c(1,-1*phi),ar.pol)
+			ardiff.poly <- polymult(c(1,-1*ar.poly),canon.delta)
+			ma.stab <- sigex.canonize(ma.poly,-1*ardiff.poly[-1])
+			ma.poly <- polymult(delta.poly,ma.stab)
+			ar.poly <- c(1,-1*ar.poly)
 		}
-		if(mdlType == "MA1")
+ 
+		# Butterworth cycle
+		if(mdlClass == "bw")
 		{
-			theta <- param[[3]][[i]][1]
-			ma.pol <- polymult(c(1,theta),ma.pol)
-		}
-		if(mdlType == "canonMA1")
+			cycle.order <- mdlOrder[1]
+			rho <- mdlPar[1]
+			omega <- mdlPar[2] 
+			out <- sigex.getcycle(cycle.order,rho,omega)
+			ar.poly <- out[[1]]
+			ma.poly <- out[[2]]
+			ma.poly <- polymult(delta.poly,ma.poly)
+ 		}
+
+		# Stabilized Butterworth cycle
+		if(mdlClass == "bw.stab")
 		{
+			cycle.order <- mdlOrder[1]
+			rho <- mdlPar[1]
+			omega <- mdlPar[2] 
+			out <- sigex.getcycle(cycle.order,rho,omega)
+			ar.poly <- out[[1]]
+			ma.poly <- out[[2]]
 			canon.delta <- mdl[[3]][[i]]
-			theta <- param[[3]][[i]][1]
-			psi.ma <- sigex.canonize(theta,-1*canon.delta[-1])
-			ma.pol <- polymult(psi.ma,ma.pol)
+			ardiff.poly <- polymult(ar.poly,canon.delta)
+			ma.stab <- sigex.canonize(ma.poly,-1*ardiff.poly[-1])
+			ma.poly <- polymult(delta.poly,ma.stab)
 		}
-		if(mdlType %in% c("cycleBW1","cycleBW2","cycleBW3","cycleBW4","cycleBW5",
-			"cycleBW6","cycleBW7","cycleBW8","cycleBW9","cycleBW10"))
+
+		# Balanced cycle
+		if(mdlClass == "bal")
 		{
-			if(mdlType == "cycleBW1") cycle.order <- 1
-			if(mdlType == "cycleBW2") cycle.order <- 2
-			if(mdlType == "cycleBW3") cycle.order <- 3
-			if(mdlType == "cycleBW4") cycle.order <- 4
-			if(mdlType == "cycleBW5") cycle.order <- 5
-			if(mdlType == "cycleBW6") cycle.order <- 6
-			if(mdlType == "cycleBW7") cycle.order <- 7
-			if(mdlType == "cycleBW8") cycle.order <- 8
-			if(mdlType == "cycleBW9") cycle.order <- 9
-			if(mdlType == "cycleBW10") cycle.order <- 10
-			rho <- param[[3]][[i]][1]
-			omega <- param[[3]][[i]][2]
-			out <- sigex.getcycle(cycle.order,rho,omega)
-			cycle.AR <- out[[1]]
-			cycle.MA <- out[[2]]
-			ma.pol <- polymult(cycle.MA,ma.pol)
-			ar.pol <- polymult(cycle.AR,ar.pol)
-		}
-		if(mdlType %in% c("canonCycleBW1","canonCycleBW2","canonCycleBW3","canonCycleBW4",
-			"canonCycleBW5","canonCycleBW6","canonCycleBW7","canonCycleBW8",
-			"canonCycleBW9","canonCycleBW10"))
-		{
-			if(mdlType == "canonCycleBW1") cycle.order <- 1
-			if(mdlType == "canonCycleBW2") cycle.order <- 2
-			if(mdlType == "canonCycleBW3") cycle.order <- 3
-			if(mdlType == "canonCycleBW4") cycle.order <- 4
-			if(mdlType == "canonCycleBW5") cycle.order <- 5
-			if(mdlType == "canonCycleBW6") cycle.order <- 6
-			if(mdlType == "canonCycleBW7") cycle.order <- 7
-			if(mdlType == "canonCycleBW8") cycle.order <- 8
-			if(mdlType == "canonCycleBW9") cycle.order <- 9
-			if(mdlType == "canonCycleBW10") cycle.order <- 10
-			rho <- param[[3]][[i]][1]
-			omega <- param[[3]][[i]][2]
-			out <- sigex.getcycle(cycle.order,rho,omega)
-			cycle.AR <- out[[1]]
-			cycle.MA <- out[[2]]
-			psi.acf <- ARMAauto(ar = NULL,ma = cycle.MA[-1],lag.max=length(cycle.MA))
-			freq0 <- ((1-2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2-2*rho*cos(pi*omega))^2)^cycle.order
-			freqpi <- ((1+2*rho*cos(pi*omega)+rho^2*cos(pi*omega)^2)/(1+rho^2+2*rho*cos(pi*omega))^2)^cycle.order
-			lambda.crit1 <- (1+rho^2*cos(pi*omega)^2 - sin(pi*omega)*sqrt(sin(pi*omega)^2 + cos(pi*omega)^2*(1-rho^2)^2))/(2*rho*cos(pi*omega))
-			lambda.crit2 <- (1+rho^2*cos(pi*omega)^2 + sin(pi*omega)*sqrt(sin(pi*omega)^2 + cos(pi*omega)^2*(1-rho^2)^2))/(2*rho*cos(pi*omega))
-			if(abs(lambda.crit1)<=1) { lambda.crit1 <- acos(lambda.crit1) } else { lambda.crit1 <- 0 }
-			if(abs(lambda.crit2)<=1) { lambda.crit2 <- acos(lambda.crit2) } else { lambda.crit2 <- 0 }
-			freqcrit1 <- ((1+rho^2*cos(pi*omega)^2-2*rho*cos(pi*omega)*cos(lambda.crit1))/
-				(1+4*rho^2*cos(pi*omega)^2 + rho^4 - 4*rho*(1+rho^2)*cos(pi*omega)*cos(lambda.crit1) + 2*rho^2*cos(2*lambda.crit1)))^cycle.order
-			freqcrit2 <- ((1+rho^2*cos(pi*omega)^2-2*rho*cos(pi*omega)*cos(lambda.crit2))/
-				(1+4*rho^2*cos(pi*omega)^2 + rho^4 - 4*rho*(1+rho^2)*cos(pi*omega)*cos(lambda.crit2) + 2*rho^2*cos(2*lambda.crit2)))^cycle.order
-			freqmin <- min(freq0,freqpi,freqcrit1,freqcrit2)
-		  	psi.acf <- c(rev(psi.acf),psi.acf[-1])
-			psi.acf <- polysum(psi.acf,-freqmin*polymult(cycle.AR,rev(cycle.AR)))
-		 	psi.ma <- Re(specFact(psi.acf))		
- 			ma.pol <- polymult(psi.ma,ma.pol)
-			ar.pol <- polymult(cycle.AR,ar.pol)
-		}
-		if(mdlType %in% c("cycleBAL1","cycleBAL2","cycleBAL3","cycleBAL4","cycleBAL5",
-			"cycleBAL6","cycleBAL7","cycleBAL8","cycleBAL9","cycleBAL10"))
-		{
-			if(mdlType == "cycleBAL1") cycle.order <- 1
-			if(mdlType == "cycleBAL2") cycle.order <- 2
-			if(mdlType == "cycleBAL3") cycle.order <- 3
-			if(mdlType == "cycleBAL4") cycle.order <- 4
-			if(mdlType == "cycleBAL5") cycle.order <- 5
-			if(mdlType == "cycleBAL6") cycle.order <- 6
-			if(mdlType == "cycleBAL7") cycle.order <- 7
-			if(mdlType == "cycleBAL8") cycle.order <- 8
-			if(mdlType == "cycleBAL9") cycle.order <- 9
-			if(mdlType == "cycleBAL10") cycle.order <- 10
+			cycle.order <- mdlOrder[1]
 			rho <- mdlPar[1]
-			omega <- mdlPar[2]
+			omega <- mdlPar[2] 
 			out <- sigex.getcycle(cycle.order,rho,omega)
-			cycle.AR <- out[[1]]
-			r <- seq(0,cycle.order)
-			ma.acf <- sum((choose(cycle.order,r)^2)*(-rho)^(2*r))
-			for(h in 1:cycle.order)
-			{
-				r <- seq(0,cycle.order-h)
-				new.acf <- cos(h*omega) * sum(choose(cycle.order,r+h)*choose(cycle.order,r)*(-rho)^(2*r+h))
-				ma.acf <- c(ma.acf,new.acf)
-			}		
-			ma.acf <- c(rev(ma.acf),ma.acf[-1])
-			psi.ma <- Re(specFact(ma.acf))	
-			ma.pol <- polymult(psi.ma,ma.pol)
-			ar.pol <- polymult(cycle.AR,ar.pol)
-		}	
-		if(mdlType %in% c("canonCycleBAL1","canonCycleBAL2","canonCycleBAL3","canonCycleBAL4",
-			"canonCycleBAL5","canonCycleBAL6","canonCycleBAL7","canonCycleBAL8",
-			"canonCycleBAL9","canonCycleBAL10"))
-		{
-			if(mdlType == "canonCycleBAL1") cycle.order <- 1
-			if(mdlType == "canonCycleBAL2") cycle.order <- 2
-			if(mdlType == "canonCycleBAL3") cycle.order <- 3
-			if(mdlType == "canonCycleBAL4") cycle.order <- 4
-			if(mdlType == "canonCycleBAL5") cycle.order <- 5
-			if(mdlType == "canonCycleBAL6") cycle.order <- 6
-			if(mdlType == "canonCycleBAL7") cycle.order <- 7
-			if(mdlType == "canonCycleBAL8") cycle.order <- 8
-			if(mdlType == "canonCycleBAL9") cycle.order <- 9
-			if(mdlType == "canonCycleBAL10") cycle.order <- 10
-			rho <- mdlPar[1]
-			omega <- mdlPar[2]
-			out <- sigex.getcycle(cycle.order,rho,omega)
-			cycle.AR <- out[[1]]
+			ar.poly <- out[[1]]
 			r <- seq(0,cycle.order)
 			ma.acf <- sum((choose(cycle.order,r)^2)*(-rho)^(2*r))
 			for(h in 1:cycle.order)
@@ -232,31 +162,51 @@ sigex.momfit <- function(data.ts,param,mdl)
 				new.acf <- cos(h*pi*omega) * sum(choose(cycle.order,r+h)*choose(cycle.order,r)*(-rho)^(2*r+h))
 				ma.acf <- c(ma.acf,new.acf)
 			}		
-			ma.acf <- c(rev(ma.acf),ma.acf[-1])
-			freq0 <- (1 -2*rho*cos(pi*omega) + rho^2)^(-cycle.order)
-			freqpi <- (1 +2*rho*cos(pi*omega) + rho^2)^(-cycle.order)
-			freqmin <- min(freq0,freqpi)
-			ma.acf <- polysum(ma.acf,-freqmin*polymult(cycle.AR,rev(cycle.AR)))
-			psi.ma <- Re(specFact(ma.acf))		
-			ma.pol <- polymult(psi.ma,ma.pol)
-			ar.pol <- polymult(cycle.AR,ar.pol)
-		}
-		if(mdlType == "ARMA22")
+			ma.acf <- c(rev(ma.acf),ma.acf[-1]) + 1e-10
+			ma.poly <- Re(specFact(ma.acf))	
+			ma.poly <- polymult(delta.poly,ma.poly)
+ 		}
+
+		# Stabilized Balanced cycle
+		if(mdlClass == "bal.stab")
 		{
-			phis <- param[[3]][[i]][1:2]
-			thetas <- param[[3]][[i]][3:4]
-			ma.pol <- polymult(c(1,thetas),ma.pol)
-			ar.pol <- polymult(c(1,-1*phis),ar.pol)
+			cycle.order <- mdlOrder[1]
+			rho <- mdlPar[1]
+			omega <- mdlPar[2] 
+			out <- sigex.getcycle(cycle.order,rho,omega)
+			ar.poly <- out[[1]]
+			r <- seq(0,cycle.order)
+			ma.acf <- sum((choose(cycle.order,r)^2)*(-rho)^(2*r))
+			for(h in 1:cycle.order)
+			{
+				r <- seq(0,cycle.order-h)
+				new.acf <- cos(h*pi*omega) * sum(choose(cycle.order,r+h)*choose(cycle.order,r)*(-rho)^(2*r+h))
+				ma.acf <- c(ma.acf,new.acf)
+			}		
+			ma.acf <- c(rev(ma.acf),ma.acf[-1]) + 1e-10
+			ma.poly <- Re(specFact(ma.acf))	
+			canon.delta <- mdl[[3]][[i]]
+			ardiff.poly <- polymult(ar.poly,canon.delta)
+
+		HERE: problem, input to canonize assummes ma polynomial	
+			has unit constant coeff, but ma.poly does not...
+
+			ma.stab <- sigex.canonize(ma.poly,-1*ardiff.poly[-1])
+			ma.scale <- ma.scale*ma.stab[1]^2
+			ma.stab <- ma.stab/ma.stab[1]	
+			madiff.stab <- polymult(delta,ma.stab)
+	
+	
 		}
 
 		ma.null <- NULL
-		if(length(ma.pol)==1) ma.null <- 0
-		ma.pols[[length(ma.pols)+1]] <- c(ma.null,ma.pol)
-		if(length(ma.pol)==1) ma.pols[[length(ma.pols)]] <- ma.pols[[length(ma.pols)]][-1]
+		if(length(ma.poly)==1) ma.null <- 0
+		ma.pols[[length(ma.pols)+1]] <- c(ma.null,ma.poly)
+		if(length(ma.poly)==1) ma.pols[[length(ma.pols)]] <- ma.pols[[length(ma.pols)]][-1]
 		ar.null <- NULL
-		if(length(ar.pol)==1) ar.null <- 0
-		ar.pols[[length(ar.pols)+1]] <- c(ar.null,ar.pol)
-		if(length(ar.pol)==1) ar.pols[[length(ar.pols)]] <- ar.pols[[length(ar.pols)]][-1]
+		if(length(ar.poly)==1) ar.null <- 0
+		ar.pols[[length(ar.pols)+1]] <- c(ar.null,ar.poly)
+		if(length(ar.poly)==1) ar.pols[[length(ar.pols)]] <- ar.pols[[length(ar.pols)]][-1]
 	}
 
 	est.acf <- array(0,c(N,length(mdl[[3]]),N))

@@ -1,4 +1,4 @@
-sigex.zeta2par <- function(zeta,mdlType,N,bounds)
+sigex.zeta2par <- function(zeta,mdlType)
 {
 
 	##########################################################################
@@ -32,6 +32,9 @@ sigex.zeta2par <- function(zeta,mdlType,N,bounds)
 	#		manifold) together with imaginary component flagging 
 	#		whether the hyper-parameter is fixed for purposes of estimation.
 	#	Notes: this is a functional inverse to sigex.par2zeta
+	#		bounds: gives bounds for rho and omega, cycle parameters in zeta
+	#			rho lies in (bounds[1],bounds[2])
+	#			omega lies in (bounds[3],bounds[4])
 	#	Format: psi has three portions, psi = [xi,zeta,beta]
 	#		xi ~ all hyper-parameters for covariance matrices
 	#		zeta ~ all hyper-parameters for t.s. models
@@ -41,10 +44,6 @@ sigex.zeta2par <- function(zeta,mdlType,N,bounds)
 	#			corresponding t.s. models, such as cycles
 	#		mdlType: this is a component of mdl (the specified sigex model),
 	#			 cited as mdl[[2]]
-	#		N: dimension of the time series
-	#		bounds: gives bounds for rho and omega, cycle parameters in zeta
-	#			rho lies in (bounds[1],bounds[2])
-	#			omega lies in (bounds[3],bounds[4])
 	#	Outputs:
 	#		zeta.par: see background.  This is a portion of the full 
 	#			param list, corresponding to param[[3]]
@@ -52,63 +51,68 @@ sigex.zeta2par <- function(zeta,mdlType,N,bounds)
 	#
 	####################################################################
 
+psi2phi <- function(psi)
+{
+	p <- length(psi)
+	pacfs <- (exp(psi)-1)/(exp(psi)+1)
+	if(p==1)
+	{
+		phi <- pacfs
+	} else
+	{
+		phi <- as.vector(pacfs[1])
+		for(j in 2:p)
+		{
+			A.mat <- diag(j-1) - pacfs[j]*diag(j-1)[,(j-1):1,drop=FALSE]
+			phi <- A.mat %*% phi
+			phi <- c(phi,pacfs[j])
+		}
+	}
+	return(phi)
+}
+
+	mdlClass <- mdlType[[1]]
+	mdlOrder <- mdlType[[2]]
+	mdlBounds <- mdlType[[3]]
+
 	# defaults
-	low.rho <- bounds[1]
-	upp.rho <- bounds[2]
-	low.omega <- bounds[3]
-	upp.omega <- bounds[4]
-		
-	if(mdlType %in% c("wn","canonWN")) { zeta.par <- NULL }
-	if(mdlType == "AR1") 
-	{ 
-		phi1 <- low.rho + (upp.rho - low.rho)*exp(zeta[1])/(1+exp(zeta[1]))
-		zeta.par <- phi1
-	} 
-	if(mdlType %in% c("MA1","canonMA1")) 
-	{ 
-		theta1 <- (exp(zeta[1])-1)/(exp(zeta[1])+1)
-		zeta.par <- theta1
-	} 
-	if(mdlType %in% c("cycleBW1","cycleBW2","cycleBW3","cycleBW4","cycleBW5",
-		"cycleBW6","cycleBW7","cycleBW8","cycleBW9","cycleBW10",
-		"canonCycleBW1","canonCycleBW2","canonCycleBW3","canonCycleBW4",
-		"canonCycleBW5","canonCycleBW6","canonCycleBW7","canonCycleBW8",
-		"canonCycleBW9","canonCycleBW10","cycleBAL1","cycleBAL2","cycleBAL3",
-		"cycleBAL4","cycleBAL5","cycleBAL6","cycleBAL7","cycleBAL8",
-		"cycleBAL9","cycleBAL10","canonCycleBAL1","canonCycleBAL2",
-		"canonCycleBAL3","canonCycleBAL4","canonCycleBAL5","canonCycleBAL6",
-		"canonCycleBAL7","canonCycleBAL8","canonCycleBAL9","canonCycleBAL10"))
+	low.rho <- mdlBounds[1]
+	upp.rho <- mdlBounds[2]
+	low.omega <- mdlBounds[3]
+	upp.omega <- mdlBounds[4]
+	
+	##############################
+	## get param for the component
+
+	# ARMA  
+	if(mdlClass %in% c("arma","arma.stab"))
+	{
+		p.order <- mdlOrder[1]
+		q.order <- mdlOrder[2]
+		ar.poly <- NULL
+		ma.poly <- NULL
+		zeta.ar <- NULL
+		zeta.ma <- NULL
+		if(p.order > 0) 
+		{
+			zeta.ar <- zeta[1:p.order]
+			ar.poly <- psi2phi(zeta.ar)
+		}
+		if(q.order > 0) 
+		{
+			zeta.ma <- zeta[(p.order+1):(p.order+q.order)]			
+			ma.poly <- psi2phi(-1*zeta.ma)
+		}
+		zeta.par <- c(ar.poly,ma.poly)
+	}
+
+	# cycles
+	if(mdlClass %in% c("bw","bw.stab","bal","bal.stab"))
 	{
 		rho <- low.rho + (upp.rho - low.rho)*exp(zeta[1])/(1+exp(zeta[1]))
 		omega <- low.omega + (upp.omega - low.omega)*exp(zeta[2])/(1+exp(zeta[2]))
 		zeta.par <- c(rho,omega)		
 	}
-#	if(mdlType == "VAR1") 
-#	{ 
-#		phi1.mat <- psi[(ind+1):(ind+N^2)]
-#		subparam <- matrix(phi1.mat,ncol=N)	
-#	}
-	if(mdlType == "ARMA22")
-	{
-		phis <- zeta[1:2]
-		phis[1] <- (exp(phis[1])-1)/(exp(phis[1])+1)
-		phis[2] <- (exp(phis[2])+2*phis[1]^2-1)/(exp(phis[2])+1)			
-		phis <- c(phis[1]*(1-phis[2]),(phis[2]-phis[1]^2))/(1-phis[1]^2)
-		thetas <- zeta[3:4]
-		thetas[1] <- (exp(thetas[1])-1)/(exp(thetas[1])+1)
-		thetas[2] <- (exp(thetas[2])+2*thetas[1]^2-1)/(exp(thetas[2])+1)
-		thetas <- c(thetas[1]*(1-thetas[2]),(thetas[2]-thetas[1]^2))/(1-thetas[1]^2)
-		zeta.par <- c(phis,-1*thetas)
-	}
-	if(mdlType == "damped")
-	{
-		L.dim <- as.integer(N*(N-1)/2)
-		L.psi <- zeta[1:L.dim]
-		D.psi <- zeta[(L.dim+1):(L.dim+N)]
-		L.mat <- sigex.param2gcd(L.psi,N,seq(1,N))
-		phi <- zeta[L.dim+N+1]
-		zeta.par <- list(L.mat,D.psi,phi)
-	} 
-
-	return(zeta.par)
+	
+ 	return(zeta.par)
 }

@@ -39,32 +39,25 @@ VARMAauto <- function(phi,theta,sigma,maxlag)
 	#
 	####################################################################
 
-	 
 polymulMat <- function(amat,bmat)
 {
-	p <- dim(amat)[3]
-	q <- dim(bmat)[3]
-	amatd <- amat[,,p:1]
-	if(q > 1) amatd <- array(c(matrix(0,m,m*(q-1)),amatd),c(m,m,p+q-1))
-	bigmat <- NULL
-	for(i in 1:(p+q-1)) 
-	{
-		nextmat <- matrix(amatd[,,1:(p+q-1)],m,m*(p+q-1))
-		bigmat <- rbind(nextmat,bigmat)
-		amatd <- amatd[,,-1]
-		amatd <- array(c(amatd,matrix(0,m,m)),c(m,m,p+q-1))
-	}
-	bigmat <- bigmat[,1:(m*q)]
-	out <- bigmat %*% t(matrix(bmat[,,q:1],m,m*q))
-	out <- array(out,c(m,p+q-1,m))
-	temp <- NULL
-	for(i in 1:(p+q-1))
-	{
-		temp <- cbind(temp,out[,i,])
-	}
-	out <- array(temp,c(m,m,p+q-1))
+	p <- dim(amat)[3]-1
+	q <- dim(bmat)[3]-1
+	N <- dim(amat)[2]
 
-	return(out)
+	r <- p+q
+	bmat.pad <- array(0,c(N,N,r+1))
+	for(i in 1:(q+1)) { bmat.pad[,,i] <- bmat[,,i] }
+	cmat <- array(0,c(N,N,r+1))
+	cmat[,,1] <- amat[,,1] %*% bmat.pad[,,1]
+	for(j in 2:(r+1))
+	{
+		cmat[,,j] <- amat[,,1] %*% bmat.pad[,,j]
+		for(k in 1:min(p,j-1))
+		{ cmat[,,j] <- cmat[,,j] + amat[,,k+1] %*% bmat.pad[,,j-k] }
+	}
+
+	return(cmat)
 }
 
 Kcommut <- function(vect,m,n)
