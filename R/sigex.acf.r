@@ -78,11 +78,11 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 	{
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
-		ar.poly <- NULL
-		ma.poly <- NULL
-		if(p.order > 0) ar.poly <- mdlPar[1:p.order]
-		if(q.order > 0) ma.poly <- mdlPar[(p.order+1):(p.order+q.order)]
-		psi.acf <- ARMAauto(ar = ar.poly, ma = polymult(c(1,ma.poly),delta)[-1], 
+		ar.coef <- NULL
+		ma.coef <- NULL
+		if(p.order > 0) ar.coef <- mdlPar[1:p.order]
+		if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
+		psi.acf <- ARMAauto(ar = ar.coef, ma = polymult(c(1,ma.coef),delta)[-1], 
 			lag.max=maxlag)[1:maxlag]
 		x.acf <- psi.acf %x% xi.mat
 	}
@@ -92,17 +92,17 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 	{
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
-		ar.poly <- NULL
-		ma.poly <- NULL
-		if(p.order > 0) ar.poly <- mdlPar[1:p.order]
-		if(q.order > 0) ma.poly <- mdlPar[(p.order+1):(p.order+q.order)]
+		ar.coef <- NULL
+		ma.coef <- NULL
+		if(p.order > 0) ar.coef <- mdlPar[1:p.order]
+		if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
 		canon.delta <- mdl[[3]][[comp]]
-		ardiff.poly <- polymult(c(1,-1*ar.poly),canon.delta)
-		ma.stab <- sigex.canonize(ma.poly,-1*ardiff.poly[-1])
+		ardiff.poly <- polymult(c(1,-1*ar.coef),canon.delta)
+		ma.stab <- sigex.canonize(ma.coef,-1*ardiff.poly[-1])
 		ma.scale <- ma.stab[1]^2
 		ma.stab <- ma.stab/ma.stab[1]	
 		madiff.stab <- polymult(delta,ma.stab)
-		psi.acf <- ARMAauto(ar = NULL, ma = madiff.stab[-1],lag.max=maxlag)[1:maxlag]	
+		psi.acf <- ARMAauto(ar = ar.coef, ma = madiff.stab[-1],lag.max=maxlag)[1:maxlag]	
 		psi.acf <- psi.acf*ma.scale
 		x.acf <- psi.acf %x% xi.mat
 	}

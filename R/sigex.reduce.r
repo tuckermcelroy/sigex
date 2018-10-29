@@ -56,10 +56,9 @@ sigex.reduce <- function(data.ts,param,flag,mdl,thresh,modelflag)
 	#			model structure corresponding to the new component.  If this
 	#			is your first component, then set mdl <- NULL
 	#			mdl[[1]] is mdlK, gives ranks of white noise covariance matrix
-	#			mdl[[2]] is mdlType, a string giving t.s. model type
+	#			mdl[[2]] is mdlType, a list giving t.s. model class, order, and bounds
 	#			mdl[[3]] is mdlDiff, gives delta differencing polynomials
 	#		      mdl[[4]] is list of regressors by individual series
-	#			mdl[[5]] is list of bounds for rho, omega
 	#		thresh: lower bound on Schur complements
 	#		modelFlag: when TRUE, small Schur complements imply rand reduction
 	#			in the new model.  When modelFlag is FALSE, small Schur
@@ -84,7 +83,9 @@ sigex.reduce <- function(data.ts,param,flag,mdl,thresh,modelflag)
 	mdl.red <- NULL
 	for(j in 1:length(mdl[[3]])) {
 		ranks <- seq(1,N)[log.conds[j,] > thresh]
-		mdl.red <- sigex.add(mdl.red,ranks,mdl[[2]][j],mdl[[3]][[j]],mdl[[5]][[j]])
+		mdlType <- mdl[[2]][j]
+		mdl.red <- sigex.add(mdl.red,ranks,mdlType[[1]],mdlType[[2]],
+			mdlType[[3]],mdl[[3]][[j]])
 		par.red[[1]][[j]] <- as.matrix(param[[1]][[j]][,ranks])
 		par.red[[2]][[j]] <- param[[2]][[j]][ranks]
 	}

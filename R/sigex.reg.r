@@ -47,11 +47,11 @@ sigex.reg <- function(mdl,series,reg)
 	#		being non-identifiable -- hence they are omitted.
 	#	Inputs:
 	#		mdl: the specified sigex model, a list object. 
+	#			is your first component, then set mdl <- NULL
 	#			mdl[[1]] is mdlK, gives ranks of white noise covariance matrix
-	#			mdl[[2]] is mdlType, a string giving t.s. model type
+	#			mdl[[2]] is mdlType, a list giving t.s. model class, order, and bounds
 	#			mdl[[3]] is mdlDiff, gives delta differencing polynomials
 	#		      mdl[[4]] is list of regressors by individual series
-	#			mdl[[5]] is list of bounds for rho, omega
  	#		series: integer between 1 and N, the index of the individual series for 
 	#			which regressors are being added.  
 	#		reg: a vector of time series regressors, of length T
@@ -65,7 +65,6 @@ sigex.reg <- function(mdl,series,reg)
 	mdlType <- mdl[[2]]
 	mdlDiff <- mdl[[3]]
 	mdlReg <- mdl[[4]]
-	mdlBounds <- mdl[[5]]
 
 	T <- length(reg)
 	delta <-  sigex.delta(mdl,0)
@@ -75,7 +74,7 @@ sigex.reg <- function(mdl,series,reg)
 		mdlReg[[series]] <- ts(cbind(mdlReg[[series]],reg),start=start(reg),
 			frequency=frequency(reg),names=c(colnames(mdlReg[[series]]),colnames(reg)))
 	}
-	mdl <- list(ranks = mdlK,type = mdlType,diffop = mdlDiff,regress = mdlReg,bounds = mdlBounds)
+	mdl <- list(ranks = mdlK,type = mdlType,diffop = mdlDiff,regress = mdlReg)
 
 	return(mdl)
 }

@@ -89,21 +89,21 @@ psi2phi <- function(psi)
 	{
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
-		ar.poly <- NULL
-		ma.poly <- NULL
+		ar.coef <- NULL
+		ma.coef <- NULL
 		zeta.ar <- NULL
 		zeta.ma <- NULL
 		if(p.order > 0) 
 		{
 			zeta.ar <- zeta[1:p.order]
-			ar.poly <- psi2phi(zeta.ar)
+			ar.coef <- psi2phi(zeta.ar)
 		}
 		if(q.order > 0) 
 		{
 			zeta.ma <- zeta[(p.order+1):(p.order+q.order)]			
-			ma.poly <- psi2phi(-1*zeta.ma)
+			ma.coef <- psi2phi(-1*zeta.ma)
 		}
-		zeta.par <- c(ar.poly,ma.poly)
+		zeta.par <- c(ar.coef,ma.coef)
 	}
 
 	# cycles

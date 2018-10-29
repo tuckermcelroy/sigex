@@ -1,5 +1,3 @@
-# test
-
 sigex.canonize <- function(ma.coef,ar.coef)
 {
 
@@ -38,7 +36,7 @@ sigex.canonize <- function(ma.coef,ar.coef)
 	#		ma.coef: q coefficients of MA polynomial with unit constant coefficient
 	#		ar.coef: p coefficients (minus convention) of AR polynomial with unit constant coefficient
 	#	Outputs:
-	#		ma.stab: coefficients of MA polynomial (wihtout a unit constant coefficient),
+	#		ma.stab: coefficients of MA polynomial (without a unit constant coefficient),
 	#			 the degree is max(p,q)
 	#	Requires: polymult, polysum, specFact
 	#

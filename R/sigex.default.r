@@ -55,7 +55,6 @@ sigex.default <- function(mdl,data.ts)
 	A.mat <- matrix(0,N,N)
 	A.mat[lower.tri(A.mat)] <- 1
 	psi.len <- 0
-	boundlist <- mdl[[5]]
 
 	for(i in 1:length(mdl[[3]]))
 	{	

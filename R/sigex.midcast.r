@@ -57,7 +57,6 @@ sigex.midcast <- function(psi,mdl,data.ts,leads)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
 	psi <- Re(psi)
-	boundlist <- mdl[[5]]
 
 	z <- x
 	leads.mid <- intersect(seq(1,T),leads)
@@ -107,13 +106,12 @@ sigex.midcast <- function(psi,mdl,data.ts,leads)
 	ind <- 0
 	for(i in 1:length(mdl[[3]]))
 	{
-		bounds <- boundlist[[i]]
 		mdlType <- mdl[[2]][i]	
 		delta <- mdl[[3]][[i]]
 		zetalen <- sigex.zetalen(mdlType)
 		if(zetalen > 0) {
 			subzeta <- zeta[(ind+1):(ind+zetalen)]
-			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,N,bounds)
+			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType)
 		}
 		ind <- ind + zetalen
 

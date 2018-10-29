@@ -106,7 +106,6 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 	{
 		L.par[[i]] <- param[[1]][[i]]
 		D.par[[i]] <- param[[2]][[i]]
-		mdlType <- mdl[[2]][i]	
 		delta <- sigex.delta(mdl,i)
 		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,T)		
 	}
@@ -115,7 +114,6 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 	acfsignal.mat <- matrix(0,nrow=N*TdiffSig,ncol=N)
 	for(i in sigcomps)
 	{
-		mdlType <- mdl[[2]][i]
 		delta <- sigex.delta(mdl,c(noisecomps,i))
 		acfsignal.mat <- acfsignal.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,TdiffSig)		
 	}
@@ -124,7 +122,6 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 	acfnoise.mat <- matrix(0,nrow=N*TdiffNoise,ncol=N)
 	for(i in noisecomps)
 	{
-		mdlType <- mdl[[2]][i]
 		delta <- sigex.delta(mdl,c(sigcomps,i))
 		acfnoise.mat <- acfnoise.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,TdiffNoise)		
 	}

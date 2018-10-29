@@ -44,10 +44,9 @@ sigex.meaninit <- function(mdl,data.ts,d)
 	#	Inputs:
 	#		mdl: the specified sigex model, a list object. 
 	#			mdl[[1]] is mdlK, gives ranks of white noise covariance matrix
-	#			mdl[[2]] is mdlType, a string giving t.s. model type
+	#			mdl[[2]] is mdlType, a list giving t.s. model class, order, and bounds
 	#			mdl[[3]] is mdlDiff, gives delta differencing polynomials
 	#		      mdl[[4]] is list of regressors by individual series
-	#			mdl[[5]] is list of bounds for rho, omega
 	#		data.ts: a T x N matrix ts object
 	#		d: order of time polynomial trend regressor desired, labeled as "Trend".
 	#			However, if a trend component exists in the model,
@@ -63,8 +62,7 @@ sigex.meaninit <- function(mdl,data.ts,d)
 	mdlType <- mdl[[2]]
 	mdlDiff <- mdl[[3]]
 	mdlReg <- mdl[[4]]
-	mdlBounds <- mdl[[5]]
- 
+
 	if(length(sigex.whichtrend(mdl))==1) 
 	{
 		delta <- mdl[[3]][[sigex.whichtrend(mdl)]]
@@ -94,7 +92,7 @@ sigex.meaninit <- function(mdl,data.ts,d)
 			}
 		}
 	}
-	mdl <- list(ranks = mdlK,type = mdlType,diffop = mdlDiff,regress = mdlReg,bounds = mdlBounds)
+	mdl <- list(ranks = mdlK,type = mdlType,diffop = mdlDiff,regress = mdlReg)
 	return(mdl)
 }
 

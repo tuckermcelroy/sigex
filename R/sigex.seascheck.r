@@ -37,8 +37,6 @@ sigex.seascheck <- function(signal,period,tolerance,diffs)
 	#		If no root of a particular seasonal frequency
 	#		is found, the function returns Inf.  
 	#		Returns floor(period/2) values for each series 
-
-
 	#		A sigex model consists of process x = sum y, for 
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by

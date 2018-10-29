@@ -86,19 +86,19 @@ phi2psi <- function(phi)
 	{
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
-		ar.poly <- NULL
-		ma.poly <- NULL
+		ar.coef <- NULL
+		ma.coef <- NULL
 		zeta.ar <- NULL
 		zeta.ma <- NULL
 		if(p.order > 0) 
 		{
-			ar.poly <- mdlPar[1:p.order]
-			zeta.ar <- phi2psi(ar.poly)
+			ar.coef <- mdlPar[1:p.order]
+			zeta.ar <- phi2psi(ar.coef)
 		}
 		if(q.order > 0) 
 		{
-			ma.poly <- mdlPar[(p.order+1):(p.order+q.order)]
-			zeta.ma <- phi2psi(-1*ma.poly)
+			ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
+			zeta.ma <- phi2psi(-1*ma.coef)
 		}
 		zeta <- c(zeta.ar,zeta.ma)
 	}

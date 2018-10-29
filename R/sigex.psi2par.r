@@ -54,7 +54,6 @@ sigex.psi2par <- function(psi,mdl,data.ts)
 	D.par <- mdl[[3]]
 	zeta.par <- vector("list",length(mdl[[3]]))
 	psi <- Re(psi)
-	boundlist <- mdl[[5]]
 
 	# get xi portion
 	ind <- 0
@@ -89,13 +88,12 @@ sigex.psi2par <- function(psi,mdl,data.ts)
 	ind <- 0
 	for(i in 1:length(mdl[[3]]))
 	{
-		bounds <- boundlist[[i]]
-		mdlType <- mdl[[2]][i]	
+		mdlType <- mdl[[2]][i]
 		delta <- mdl[[3]][[i]]
 		zetalen <- sigex.zetalen(mdlType)
 		if(zetalen > 0) {
 			subzeta <- zeta[(ind+1):(ind+zetalen)]
-			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,N,bounds)
+			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType)
 		}
 		ind <- ind + zetalen
 	} 

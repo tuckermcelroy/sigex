@@ -1,4 +1,4 @@
-sigex.add <- function(mdl,vrank,type,delta,bounds)
+sigex.add <- function(mdl,vrank,class,order,bounds,delta)
 {
 
 	##########################################################################
@@ -45,20 +45,20 @@ sigex.add <- function(mdl,vrank,type,delta,bounds)
 	#			model structure corresponding to the new component.  If this
 	#			is your first component, then set mdl <- NULL
 	#			mdl[[1]] is mdlK, gives ranks of white noise covariance matrix
-	#			mdl[[2]] is mdlType, a string giving t.s. model type
+	#			mdl[[2]] is mdlType, a list giving t.s. model class, order, and bounds
 	#			mdl[[3]] is mdlDiff, gives delta differencing polynomials
 	#		      mdl[[4]] is list of regressors by individual series
-	#			mdl[[5]] is list of bounds for rho, omega
 	#		vrank: vector of integers between 1 and N, corresponding
 	#			to indices of non-zero Schur complements in the GCD
 	#			of the innovations' covariance matrix for the new latent component
-	#		type: character string of t.s. model type for the new latent component
-	#		delta: differencing polynomial (corresponds to delta(B) in Background)
-	#			written in format c(delta0,delta1,...,deltad)
-	#		bounds: four numbers, gives bounds for rho and omega, the cycle parameters
-	#			of the new latent component
+	#		class: character string of t.s. model type for the new latent component
+	#		order: vector of model order
+	#	      bounds: four numbers, gives bounds for rho and omega, 
+	#			the cycle parameters of the new latent component
 	#			rho lies in (bounds[1],bounds[2])
 	#			omega lies in (bounds[3],bounds[4])
+	#		delta: differencing polynomial (corresponds to delta(B) in Background)
+	#			written in format c(delta0,delta1,...,deltad)
 	#	Outputs:
 	#		mdl: the updated sigex model, a list object
 	#
@@ -68,20 +68,18 @@ sigex.add <- function(mdl,vrank,type,delta,bounds)
 	mdlType <- mdl[[2]]
 	mdlDiff <- mdl[[3]]
 	mdlReg <- mdl[[4]]
-	mdlBounds <- mdl[[5]]
 
 	rank.null <- NULL
 	if(length(vrank)==1) rank.null <- 0
 	mdlK[[length(mdlK)+1]] <- c(rank.null,vrank)
 	if(length(vrank)==1) mdlK[[length(mdlK)]] <- mdlK[[length(mdlK)]][-1]
-	mdlType <- c(mdlType,type)
+	mdlType[[length(mdlType)+1]] <- list(class,order,bounds)
 	delta.null <- NULL
 	if(length(delta)==1) delta.null <- 0
 	mdlDiff[[length(mdlDiff)+1]] <- c(delta.null,delta)
 	if(length(delta)==1) mdlDiff[[length(mdlDiff)]] <- mdlDiff[[length(mdlDiff)]][-1]
-	mdlBounds[[length(mdlBounds)+1]] <- bounds 
 
-	mdl <- list(ranks = mdlK,type = mdlType,diffop = mdlDiff,regress = mdlReg,bounds = mdlBounds)
+	mdl <- list(ranks = mdlK,type = mdlType,diffop = mdlDiff,regress = mdlReg)
 	return(mdl)
 }
 

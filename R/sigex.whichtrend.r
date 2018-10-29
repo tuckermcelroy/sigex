@@ -40,10 +40,9 @@ sigex.whichtrend <- function(mdl)
 	#	Inputs:
 	#		mdl: the specified sigex model, a list object. 
 	#			mdl[[1]] is mdlK, gives ranks of white noise covariance matrix
-	#			mdl[[2]] is mdlType, a string giving t.s. model type
+	#			mdl[[2]] is mdlType, a list giving t.s. model class, order, and bounds
 	#			mdl[[3]] is mdlDiff, gives delta differencing polynomials
 	#		      mdl[[4]] is list of regressors by individual series
-	#			mdl[[5]] is list of bounds for rho, omega
 	#	Outputs:
 	#		trendcomp: index of the latent component that has a stochastic trend
 	#

@@ -95,12 +95,12 @@ sigex.momfit <- function(data.ts,param,mdl)
 		{
 			p.order <- mdlOrder[1]
 			q.order <- mdlOrder[2]
-			ar.poly <- NULL
-			ma.poly <- NULL
-			if(p.order > 0) ar.poly <- mdlPar[1:p.order]
-			if(q.order > 0) ma.poly <- mdlPar[(p.order+1):(p.order+q.order)]
-			ma.poly <- polymult(c(1,ma.poly),delta.poly)
-			ar.poly <- c(1,-1*ar.poly)
+			ar.coef <- NULL
+			ma.coef <- NULL
+			if(p.order > 0) ar.coef <- mdlPar[1:p.order]
+			if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
+			ma.poly <- polymult(c(1,ma.coef),delta.poly)
+			ar.poly <- c(1,-1*ar.coef)
  		}
 
 		# Stabilized ARMA model
@@ -108,15 +108,15 @@ sigex.momfit <- function(data.ts,param,mdl)
 		{
 			p.order <- mdlOrder[1]
 			q.order <- mdlOrder[2]
-			ar.poly <- NULL
-			ma.poly <- NULL
-			if(p.order > 0) ar.poly <- mdlPar[1:p.order]
-			if(q.order > 0) ma.poly <- mdlPar[(p.order+1):(p.order+q.order)]
+			ar.coef <- NULL
+			ma.coef <- NULL
+			if(p.order > 0) ar.coef <- mdlPar[1:p.order]
+			if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
 			canon.delta <- mdl[[3]][[i]]
-			ardiff.poly <- polymult(c(1,-1*ar.poly),canon.delta)
-			ma.stab <- sigex.canonize(ma.poly,-1*ardiff.poly[-1])
+			ardiff.poly <- polymult(c(1,-1*ar.coef),canon.delta)
+			ma.stab <- sigex.canonize(ma.coef,-1*ardiff.poly[-1])
 			ma.poly <- polymult(delta.poly,ma.stab)
-			ar.poly <- c(1,-1*ar.poly)
+			ar.poly <- c(1,-1*ar.coef)
 		}
  
 		# Butterworth cycle
@@ -142,7 +142,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 			ma.poly <- out[[2]]
 			canon.delta <- mdl[[3]][[i]]
 			ardiff.poly <- polymult(ar.poly,canon.delta)
-			ma.stab <- sigex.canonize(ma.poly,-1*ardiff.poly[-1])
+			ma.stab <- sigex.canonize(ma.poly[-1],-1*ardiff.poly[-1])
 			ma.poly <- polymult(delta.poly,ma.stab)
 		}
 
@@ -184,19 +184,14 @@ sigex.momfit <- function(data.ts,param,mdl)
 				ma.acf <- c(ma.acf,new.acf)
 			}		
 			ma.acf <- c(rev(ma.acf),ma.acf[-1]) + 1e-10
-			ma.poly <- Re(specFact(ma.acf))	
+			ma.poly <- Re(specFact(ma.acf))
+			ma.scale <- abs(ma.poly[1])
+			ma.coef <- ma.poly[-1]/ma.poly[1]	
 			canon.delta <- mdl[[3]][[i]]
 			ardiff.poly <- polymult(ar.poly,canon.delta)
-
-		HERE: problem, input to canonize assummes ma polynomial	
-			has unit constant coeff, but ma.poly does not...
-
-			ma.stab <- sigex.canonize(ma.poly,-1*ardiff.poly[-1])
-			ma.scale <- ma.scale*ma.stab[1]^2
-			ma.stab <- ma.stab/ma.stab[1]	
-			madiff.stab <- polymult(delta,ma.stab)
-	
-	
+			ma.stab <- sigex.canonize(ma.coef,-1*ardiff.poly[-1])
+			ma.stab <- ma.scale*ma.stab
+			ma.poly <- polymult(delta,ma.stab)	
 		}
 
 		ma.null <- NULL
