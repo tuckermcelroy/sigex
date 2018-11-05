@@ -6,12 +6,13 @@
 #'			and plot Growth Rate, else in Levels
 #' @param subseries index between 1 and N, indicating which series
 #'			to examine
+#' @param period number of observations per cycle (e.g. a year or week)
 #'
 #' @return NA
 #' @export
 #'
 
-sigex.specar <- function(data.ts,diff=FALSE,subseries)
+sigex.specar <- function(data.ts,diff=FALSE,subseries,period)
 {
 
 	##########################################################################
@@ -45,12 +46,13 @@ sigex.specar <- function(data.ts,diff=FALSE,subseries)
 	#			and plot Growth Rate, else in Levels
 	#		subseries: index between 1 and N, indicating which series
 	#			to examine
+	#		period: number of observations per cycle (e.g. a year or week)
 	#	Outputs:
 	#		NA
 	#
 	####################################################################
 
-	period <- frequency(data.ts)
+	data.ts <- ts(data.ts,frequency=period)
 	freqs <- floor(period/2)
 	if(diff) {
 		spec.ar(diff(data.ts)[,subseries],

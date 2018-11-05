@@ -188,7 +188,7 @@ T <- dim(data.ts)[1]
 ## choose a model
 # A: BW cycle and stabilized RW trend
 cycle.class <- "bw"
-cycle.order <- 2
+cycle.order <- 1
 cycle.bounds <- c(0,1,0,1)
 trend.class <- "arma.stab"
 trend.order <- c(0,0)
@@ -196,7 +196,7 @@ trend.bounds <- 0
 
 # B: stabilized BW cycle and stabilized RW trend
 cycle.class <- "bw.stab"
-cycle.order <- 2
+cycle.order <- 1
 cycle.bounds <- c(0,1,0,1)
 trend.class <- "arma.stab"
 trend.order <- c(0,0)
@@ -204,7 +204,7 @@ trend.bounds <- 0
  
 # C: BAL cycle and stabilized RW trend
 cycle.class <- "bal"
-cycle.order <- 2
+cycle.order <- 1
 cycle.bounds <- c(0,1,0,1)
 trend.class <- "arma.stab"
 trend.order <- c(0,0)
@@ -212,7 +212,7 @@ trend.bounds <- 0
 
 # D: stabilized BAL cycle and stabilized RW trend
 cycle.class <- "bal.stab"
-cycle.order <- 2
+cycle.order <- 1
 cycle.bounds <- c(0,1,0,1)
 trend.class <- "arma.stab"
 trend.order <- c(0,0)

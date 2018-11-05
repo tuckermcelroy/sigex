@@ -50,7 +50,7 @@ sigex.par2psi <- function(param,flag,mdl)
 
 	xi <- NULL
 	zeta <- NULL
-	N <- length(param[[2]][[1]])
+	N <- length(param[[1]][[1]])
 	for(i in 1:length(mdl[[3]]))
 	{
 		mdlType <- mdl[[2]][[i]]
