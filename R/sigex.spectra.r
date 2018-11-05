@@ -138,7 +138,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 		ma.poly <- out[[2]]
 		canon.delta <- mdl[[3]][[comp]]
 		ardiff.poly <- polymult(ar.poly,canon.delta)
-		ma.stab <- sigex.canonize(ma.poly,-1*ardiff.poly[-1])
+		ma.stab <- sigex.canonize(ma.poly[-1],-1*ardiff.poly[-1])
 		ma.scale <- ma.stab[1]^2
 		ma.stab <- ma.stab/ma.stab[1]	
 		madiff.stab <- polymult(delta,ma.stab)
@@ -195,7 +195,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 		ma.poly <- ma.poly/ma.poly[1]	
 		canon.delta <- mdl[[3]][[comp]]
 		ardiff.poly <- polymult(ar.poly,canon.delta)
-		ma.stab <- sigex.canonize(ma.poly,-1*ardiff.poly[-1])
+		ma.stab <- sigex.canonize(ma.poly[-1],-1*ardiff.poly[-1])
 		ma.scale <- ma.scale*ma.stab[1]^2
 		ma.stab <- ma.stab/ma.stab[1]	
 		madiff.stab <- polymult(delta,ma.stab)

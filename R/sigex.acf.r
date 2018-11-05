@@ -116,7 +116,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		out <- sigex.getcycle(cycle.order,rho,omega)
 		ar.poly <- out[[1]]
 		ma.poly <- out[[2]]
-		psi.acf <- ARMAauto(ar = -1*ar.poly[-1],ma = polymult(c(1,ma.poly),delta)[-1],
+		psi.acf <- ARMAauto(ar = -1*ar.poly[-1],ma = polymult(ma.poly,delta)[-1],
 			lag.max=maxlag)[1:maxlag]
 		x.acf <- psi.acf %x% xi.mat
 	}
@@ -132,7 +132,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		ma.poly <- out[[2]]
 		canon.delta <- mdl[[3]][[comp]]
 		ardiff.poly <- polymult(ar.poly,canon.delta)
-		ma.stab <- sigex.canonize(ma.poly,-1*ardiff.poly[-1])
+		ma.stab <- sigex.canonize(ma.poly[-1],-1*ardiff.poly[-1])
 		ma.scale <- ma.stab[1]^2
 		ma.stab <- ma.stab/ma.stab[1]	
 		madiff.stab <- polymult(delta,ma.stab)
@@ -189,7 +189,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		ma.poly <- ma.poly/ma.poly[1]	
 		canon.delta <- mdl[[3]][[comp]]
 		ardiff.poly <- polymult(ar.poly,canon.delta)
-		ma.stab <- sigex.canonize(ma.poly,-1*ardiff.poly[-1])
+		ma.stab <- sigex.canonize(ma.poly[-1],-1*ardiff.poly[-1])
 		ma.scale <- ma.scale*ma.stab[1]^2
 		ma.stab <- ma.stab/ma.stab[1]	
 		madiff.stab <- polymult(delta,ma.stab)

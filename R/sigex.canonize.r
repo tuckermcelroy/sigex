@@ -60,7 +60,7 @@ sigex.canonize <- function(ma.coef,ar.coef)
 	numer.phi <- polymult(numer.phi,polymult(theta.poly,theta.rev.poly))
 	numer.theta <- polymult(theta.grad.poly,theta.rev.poly) - polymult(theta.poly,theta.grad.rev.poly)
 	numer.theta <- polymult(numer.theta,polymult(phi.poly,phi.rev.poly))
-	numer <- numer.phi + numer.theta
+	numer <- -1*numer.phi + numer.theta
 	my.roots <- polyroot(numer)
 	lambdas <- c(0,pi)
 	for(i in 1:r)
