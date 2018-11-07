@@ -103,6 +103,45 @@ phi2psi <- function(phi)
 		zeta <- c(zeta.ar,zeta.ma)
 	}
 
+	# SARMA
+	if(mdlClass %in% c("sarma","sarma.stab"))
+	{
+		p.order <- mdlOrder[1]
+		q.order <- mdlOrder[2]
+		ps.order <- mdlOrder[3]
+		qs.order <- mdlOrder[4]
+		s.period <- mdlOrder[5]
+		ar.coef <- NULL
+		ma.coef <- NULL
+		ars.coef <- NULL
+		mas.coef <- NULL
+		zeta.ar <- NULL
+		zeta.ma <- NULL
+		zeta.ars <- NULL
+		zeta.mas <- NULL
+		if(p.order > 0) 
+		{
+			ar.coef <- mdlPar[1:p.order]
+			zeta.ar <- phi2psi(ar.coef)
+		}
+		if(q.order > 0) 
+		{
+			ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
+			zeta.ma <- phi2psi(-1*ma.coef)
+		}
+		if(ps.order > 0) 
+		{
+			ars.coef <- mdlPar[(p.order+q.order+1):(p.order+q.order+ps.order)]
+			zeta.ars <- phi2psi(ars.coef)
+		}
+		if(qs.order > 0)
+		{
+			mas.coef <- mdlPar[(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
+			zeta.mas <- phi2psi(mas.coef)
+		}
+		zeta <- c(zeta.ar,zeta.ma,zeta.ars,zeta.mas)
+	}
+
 	# cycles
 	if(mdlClass %in% c("bw","bw.stab","bal","bal.stab"))
 	{

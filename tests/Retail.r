@@ -39,7 +39,7 @@ dataALL.ts <- sigex.load(retail,begin,period,colnames(retail),TRUE)
 ## all data with no transform
 transform <- "none"
 aggregate <- FALSE
-subseries <- 1
+subseries <- 5
 begin.date <- start(dataALL.ts)
 end.date <- end(dataALL.ts)
 range <- NULL
@@ -50,7 +50,7 @@ data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 
 ## levels
 par(mfrow=c(1,1))
-for(i in subseries)
+for(i in 1:length(subseries))
 {
 	sigex.specar(data.ts,FALSE,i,7)
 }
@@ -58,14 +58,11 @@ dev.off()
 
 ## growth rates
 par(mfrow=c(1,1))
-for(i in subseries)
+for(i in 1:length(subseries))
 {
 	sigex.specar(data.ts,TRUE,i,7)
 }
 dev.off()
-
-
-HERE
 
 
 ###############################
@@ -75,9 +72,22 @@ N <- dim(data.ts)[2]
 T <- dim(data.ts)[1]
 
 
-################
-## Default Model
+##############
+## Basic Model
  
+## setup holiday regressors
+
+easter.reg1 <- gethol(easter.dates,0,0,start.date,end.date)
+easter.reg2 <- gethol(easter.dates,8,-1,start.date,end.date)
+cyber.reg <- gethol(cyber.dates,0,0,start.date,end.date)
+black.reg <- gethol(black.dates,0,0,start.date,end.date)
+super.reg <- gethol(super.dates,0,0,start.date,end.date)
+labor.reg <- gethol(labor.dates,0,0,start.date,end.date)
+cny.reg <- gethol(cny.dates,0,0,start.date,end.date)
+
+
+
+
 ## choose a model
 # A: BW cycle and stabilized RW trend
 cycle.class <- "bw"

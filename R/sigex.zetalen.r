@@ -46,8 +46,11 @@ sigex.zetalen <- function(mdlType)
 	mdlClass <- mdlType[[1]]
 	mdlOrder <- mdlType[[2]]
 
-	# ARMA  
+	# ARMA 
 	if(mdlClass %in% c("arma","arma.stab")) zeta.len <- sum(mdlOrder)
+
+	# SARMA 
+	if(mdlClass %in% ("sarma","sarma.stab")) zeta.len <- sum(mdlOrder[1:4])
 
 	# cycles
 	if(mdlClass %in% c("bw","bw.stab","bal","bal.stab")) zeta.len <- 2 
