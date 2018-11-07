@@ -40,8 +40,6 @@ dataALL.ts <- sigex.load(retail,begin,period,colnames(retail),TRUE)
 transform <- "none"
 aggregate <- FALSE
 subseries <- 5
-begin.date <- start(dataALL.ts)
-end.date <- end(dataALL.ts)
 range <- NULL
 data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 
@@ -77,61 +75,53 @@ T <- dim(data.ts)[1]
  
 ## setup holiday regressors
 
+# Easter Day
 easter.reg1 <- gethol(easter.dates,0,0,start.date,end.date)
+# pre-Easter
 easter.reg2 <- gethol(easter.dates,8,-1,start.date,end.date)
+# Cyber Monday
 cyber.reg <- gethol(cyber.dates,0,0,start.date,end.date)
+# Black Friday
 black.reg <- gethol(black.dates,0,0,start.date,end.date)
+# Superbowl Sunday
 super.reg <- gethol(super.dates,0,0,start.date,end.date)
+# Labor Day
 labor.reg <- gethol(labor.dates,0,0,start.date,end.date)
+# Chinese New Year
 cny.reg <- gethol(cny.dates,0,0,start.date,end.date)
 
-
-
-
-## choose a model
-# A: BW cycle and stabilized RW trend
-cycle.class <- "bw"
-cycle.order <- 1
-cycle.bounds <- c(0,1,0,1)
-trend.class <- "arma.stab"
-trend.order <- c(0,0)
-trend.bounds <- 0
-
-# B: stabilized BW cycle and stabilized RW trend
-cycle.class <- "bw.stab"
-cycle.order <- 1
-cycle.bounds <- c(0,1,0,1)
-trend.class <- "arma.stab"
-trend.order <- c(0,0)
-trend.bounds <- 0
- 
-# C: BAL cycle and stabilized RW trend
-cycle.class <- "bal"
-cycle.order <- 1
-cycle.bounds <- c(0,1,0,1)
-trend.class <- "arma.stab"
-trend.order <- c(0,0)
-trend.bounds <- 0
-
-# D: stabilized BAL cycle and stabilized RW trend
-cycle.class <- "bal.stab"
-cycle.order <- 1
-cycle.bounds <- c(0,1,0,1)
-trend.class <- "arma.stab"
-trend.order <- c(0,0)
-trend.bounds <- 0
+## setup regressor for data weakness
+weak.reg <- rep(0,T)
+weak.reg[187:199] <- 1
 
 ## model construction
+
 mdl <- NULL
 # trend:
-mdl <- sigex.add(mdl,seq(1,N),trend.class,trend.order,trend.bounds,c(1,-1))		
-# cycle:
-mdl <- sigex.add(mdl,seq(1,N),cycle.class,cycle.order,cycle.bounds,1)			
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-1))		
+# first atomic weekly seasonal:
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-2*cos(2*pi/7),1))      
+# second atomic weekly seasonal:
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-2*cos(4*pi/7),1))      
+# third atomic weekly seasonal:
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-2*cos(6*pi/7),1))      
+# transient:
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(10,0),0,1)			
 # irregular:
 mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,1)	
 # regressors:
-mdl <- sigex.meaninit(mdl,data.ts,0)				
- 
+mdl <- sigex.meaninit(mdl,data.ts,0)		
+mdl <- sigex.reg(mdl,1,ts(as.matrix(easter.reg1),
+	start=begin,frequency=period,names="Easter Day"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(easter.reg2),
+	start=begin,frequency=period,names="pre-Easter"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(black.reg),
+	start=begin,frequency=period,names="Black Friday"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(labor.reg),
+	start=begin,frequency=period,names="Labor Day"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(weak.reg),
+	start=begin,frequency=period,names="Weak Span"))
+
 ## parameter initialization and checks
 par.default <- sigex.default(mdl,data.ts)[[1]]
 flag.default <- sigex.default(mdl,data.ts)[[2]]
@@ -163,9 +153,9 @@ par.mle <- fit.mle[[2]]
 ##  model checking 
 resid.mle <- sigex.resid(psi.mle,mdl.mle,data.ts)
 resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-sigex.portmanteau(resid.mle,4*period,length(psi.mle))
+sigex.portmanteau(resid.mle,period,length(psi.mle))
 sigex.gausscheck(resid.mle)
-acf(resid.mle,lag.max=40)
+acf(resid.mle,lag.max=2*period)
       
 ## check on standard errors and condition numbers
 print(eigen(hess)$values)
@@ -178,7 +168,7 @@ print(tstats)
 ## bundle  
 analysis.mle <- sigex.bundle(data.ts,transform,mdl.mle,psi.mle)
 
-
+# HERE : notes model needs an annual component due to residual correlation at lag 365
 
 ##########################################
 ### Part V: Signal Extraction based on MLE

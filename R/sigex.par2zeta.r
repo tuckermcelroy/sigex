@@ -127,7 +127,7 @@ phi2psi <- function(phi)
 		if(q.order > 0) 
 		{
 			ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
-			zeta.ma <- phi2psi(-1*ma.coef)
+			zeta.ma <- phi2psi(ma.coef)
 		}
 		if(ps.order > 0) 
 		{
