@@ -32,7 +32,8 @@ sigex.par2zeta <- function(mdlPar,mdlType)
 	#		manifold) together with imaginary component flagging 
 	#		whether the hyper-parameter is fixed for purposes of estimation.
 	#	Notes: this is a functional inverse to sigex.zeta2par
-	#		bounds: gives bounds for rho and omega, cycle parameters in zeta
+	#		bounds: for cycles, gives bounds for rho and omega, 
+	#			cycle parameters in zeta
 	#			rho lies in (bounds[1],bounds[2])
 	#			omega lies in (bounds[3],bounds[4])
 	#	Format: psi has three portions, psi = [xi,zeta,beta]
@@ -71,12 +72,6 @@ phi2psi <- function(phi)
 	mdlClass <- mdlType[[1]]
 	mdlOrder <- mdlType[[2]]
 	mdlBounds <- mdlType[[3]]
-
-	# defaults
-	low.rho <- mdlBounds[1]
-	upp.rho <- mdlBounds[2]
-	low.omega <- mdlBounds[3]
-	upp.omega <- mdlBounds[4]
 		
 	#############################
 	## get zeta for the component
@@ -84,6 +79,8 @@ phi2psi <- function(phi)
 	# ARMA  
 	if(mdlClass %in% c("arma","arma.stab"))
 	{
+		low <- mdlBounds[1]
+		upp <- mdlBounds[2]
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
 		ar.coef <- NULL
@@ -93,11 +90,13 @@ phi2psi <- function(phi)
 		if(p.order > 0) 
 		{
 			ar.coef <- mdlPar[1:p.order]
+			ar.coef[p.order] <- 2*(ar.coef[p.order]-low)/(upp-low)-1
 			zeta.ar <- phi2psi(ar.coef)
 		}
 		if(q.order > 0) 
 		{
 			ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
+			ma.coef[q.order] <- 2*(ma.coef[q.order]-low)/(upp-low)-1
 			zeta.ma <- phi2psi(-1*ma.coef)
 		}
 		zeta <- c(zeta.ar,zeta.ma)
@@ -106,6 +105,8 @@ phi2psi <- function(phi)
 	# SARMA
 	if(mdlClass %in% c("sarma","sarma.stab"))
 	{
+		low <- mdlBounds[1]
+		upp <- mdlBounds[2]
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
 		ps.order <- mdlOrder[3]
@@ -122,21 +123,25 @@ phi2psi <- function(phi)
 		if(p.order > 0) 
 		{
 			ar.coef <- mdlPar[1:p.order]
+			ar.coef[p.order] <- 2*(ar.coef[p.order]-low)/(upp-low)-1
 			zeta.ar <- phi2psi(ar.coef)
 		}
 		if(q.order > 0) 
 		{
 			ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
+			ma.coef[q.order] <- 2*(ma.coef[q.order]-low)/(upp-low)-1
 			zeta.ma <- phi2psi(ma.coef)
 		}
 		if(ps.order > 0) 
 		{
 			ars.coef <- mdlPar[(p.order+q.order+1):(p.order+q.order+ps.order)]
+			ars.coef[ps.order] <- 2*(ars.coef[ps.order]-low)/(upp-low)-1
 			zeta.ars <- phi2psi(ars.coef)
 		}
 		if(qs.order > 0)
 		{
 			mas.coef <- mdlPar[(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
+			mas.coef[qs.order] <- 2*(mas.coef[qs.order]-low)/(upp-low)-1
 			zeta.mas <- phi2psi(mas.coef)
 		}
 		zeta <- c(zeta.ar,zeta.ma,zeta.ars,zeta.mas)
@@ -145,6 +150,10 @@ phi2psi <- function(phi)
 	# cycles
 	if(mdlClass %in% c("bw","bw.stab","bal","bal.stab"))
 	{
+		low.rho <- mdlBounds[1]
+		upp.rho <- mdlBounds[2]
+		low.omega <- mdlBounds[3]
+		upp.omega <- mdlBounds[4]
 		x.rho <- (mdlPar[1] - low.rho)/(upp.rho - low.rho)
 		rho <- log(x.rho) - log(1 - x.rho)
 		x.omega <- (mdlPar[2] - low.omega)/(upp.omega - low.omega)

@@ -125,6 +125,6 @@ sigex.lik <- function(psi,mdl,data.ts)
 	attempt <- try(mvar.midcast2(x.acf,z,delta),TRUE)
 	if(!inherits(attempt, "try-error")) {
 		lik.output <- attempt[[3]] } else lik.output <- Inf
-	
+
 	return(sum(lik.output))
 }
