@@ -1,4 +1,4 @@
-sigex.add <- function(mdl,vrank,class,order,bounds,delta)
+sigex.add <- function(mdl,vrank,class,order,bounds,name,delta)
 {
 
 	##########################################################################
@@ -57,6 +57,7 @@ sigex.add <- function(mdl,vrank,class,order,bounds,delta)
 	#			the cycle parameters of the new latent component
 	#			rho lies in (bounds[1],bounds[2])
 	#			omega lies in (bounds[3],bounds[4])
+	#		name: character string giving the latent component's name
 	#		delta: differencing polynomial (corresponds to delta(B) in Background)
 	#			written in format c(delta0,delta1,...,deltad)
 	#	Outputs:
@@ -73,7 +74,7 @@ sigex.add <- function(mdl,vrank,class,order,bounds,delta)
 	if(length(vrank)==1) rank.null <- 0
 	mdlK[[length(mdlK)+1]] <- c(rank.null,vrank)
 	if(length(vrank)==1) mdlK[[length(mdlK)]] <- mdlK[[length(mdlK)]][-1]
-	mdlType[[length(mdlType)+1]] <- list(class,order,bounds)
+	mdlType[[length(mdlType)+1]] <- list(class,order,bounds,name)
 	delta.null <- NULL
 	if(length(delta)==1) delta.null <- 0
 	mdlDiff[[length(mdlDiff)+1]] <- c(delta.null,delta)

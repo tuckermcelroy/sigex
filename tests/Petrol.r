@@ -69,10 +69,8 @@ T <- dim(data.ts)[1]
   
 ## model construction
 mdl <- NULL
-# trend:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-1))		
-# irregular:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,1)	
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend",c(1,-1))		
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)	
 # regressors:
 mdl <- sigex.meaninit(mdl,data.ts,0)				
  
@@ -177,7 +175,7 @@ param <- sigex.psi2par(psi,mdl,data.ts)
 
 ## get signal filters
 signal.trend <- sigex.signal(data.ts,param,mdl,1)
-signal.irr <- sigex.signal(data.ts,param,mdl,1)
+signal.irr <- sigex.signal(data.ts,param,mdl,2)
 
 ## get extractions 
 extract.trend <- sigex.extract(data.ts,signal.trend,mdl,param)

@@ -79,22 +79,14 @@ def <- c(0,1,0,1)
 
 ## model construction
 mdl <- NULL
-# trend:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-2,1))
-# first atomic seasonal:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-sqrt(3),1))      	
-# second atomic seasonal:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-1,1))      		
-# third atomic seasonal:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,0,1))
-# fourth atomic seasonal:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,1,1))
-# fifth atomic seasonal:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,sqrt(3),1))
-# sixth atomic seasonal:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,1))
-# irregular:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,1)
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend",c(1,-2,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"first seasonal",c(1,-sqrt(3),1))      	
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"second seasonal",c(1,-1,1))      		
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"third seasonal",c(1,0,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"fourth seasonal",c(1,1,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"fifth seasonal",c(1,sqrt(3),1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"sixth seasonal",c(1,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)
 # regressors:
 mdl <- sigex.meaninit(mdl,data.ts,0)
  

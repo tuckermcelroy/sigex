@@ -97,18 +97,13 @@ weak.reg[187:199] <- 1
 ## model construction
 
 mdl <- NULL
-# trend:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-1))		
-# first atomic weekly seasonal:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-2*cos(2*pi/7),1))      
-# second atomic weekly seasonal:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-2*cos(4*pi/7),1))      
-# third atomic weekly seasonal:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,c(1,-2*cos(6*pi/7),1))      
-# transient:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(10,0),0,1)			
-# irregular:
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,1)	
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend",c(1,-1))		
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"first weekly seasonal",c(1,-2*cos(2*pi/7),1))      
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"second weekly seasonal",c(1,-2*cos(4*pi/7),1))      
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"third weekly seasonal",c(1,-2*cos(6*pi/7),1))      
+mdl <- sigex.add(mdl,seq(1,N),"bw",1,c(.5,1,0,10/period),"annual cycle",1)
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(1,0),0,"transient",1)			
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)	
 # regressors:
 mdl <- sigex.meaninit(mdl,data.ts,0)		
 mdl <- sigex.reg(mdl,1,ts(as.matrix(easter.reg1),
@@ -128,7 +123,7 @@ flag.default <- sigex.default(mdl,data.ts)[[2]]
 psi.default <- sigex.par2psi(par.default,flag.default,mdl)
 resid.init <- sigex.resid(psi.default,mdl,data.ts)
 resid.init <- sigex.load(t(resid.init),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-acf(resid.init,lag.max=40)
+acf(resid.init,lag.max=2*period)
 
 
 ###########################
