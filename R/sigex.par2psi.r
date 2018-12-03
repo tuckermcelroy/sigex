@@ -50,7 +50,7 @@ sigex.par2psi <- function(param,flag,mdl)
 
 	xi <- NULL
 	zeta <- NULL
-	N <- dim(param[[1]][[1]])[1]
+	N <- dim(as.matrix(param[[1]][[1]]))[1]
 	for(i in 1:length(mdl[[3]]))
 	{
 		mdlType <- mdl[[2]][[i]]
@@ -58,7 +58,7 @@ sigex.par2psi <- function(param,flag,mdl)
 		vrank <- mdl[[1]][[i]]
 		L.mat <- param[[1]][[i]]
 		D.mat <- param[[2]][[i]]
-		new.xi <- c(L.mat[lower.tri(diag(N))[,as.vector(vrank)]],D.mat)
+		new.xi <- c(L.mat[lower.tri(diag(N))[,as.vector(vrank)]],D.mat) 
 		xi <- c(xi,new.xi)
 		new.zeta <- sigex.par2zeta(param[[3]][[i]],mdlType)
 		zeta <- c(zeta,new.zeta)
