@@ -59,7 +59,7 @@ sigex.resid <- function(psi,mdl,data.ts)
 	L.par <- mdl[[3]]
 	D.par <- mdl[[3]]
 	zeta.par <- vector("list",length(mdl[[3]]))
-	acf.mat <- matrix(0,nrow=N*T,ncol=N)
+	acf.mat <- matrix(0,nrow=N*(T+1),ncol=N)
 	
 	# get xi portion
 	ind <- 0
@@ -104,10 +104,10 @@ sigex.resid <- function(psi,mdl,data.ts)
 		ind <- ind + zetalen
 	
 		delta <- sigex.delta(mdl,i)
-		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T)		
+		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T+1)		
 	}
 
-	x.acf <- array(acf.mat,dim=c(N,T,N))
+	x.acf <- array(acf.mat,dim=c(N,T+1,N))
 	reg.vec <- beta.par	
 
 	# subtract regression effects from available sample only

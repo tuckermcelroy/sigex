@@ -257,6 +257,19 @@ sigex.momfit <- function(data.ts,param,mdl)
 			ma.poly <- polymult(delta,ma.stab)	
 		}
 
+		# Damped Trend model
+		if(mdlClass == "damped")
+		{
+			p.order <- mdlOrder[1]
+			ar.coef <- mdlPar[1]
+			ar.poly <- 1
+			for(k in 1:p.order)
+			{
+				ar.poly <- polymult(ar.poly,c(1,-1*ar.coef))
+			}
+			ma.poly <- delta.poly
+		}	
+
 		ma.null <- NULL
 		if(length(ma.poly)==1) ma.null <- 0
 		ma.pols[[length(ma.pols)+1]] <- c(ma.null,ma.poly)

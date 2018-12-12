@@ -74,12 +74,6 @@ psi2phi <- function(psi)
 	mdlClass <- mdlType[[1]]
 	mdlOrder <- mdlType[[2]]
 	mdlBounds <- mdlType[[3]]
-
-	# defaults
-	low.rho <- mdlBounds[1]
-	upp.rho <- mdlBounds[2]
-	low.omega <- mdlBounds[3]
-	upp.omega <- mdlBounds[4]
 	
 	##############################
 	## get param for the component
@@ -135,12 +129,12 @@ psi2phi <- function(psi)
 		if(ps.order > 0) 
 		{
 			zeta.ars <- zeta[(p.order+q.order+1):(p.order+q.order+ps.order)]
-			ars.coef <- phi2psi(zeta.ars)
+			ars.coef <- psi2phi(zeta.ars)
 		}
 		if(qs.order > 0)
 		{
 			zeta.mas <- zeta[(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
-			mas.coef <- phi2psi(zeta.mas)
+			mas.coef <- psi2phi(zeta.mas)
 		}
 		zeta.par <- c(ar.coef,ma.coef,ars.coef,mas.coef)
 	}
@@ -148,10 +142,26 @@ psi2phi <- function(psi)
 	# cycles
 	if(mdlClass %in% c("bw","bw.stab","bal","bal.stab"))
 	{
+		low.rho <- mdlBounds[1]
+		upp.rho <- mdlBounds[2]
+		low.omega <- mdlBounds[3]
+		upp.omega <- mdlBounds[4]
+
 		rho <- low.rho + (upp.rho - low.rho)*exp(zeta[1])/(1+exp(zeta[1]))
 		omega <- low.omega + (upp.omega - low.omega)*exp(zeta[2])/(1+exp(zeta[2]))
 		zeta.par <- c(rho,omega)		
 	}
 	
+	# Damped trend  
+	if(mdlClass %in% c("damped"))
+	{
+		low <- mdlBounds[1]
+		upp <- mdlBounds[2]
+		ar.coef <- low + (upp - low)*exp(zeta[1])/(1+exp(zeta[1]))
+		zeta.par <- ar.coef
+	}
+
+	
+
  	return(zeta.par)
 }

@@ -268,5 +268,19 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		x.acf <- psi.acf %x% xi.mat
 	}
 	
+	# Damped Trend model
+	if(mdlClass == "damped")
+	{
+		p.order <- mdlOrder[1]
+		ar.coef <- mdlPar[1]
+		ar.poly <- 1
+		for(k in 1:p.order)
+		{
+			ar.poly <- polymult(ar.poly,c(1,-1*ar.coef))
+		}
+		psi.acf <- ARMAauto(ar = -1*ar.poly[-1], ma = delta[-1],lag.max=maxlag)[1:maxlag]
+		x.acf <- psi.acf %x% xi.mat
+	}	
+
 	return(x.acf)
 }

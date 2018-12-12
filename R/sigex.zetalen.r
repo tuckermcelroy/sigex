@@ -55,5 +55,8 @@ sigex.zetalen <- function(mdlType)
 	# cycles
 	if(mdlClass %in% c("bw","bw.stab","bal","bal.stab")) zeta.len <- 2 
 
+	# damped trend
+	if(mdlClass %in% c("damped")) zeta.len <- 1
+
 	return(zeta.len)
 }

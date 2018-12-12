@@ -274,6 +274,22 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 		comp.sigma <- ma.scale*xi.mat
 	}
 	
+	# Damped Trend model
+	if(mdlClass == "damped")
+	{
+		p.order <- mdlOrder[1]
+		ar.coef <- mdlPar[1]
+		ar.poly <- 1
+		for(k in 1:p.order)
+		{
+			ar.poly <- polymult(ar.poly,c(1,-1*ar.coef))
+		}
+		ma.poly <- delta.poly
+		comp.MA <- array(t(ma.poly %x% diag(N)),c(N,N,length(ma.poly)))
+		comp.AR <- array(t(ar.poly %x% diag(N)),c(N,N,length(ar.poly)))
+		comp.sigma <- xi.mat
+	}	
+
 	#############################
 	# compute VMA and VAR spectra
 
