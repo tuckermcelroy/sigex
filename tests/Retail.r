@@ -94,16 +94,52 @@ cny.reg <- gethol(cny.dates,0,0,start.date,end.date)
 weak.reg <- rep(0,T)
 weak.reg[187:199] <- 1
 
-## model construction
+## week effect regressors
+ 
+temp <- (day2week(start.date)-1 + seq(1,T)) %% 7
+# Sunday effect
+tdsun.reg <- rep(0,T)
+tdsun.reg[temp==1] <- 1
+# Monday effect
+tdmon.reg <- rep(0,T)
+tdmon.reg[temp==2] <- 1
+# Tuesday effect
+tdtue.reg <- rep(0,T)
+tdtue.reg[temp==3] <- 1
+# Wednesday effect
+tdwed.reg <- rep(0,T)
+tdwed.reg[temp==4] <- 1
+# Thursday effect
+tdthu.reg <- rep(0,T)
+tdthu.reg[temp==5] <- 1
+# Friday effect
+tdfri.reg <- rep(0,T)
+tdfri.reg[temp==6] <- 1
+# Saturday effect
+tdsat.reg <- rep(0,T)
+tdsat.reg[temp==0] <- 1
 
+
+
+## direct model construction
+#mdl <- NULL
+#mdl <- sigex.add(mdl,seq(1,N),"sarma",c(8,0,1,0,period),0,"all",1)		
+#mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,7,1,0,period),0,"all",1)		
+
+
+
+## model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend",c(1,-1))		
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"first weekly seasonal",c(1,-2*cos(2*pi/7),1))      
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"second weekly seasonal",c(1,-2*cos(4*pi/7),1))      
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"third weekly seasonal",c(1,-2*cos(6*pi/7),1))      
-mdl <- sigex.add(mdl,seq(1,N),"bw",1,c(.5,1,0,10/period),"annual cycle",1)
+#mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend",c(1,-1))		
+mdl <- sigex.add(mdl,seq(1,N),"bw",1,c(.8,1,1/7,3/7),"first weekly seasonal",1)      
+mdl <- sigex.add(mdl,seq(1,N),"bw",1,c(.8,1,3/7,5/7),"second weekly seasonal",1)      
+mdl <- sigex.add(mdl,seq(1,N),"bw",1,c(.8,1,5/7,1),"third weekly seasonal",1)      
+#mdl <- sigex.add(mdl,seq(1,N),"bw",1,c(.5,1,1/period,3/period),"annual cycle",1)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,0,1,0,364),0,"annual cycle",1)
 mdl <- sigex.add(mdl,seq(1,N),"arma",c(1,0),0,"transient",1)			
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)	
+#mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)	
+
+
 # regressors:
 mdl <- sigex.meaninit(mdl,data.ts,0)		
 mdl <- sigex.reg(mdl,1,ts(as.matrix(easter.reg1),
@@ -118,10 +154,22 @@ mdl <- sigex.reg(mdl,1,ts(as.matrix(weak.reg),
 	start=begin,frequency=period,names="Weak Span"))
 
 ## parameter initialization and checks
-par.default <- sigex.default(mdl,data.ts)[[1]]
-flag.default <- sigex.default(mdl,data.ts)[[2]]
-psi.default <- sigex.par2psi(par.default,flag.default,mdl)
-resid.init <- sigex.resid(psi.default,mdl,data.ts)
+par.init <- sigex.default(mdl,data.ts)[[1]]
+par.init[[2]][[1]] <- -9
+par.init[[2]][[2]] <- -9.3
+par.init[[2]][[3]] <- -10.7
+par.init[[2]][[4]] <- 0
+par.init[[2]][[5]] <- -1
+par.init[[3]][[1]] <- c(.999,2/7)
+par.init[[3]][[2]] <- c(.998,4/7)
+par.init[[3]][[3]] <- c(.998,6/7)
+par.init[[3]][[4]] <- c(.5)
+par.init[[3]][[5]] <- c(.5)
+
+flag.init <- sigex.default(mdl,data.ts)[[2]]
+psi.init <- sigex.par2psi(par.init,flag.init,mdl)
+
+resid.init <- sigex.resid(psi.init,mdl,data.ts)
 resid.init <- sigex.load(t(resid.init),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 acf(resid.init,lag.max=2*period)
 
@@ -131,8 +179,8 @@ acf(resid.init,lag.max=2*period)
 
 ## setup, and fix parameters as desired
 mdl.mle <- mdl
-psi.mle <- psi.default
-# psi.mle <- rnorm(length(psi.default))	# random initialization
+psi.mle <- psi.init
+# psi.mle <- rnorm(length(psi.init))	# random initialization
 flag.mle <- Im(psi.mle)
 par.mle <- sigex.psi2par(psi.mle,mdl.mle,data.ts)
 
@@ -224,3 +272,190 @@ wk.trend <- sigex.wk(data.ts,param,mdl,1,TRUE,grid,len)
 wk.cycle <- sigex.wk(data.ts,param,mdl,2,TRUE,grid,len)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##################################################
+################################################
+################ SCRAP
+
+data.mat <- matrix(data.ts[1:1288],nrow=7)
+temp <- rowMeans(data.mat)
+data.mat <- data.mat - temp
+
+data.ts <- matrix(data.mat,ncol=1) 
+
+#acf(filter(data.ts,rep(1,365),method="convolution",sides=1)[365:1288],lag.max=400)
+
+acf(diff(data.ts,lag=365),lag.max=400)
+
+acf(filter(data.ts,c(1,rep(0,363),-.6,-.29),method="convolution",sides=1)[366:T],lag.max=400)
+
+
+mdl <- NULL
+#mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,1,0,1,364),0,"all",1)		
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,364),0,"all",1)		
+
+#mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,7,1,0,364),0,"all",rep(1,365))		
+
+
+
+
+
+## alternate model construction
+#mdl <- NULL
+#mdl <- sigex.add(mdl,seq(1,N),"arma",c(2,0),0,"trend",c(1,-1))		
+#mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,0,1,0,7),0,"weekly cycle",rep(1,7))
+#mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,1,1,0,364),0,"annual cycle",rep(1,365))
+#mdl <- sigex.add(mdl,seq(1,N),"arma",c(1,0),0,"transient",1)			
+#mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)	
+
+
+# regressors:
+mdl <- sigex.meaninit(mdl,data.ts,0)		
+mdl <- sigex.reg(mdl,1,ts(as.matrix(easter.reg1),
+	start=begin,frequency=period,names="Easter Day"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(easter.reg2),
+	start=begin,frequency=period,names="pre-Easter"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(black.reg),
+	start=begin,frequency=period,names="Black Friday"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(labor.reg),
+	start=begin,frequency=period,names="Labor Day"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(weak.reg),
+	start=begin,frequency=period,names="Weak Span"))
+#mdl <- sigex.reg(mdl,1,ts(as.matrix(tdsun.reg),
+#	start=begin,frequency=period,names="Sunday Weekly"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(tdmon.reg),
+	start=begin,frequency=period,names="Monday Weekly"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(tdtue.reg),
+	start=begin,frequency=period,names="Tuesday Weekly"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(tdwed.reg),
+	start=begin,frequency=period,names="Wednesday Weekly"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(tdthu.reg),
+	start=begin,frequency=period,names="Thursday Weekly"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(tdfri.reg),
+	start=begin,frequency=period,names="Friday Weekly"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(tdsat.reg),
+	start=begin,frequency=period,names="Saturday Weekly"))
+
+
+
+
+## parameter initialization and checks
+par.init <- sigex.default(mdl,data.ts)[[1]]
+
+#data.mat <- matrix(data.ts[1:1288],nrow=7)
+#temp <- rowMeans(data.mat)
+#temp <- temp - mean(temp)
+
+par.init[[2]][[1]] <- -3.25
+
+#par.init[[3]][[1]] <- c(-.5,.6)
+
+par.init[[4]]  <- c(0.9800019653, -0.9501984918,  0.1729073488,  3.4112734771,
+  0.1906021777, -0.7336086723, -0.0085941787, -0.0388358646, -0.0005719893,
+  0.0537246269,  0.3449043921,  0.7922742353)
+
+
+
+flag.init <- sigex.default(mdl,data.ts)[[2]]
+psi.init <- sigex.par2psi(par.init,flag.init,mdl)
+
+resid.init <- sigex.resid(psi.init,mdl,data.ts)
+resid.init <- sigex.load(t(resid.init),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+acf(resid.init,lag.max=2*period)
+
+
+## setup, and fix parameters as desired
+mdl.mle <- mdl
+psi.mle <- psi.init
+# psi.mle <- rnorm(length(psi.init))	# random initialization
+flag.mle <- Im(psi.mle)
+par.mle <- sigex.psi2par(psi.mle,mdl.mle,data.ts)
+
+## run fitting
+fit.mle <- sigex.mlefit(data.ts,par.mle,flag.mle,mdl.mle,"bfgs")
+
+
+
+## manage output
+psi.mle[flag.mle==1] <- fit.mle[[1]]$par 
+psi.mle <- psi.mle + 1i*flag.mle
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+
+##  model checking 
+resid.mle <- sigex.resid(psi.mle,mdl.mle,data.ts)
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+sigex.portmanteau(resid.mle,period,length(psi.mle))
+sigex.gausscheck(resid.mle)
+acf(resid.mle,lag.max=2*period)
+
+
+ 
+####
+
+par.last <- sigex.psi2par(psi.last,mdl.mle,data.ts)
+resid.last <- sigex.resid(psi.last,mdl.mle,data.ts)
+resid.last <- sigex.load(t(resid.last),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+acf(resid.last,lag.max=2*period)
+
+
+
+#####
+
+
+## wipe
+rm(list=ls())
+
+library(devtools)
+
+setwd("C:\\Users\\Tucker\\Documents\\GitHub\\sigex")
+load_all(".")
+ 
+
+
+start.date <- c(10,1,2012)
+end.date <- day2date(dim(retail)[1]-1,start.date)
+period <- 365
+
+# calendar calculations
+start.day <- date2day(start.date[1],start.date[2],start.date[3])
+end.day <- date2day(end.date[1],end.date[2],end.date[3])
+begin <- c(start.date[3],start.day) 
+end <- c(end.date[3],end.day)
+
+## create ts object and plot
+dataALL.ts <- sigex.load(retail,begin,period,colnames(retail),TRUE)
+ 
+
+
+## all data with no transform
+transform <- "none"
+aggregate <- FALSE
+subseries <- 5
+range <- NULL
+data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
+
+T <- dim(data.ts)[1]
+
+phi1 <- -.3
+phi2 <- 0
+phi3 <- .9
+my.filter <- polymult(polymult(c(1,-1*phi1),c(1,rep(0,6),-1*phi2)),c(1,rep(0,363),-1*phi3))
+
+ent.ts <- filter(data.ts,my.filter,method="convolution",sides=1)[length(my.filter):T]
+plot(ts(ent.ts))
+acf(ent.ts,lag=50)
+acf(ent.ts,lag=800)

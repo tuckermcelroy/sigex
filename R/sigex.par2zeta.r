@@ -158,7 +158,7 @@ phi2psi <- function(phi)
 		upp <- mdlBounds[2]
 		phi <- (mdlPar[1] - low)/(upp - low)
 		ar.coef <- log(phi) - log(1 - phi)
-		zeta.par <- ar.coef
+		zeta <- ar.coef
 	}	
 
 	return(zeta)

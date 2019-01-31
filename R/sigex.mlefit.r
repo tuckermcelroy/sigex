@@ -70,6 +70,7 @@ sigex.mlefit <- function(data.ts,param,flag,mdl,method,hess=TRUE,whittle=FALSE)
 		psi.full <- flag
 		psi.full[flag==1] <- psi.est
 		psi.full[flag==0] <- psi.fix
+		psi.now <- psi.full
 		if(whittle)
 		{
 			out <- sigex.whittle(psi.full,mdl,data.ts)
