@@ -298,6 +298,27 @@ wk.cycle <- sigex.wk(data.ts,param,mdl,2,TRUE,grid,len)
 ################################################
 ################ SCRAP
 
+
+phi2psi <- function(phi)
+{
+	p <- length(phi)
+	pacfs <- phi[p]
+	if(p > 1)
+	{
+		phi <- as.vector(phi[-p])
+		for(j in p:2)
+		{
+			A.mat <- diag(j-1) - pacfs[1]*diag(j-1)[,(j-1):1,drop=FALSE]
+			phi <- solve(A.mat,phi)
+			pacfs <- c(phi[j-1],pacfs)
+			phi <- phi[-(j-1)]
+		}
+	}
+	psi <- log(1+pacfs) - log(1-pacfs)
+	return(psi)
+}
+
+
 ## all data with no transform
 transform <- "none"
 aggregate <- FALSE
@@ -311,14 +332,12 @@ X.mat <- cbind(trend.reg,easter.reg1,easter.reg2,black.reg,labor.reg,weak.reg,
 beta <- solve( t(X.mat) %*% X.mat ) %*% t(X.mat) %*% data.ts
 data.ts <- data.ts - X.mat %*% beta 
  
-#data.mat <- matrix(data.ts[204:1288],nrow=7)
-#temp <- rowMeans(data.mat)
-#data.mat <- data.mat - temp
-#data.ts <- matrix(data.mat,ncol=1) 
  
 plot(data.ts)
 acf(data.ts,lag.max=400)
+pacf(data.ts,lag.max=400)
 x.acf <- acf(data.ts,lag.max=800,type="covariance")$acf
+
 
 #plot(diff(data.ts,lag=365))
 #acf(diff(data.ts,lag=365),lag.max=400)
@@ -329,7 +348,7 @@ x.acf <- acf(data.ts,lag.max=800,type="covariance")$acf
 #acf(data.diff,lag.max=400)
 #x.acf <- acf(data.diff,lag.max=800,type="covariance")$acf
 
-p.order <- 400
+p.order <- 366
 phi.ar <- solve(toeplitz(x.acf[1:p.order]),x.acf[2:(p.order+1)])
 kappa <- phi2psi(phi.ar)
 my.inds <- which(abs(kappa)>.2)
@@ -351,12 +370,12 @@ my.filter <- c(1,-1*phi.ar)
 
 ent.ts <- filter(data.ts,my.filter,method="convolution",sides=1)[length(my.filter):length(data.ts)]
 plot(ts(ent.ts))
-acf(ent.ts,lag.max=400)
-pacf(ent.ts,lag.max=400) 
+acf(ent.ts,lag.max=p.order)
+pacf(ent.ts,lag.max=p.order) 
  
 phi.mat <- rbind(phi.ar,diag(p.order)[1:(p.order-1),])
 sort(1/Mod(eigen(phi.mat)$values))
-spec.ar(data.ts,aic=FALSE,order=400)
+spec.ar(data.ts,order=p.order)
 
 ent.acf <- ARMAauto(phi.ar,NULL,800)
 plot(ts(ent.acf))
@@ -511,3 +530,37 @@ ent.ts <- filter(data.ts,my.filter,method="convolution",sides=1)[length(my.filte
 plot(ts(ent.ts))
 acf(ent.ts,lag=50)
 acf(ent.ts,lag=800)
+
+
+
+#### seasonal vector form
+
+data.mat <- t(matrix(data.ts[1:1288],nrow=7))
+acf(data.mat,lag.max=60)
+
+
+
+
+
+sqrtm <- function(A) {
+	# Function returns the square root of the matrix
+	# Input: 
+	#   A: m x m non-negative definite matrix
+	# Output:
+	#   m x m matrix
+	return(eigen(A)$vectors %*% diag(sqrt(eigen(A)$values)) %*% t(eigen(A)$vectors))
+}
+
+N <- 3
+p <- 2
+psi <- rnorm(p*N^2)
+psi
+delta <- (-1)^rbinom(p,1,prob=.5)
+delta
+phi <- sigex.varpar(psi,p,N,delta,TRUE)
+phi
+sigex.ivarpar(phi)
+
+ 
+ 
+
