@@ -1,4 +1,4 @@
-sigex.mlefit <- function(data.ts,param,flag,mdl,method,hess=TRUE,whittle=FALSE)
+sigex.mlefit <- function(data.ts,param,flag,mdl,method,hess=TRUE,whittle=FALSE,debug=FALSE)
 {
 
 	##########################################################################
@@ -48,6 +48,10 @@ sigex.mlefit <- function(data.ts,param,flag,mdl,method,hess=TRUE,whittle=FALSE)
 	#			another round of BFGS to get Hessian matrix
 	#		whittle: a Boolean flag; if true, uses Whittle likelihood instead of
 	#			default Gaussian likelihood	
+	#		debug: a Boolean flag; if true, sets the DEBUGGING mode, which prints
+	#			psi.last and psi.now to the global field.  
+	#			psi.now gives the parameter that crashed the likelihood (if it crashed),
+	#			psi.last gives the last good parameter that did not crash the lik.
 	#	Outputs:
 	#		list with mle and par.est
 	#		mle: an object of type outputted by optim
@@ -70,7 +74,7 @@ sigex.mlefit <- function(data.ts,param,flag,mdl,method,hess=TRUE,whittle=FALSE)
 		psi.full <- flag
 		psi.full[flag==1] <- psi.est
 		psi.full[flag==0] <- psi.fix
-		psi.now <<- psi.full
+		if(debug) psi.now <<- psi.full
 		if(whittle)
 		{
 			out <- sigex.whittle(psi.full,mdl,data.ts)
@@ -78,12 +82,13 @@ sigex.mlefit <- function(data.ts,param,flag,mdl,method,hess=TRUE,whittle=FALSE)
 		{
 			out <- sigex.lik(psi.full,mdl,data.ts)
 		}
-		psi.last <<- psi.full
+		if(debug) psi.last <<- psi.full
 		return(out)
 	}
 
 	# set thresholding to prevent crash (irrelevant for SANN)
-	lower.bound <- rep(-30,length(psi.est))
+#	lower.bound <- rep(-30,length(psi.est))
+	lower.bound <- rep(-10,length(psi.est))
 	upper.bound <- rep(10,length(psi.est))
 
 	# initial attempt to fit

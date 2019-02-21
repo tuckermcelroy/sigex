@@ -119,6 +119,14 @@ tdfri.reg[temp==6] <- 1
 tdsat.reg <- rep(0,T)
 tdsat.reg[temp==0] <- 1
 
+# normalize
+tdsun.reg <- tdsun.reg - 1/7
+tdmon.reg <- tdmon.reg - 1/7
+tdtue.reg <- tdtue.reg - 1/7
+tdwed.reg <- tdwed.reg - 1/7
+tdthu.reg <- tdthu.reg - 1/7
+tdfri.reg <- tdfri.reg - 1/7
+tdsat.reg <- tdsat.reg - 1/7
 
 
 ## direct model construction
@@ -290,36 +298,83 @@ wk.cycle <- sigex.wk(data.ts,param,mdl,2,TRUE,grid,len)
 ################################################
 ################ SCRAP
 
-data.mat <- matrix(data.ts[1:1288],nrow=7)
-temp <- rowMeans(data.mat)
-data.mat <- data.mat - temp
+## all data with no transform
+transform <- "none"
+aggregate <- FALSE
+subseries <- 5
+range <- NULL
+data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
+trend.reg <- rep(1,T)
 
-data.ts <- matrix(data.mat,ncol=1) 
+X.mat <- cbind(trend.reg,easter.reg1,easter.reg2,black.reg,labor.reg,weak.reg,
+	tdmon.reg,tdtue.reg,tdwed.reg,tdthu.reg,tdfri.reg,tdsat.reg)
+beta <- solve( t(X.mat) %*% X.mat ) %*% t(X.mat) %*% data.ts
+data.ts <- data.ts - X.mat %*% beta 
+ 
+#data.mat <- matrix(data.ts[204:1288],nrow=7)
+#temp <- rowMeans(data.mat)
+#data.mat <- data.mat - temp
+#data.ts <- matrix(data.mat,ncol=1) 
+ 
+plot(data.ts)
+acf(data.ts,lag.max=400)
+x.acf <- acf(data.ts,lag.max=800,type="covariance")$acf
 
-#acf(filter(data.ts,rep(1,365),method="convolution",sides=1)[365:1288],lag.max=400)
+#plot(diff(data.ts,lag=365))
+#acf(diff(data.ts,lag=365),lag.max=400)
+#x.acf <- acf(diff(data.ts,lag=365),lag.max=800,type="covariance")$acf
 
-acf(diff(data.ts,lag=365),lag.max=400)
+#data.diff <- ts(filter(data.ts,c(1,rep(0,363),-3/4,-1/4),method="convolution",sides=1)[366:length(data.ts)])
+#plot(data.diff)
+#acf(data.diff,lag.max=400)
+#x.acf <- acf(data.diff,lag.max=800,type="covariance")$acf
 
-acf(filter(data.ts,c(1,rep(0,363),-.6,-.29),method="convolution",sides=1)[366:T],lag.max=400)
+p.order <- 400
+phi.ar <- solve(toeplitz(x.acf[1:p.order]),x.acf[2:(p.order+1)])
+kappa <- phi2psi(phi.ar)
+my.inds <- which(abs(kappa)>.2)
+#phi.ar[365] <- .45
+#my.inds <- which(abs(phi.ar) > .1)
+#phi.ar <- solve(toeplitz(x.acf[my.inds]),x.acf[my.inds+1])
+#my.filter <- rep(0,p.order)
+#my.filter[my.inds] <- phi.ar
+#my.filter <- c(1,-1*my.filter)
+
+#my.filter <- polymult(my.filter,c(1,rep(0,364),-1))
+
+#my.filter <- polymult(c(1,-1*phi.ar),c(1,0,rep(0,362),-.6,-.3))
+#my.filter <- polymult(c(1,-1*phi.ar),c(1,rep(0,363),-.3))
+rho <- 1
+omega <- 365
+phi.ar <- c(2*rho*cos(2*pi/omega),-rho^2)
+my.filter <- c(1,-1*phi.ar)
+
+ent.ts <- filter(data.ts,my.filter,method="convolution",sides=1)[length(my.filter):length(data.ts)]
+plot(ts(ent.ts))
+acf(ent.ts,lag.max=400)
+pacf(ent.ts,lag.max=400) 
+ 
+phi.mat <- rbind(phi.ar,diag(p.order)[1:(p.order-1),])
+sort(1/Mod(eigen(phi.mat)$values))
+spec.ar(data.ts,aic=FALSE,order=400)
+
+ent.acf <- ARMAauto(phi.ar,NULL,800)
+plot(ts(ent.acf))
 
 
+## AR gap model
 mdl <- NULL
-#mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,1,0,1,364),0,"all",1)		
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,364),0,"all",1)		
-
-#mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,7,1,0,364),0,"all",rep(1,365))		
-
-
-
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(p.order,0),0,"process",1)
 
 
 ## alternate model construction
-#mdl <- NULL
+mdl <- NULL
 #mdl <- sigex.add(mdl,seq(1,N),"arma",c(2,0),0,"trend",c(1,-1))		
-#mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,0,1,0,7),0,"weekly cycle",rep(1,7))
-#mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,1,1,0,364),0,"annual cycle",rep(1,365))
-#mdl <- sigex.add(mdl,seq(1,N),"arma",c(1,0),0,"transient",1)			
-#mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)	
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,0,1,0,7),0,"weekly cycle",1)
+#mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,2,1,0,364),0,"annual cycle",1)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(3,3,1,0,365),0,"annual cycle",1)
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(3,0),0,"transient",1)			
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)	
 
 
 # regressors:
@@ -351,22 +406,18 @@ mdl <- sigex.reg(mdl,1,ts(as.matrix(tdsat.reg),
 
 
 
-
 ## parameter initialization and checks
 par.init <- sigex.default(mdl,data.ts)[[1]]
+par.init[[4]] <- beta
 
 #data.mat <- matrix(data.ts[1:1288],nrow=7)
 #temp <- rowMeans(data.mat)
 #temp <- temp - mean(temp)
-
-par.init[[2]][[1]] <- -3.25
-
+#par.init[[2]][[1]] <- -3.25
 #par.init[[3]][[1]] <- c(-.5,.6)
-
-par.init[[4]]  <- c(0.9800019653, -0.9501984918,  0.1729073488,  3.4112734771,
-  0.1906021777, -0.7336086723, -0.0085941787, -0.0388358646, -0.0005719893,
-  0.0537246269,  0.3449043921,  0.7922742353)
-
+#par.init[[4]]  <- c(0.9800019653, -0.9501984918,  0.1729073488,  3.4112734771,
+#  0.1906021777, -0.7336086723, -0.0085941787, -0.0388358646, -0.0005719893,
+#  0.0537246269,  0.3449043921,  0.7922742353)
 
 
 flag.init <- sigex.default(mdl,data.ts)[[2]]
@@ -382,10 +433,11 @@ mdl.mle <- mdl
 psi.mle <- psi.init
 # psi.mle <- rnorm(length(psi.init))	# random initialization
 flag.mle <- Im(psi.mle)
+flag.mle[1+setdiff(seq(1,p.order),my.inds)] <- 0
 par.mle <- sigex.psi2par(psi.mle,mdl.mle,data.ts)
 
 ## run fitting
-fit.mle <- sigex.mlefit(data.ts,par.mle,flag.mle,mdl.mle,"bfgs")
+fit.mle <- sigex.mlefit(data.ts,par.mle,flag.mle,mdl.mle,"bfgs",whittle=TRUE)
 
 
 
