@@ -538,6 +538,21 @@ acf(ent.ts,lag=800)
 data.mat <- t(matrix(data.ts[1:1288],nrow=7))
 acf(data.mat,lag.max=60)
 
+x.acf <- acf(data.mat[,1],lag.max=100,type="covariance")$acf
+p.order <- 53
+phi.ar <- solve(toeplitz(x.acf[1:p.order]),x.acf[2:(p.order+1)])
+plot(ts(phi.ar))
+kappa <- phi2psi(phi.ar)
+my.inds <- which(abs(kappa)>.2)
+my.inds
+
+
+
+ent.ts <- filter(data.ts,my.filter,method="convolution",sides=1)[length(my.filter):length(data.ts)]
+plot(ts(ent.ts))
+acf(ent.ts,lag.max=p.order)
+pacf(ent.ts,lag.max=p.order) 
+ 
 
 
 

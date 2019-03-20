@@ -164,8 +164,8 @@ analysis.mle2 <- sigex.bundle(data.ts,transform,mdl.mle2,psi.mle2)
  
 
 
-##########################################
-### Part V: Signal Extraction based on MLE
+###########################################
+### Part VI: Signal Extraction based on MLE
 
 ## load up the MLE fit for signal extraction
 data.ts <- analysis.mle[[1]]

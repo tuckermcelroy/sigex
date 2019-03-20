@@ -37,7 +37,6 @@ sigex.ivarpar <- function(param)
 	#		param: N x N x p array
 	#	Outputs:
 	#		psi: vector of real numbers, of length p*N^2
-	#		delta: p-vector of plus/minus one
 	#	Requires: getGCD
 	#
 	####################################################################
@@ -98,18 +97,33 @@ sqrtm <- function(A) {
 	}
 
 	psi <- matrix(0,nrow=N^2,ncol=p)
-	delta <- rep(0,p)
 	for(j in 1:p)
 	{
 		out <- getGCD(v.mat[,,j],N)
-		psi[1:choose(N+1,2),j] <- c(out[[1]][lower.tri(out[[1]])],log(out[[2]]))
-		delta[j] <- sign(det(q.mat[,,j]))
-		s.mat <- 2 * solve(diag(N) + diag(c(delta[j],rep(1,(N-1)))) %*% q.mat[, , j]) - diag(N)
+		L.mat <- out[[1]][lower.tri(out[[1]])]
+		d.vec <- log(out[[2]])
+		psi[1:choose(N,2),j] <- L.mat
+		r <- sign(det(q.mat[,,j]))*exp(sum(d.vec)/(2*N))
+		psi[choose(N,2)+1,j] <- r
+		e.vec <- d.vec[-N] - sum(d.vec)/N
+		psi[(choose(N, 2) + 2):choose(N + 1, 2), j] <- e.vec
+		s.mat <- 2 * solve(diag(N) + diag(rep(sign(det(q.mat[,,j])),N)) %*% 
+				q.mat[,,j]) - diag(N)
  		psi[(choose(N+1,2)+1):N^2,j] <- s.mat[lower.tri(s.mat)]
 	}
+
+#	for(j in 1:p)
+#	{
+#		out <- getGCD(v.mat[,,j],N)
+#		psi[1:choose(N+1,2),j] <- c(out[[1]][lower.tri(out[[1]])],log(out[[2]]))
+#		delta[j] <- sign(det(q.mat[,,j]))
+#		s.mat <- 2 * solve(diag(N) + diag(c(delta[j],rep(1,(N-1)))) %*% q.mat[, , j]) - diag(N)
+#		psi[(choose(N+1,2)+1):N^2,j] <- s.mat[lower.tri(s.mat)]
+#	}
+
 	psi <- as.vector(matrix(psi,ncol=1))
 
-	return(list(psi,delta))
+	return(psi)
 }
 
 

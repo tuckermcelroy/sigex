@@ -2,55 +2,77 @@
 ###  Script for Daily Immigration Data
 #########################################
 
-## NOTES:
-#	1. canonical atomic models
-#	2. first component is trend-cycle (annual seasonal)
-#	3. MOM fit
-#	4. sigex via second/third method
-#	5. later HP to separate trend and cycle
+## wipe
+rm(list=ls())
 
-##########################
-## imm data set
+library(devtools)
 
+setwd("C:\\Users\\Tucker\\Documents\\GitHub\\sigex")
+load_all(".")
+ 
+
+######################
+### Part I: load data
+ 
+# automatic
+
+# processing
+ 
 n.months <- dim(imm)[1]/32
 imm <- imm[-seq(1,n.months)*32,]	# strip out every 32nd row (totals)
 imm <- matrix(imm[imm != 0],ncol=6) # strip out 31st False days
+
+
+
+#############################################################
+### Part II: Metadata Specifications and Exploratory Analysis
 
 start.date <- c(9,1,1997)
 end.date <- day2date(dim(imm)[1]-1,start.date)
 #end.date <- c(7,31,2012)
 period <- 365
 
-# basic calcs
+# calendar calculations
 start.day <- date2day(start.date[1],start.date[2],start.date[3])
 end.day <- date2day(end.date[1],end.date[2],end.date[3])
-begin <- c(start.date[3],start.day)
+begin <- c(start.date[3],start.day) 
 end <- c(end.date[3],end.day)
 
-# ts object and plot
-imm <- ts(imm,start=begin,frequency=period,
-	names=c("NZArr","NZDep","VisArr","VisDep","PLTArr","PLTDep"))
-plot(imm)
+## create ts object and plot
+dataALL.ts <- sigex.load(imm,begin,period,
+	c("NZArr","NZDep","VisArr","VisDep","PLTArr","PLTDep"),TRUE)
+ 
+   
+#############################
+## select span and transforms 
 
-# spectral exploratory
-series <- 1
+## all data with no transform
+transform <- "log"
+aggregate <- FALSE
+subseries <- 5
+range <- NULL
+data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 
-week.freq <- 365/7
-month.freq <- 365/(365/12)
-ann.freq <- 1
-spec.ar(imm[,series],main= paste(colnames(imm)[series],"Levels"))
-abline(v=week.freq,col=2)
-abline(v=2*week.freq,col=2)
-abline(v=3*week.freq,col=2)
-abline(v=month.freq,col=3)
-abline(v=ann.freq,col=4)
+#######################
+## spectral exploratory
 
-spec.ar(diff(imm[,series]),,main= paste(colnames(imm)[series],"Growth Rates"))
-abline(v=week.freq,col=2)
-abline(v=2*week.freq,col=2)
-abline(v=3*week.freq,col=2)
-abline(v=month.freq,col=3)
-abline(v=ann.freq,col=4)
+## levels
+par(mfrow=c(1,1))
+for(i in 1:length(subseries))
+{
+	sigex.specar(data.ts,FALSE,i,7)
+}
+dev.off()
+
+## growth rates
+par(mfrow=c(1,1))
+for(i in 1:length(subseries))
+{
+	sigex.specar(data.ts,TRUE,i,7)
+}
+dev.off()
+
+
 
 #########################################
 ########  Modeling
@@ -454,4 +476,6 @@ wk.irr <- sigex.getwk(data,param,mdl,6,TRUE,grid,len)
 
 
 
+
+##### SCRAP
 
