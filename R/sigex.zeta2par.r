@@ -47,7 +47,7 @@ sigex.zeta2par <- function(zeta,mdlType)
 	#	Outputs:
 	#		zeta.par: see background.  This is a portion of the full 
 	#			param list, corresponding to param[[3]]
-	#	Requires: sigex.param2gcd
+	#	Requires: sigex.param2gcd, sigex.varpar
 	#
 	####################################################################
 
@@ -137,6 +137,75 @@ psi2phi <- function(psi)
 			mas.coef <- psi2phi(zeta.mas)
 		}
 		zeta.par <- c(ar.coef,ma.coef,ars.coef,mas.coef)
+	}
+
+	# VARMA  
+	if(mdlClass %in% c("varma"))
+	{
+		p.order <- mdlOrder[1]
+		q.order <- mdlOrder[2]
+		ar.coef <- NULL
+		ma.coef <- NULL
+		zeta.ar <- NULL
+		zeta.ma <- NULL
+		zeta.par <- NULL
+		if(p.order > 0) 
+		{
+			zeta.ar <- zeta[1:(p.order*N^2)]
+			ar.coef <- sigex.varpar(zeta.ar,p.order,N,FALSE)
+			zeta.par <- matrix(ar.coef,nrow=N)
+		}
+		if(q.order > 0) 
+		{
+			zeta.ma <- zeta[(p.order*N^2 +1):(p.order*N^2 + q.order*N^2)]
+			ma.coef <- -1*sigex.varpar(zeta.ma,q.order,N,FALSE)
+			zeta.par <- cbind(zeta.par,matrix(ma.coef,nrow=N))
+		}
+		zeta.par <- array(zeta.par,c(N,N,p.order+q.order))
+	}
+
+	# SVARMA  
+	if(mdlClass %in% c("svarma"))
+	{
+		p.order <- mdlOrder[1]
+		q.order <- mdlOrder[2]
+		ps.order <- mdlOrder[3]
+		qs.order <- mdlOrder[4]
+		s.period <- mdlOrder[5]
+		ar.coef <- NULL
+		ma.coef <- NULL
+		ars.coef <- NULL
+		mas.coef <- NULL
+		zeta.ar <- NULL
+		zeta.ma <- NULL
+		zeta.ars <- NULL
+		zeta.mas <- NULL
+		zeta.par <- NULL
+		if(p.order > 0) 
+		{
+			zeta.ar <- zeta[1:(p.order*N^2)]
+			ar.coef <- sigex.varpar(zeta.ar,p.order,N,FALSE)
+			zeta.par <- matrix(ar.coef,nrow=N)
+		}
+		if(q.order > 0) 
+		{
+			zeta.ma <- zeta[(p.order*N^2 +1):(p.order*N^2 + q.order*N^2)]
+			ma.coef <- sigex.varpar(zeta.ma,q.order,N,FALSE)
+			zeta.par <- cbind(zeta.par,matrix(ma.coef,nrow=N))
+		}
+		if(ps.order > 0) 
+		{
+			zeta.ars <- zeta[(p.order*N^2+q.order*N^2+1):(p.order*N^2+q.order*N^2+ps.order*N^2)]
+			ars.coef <- sigex.varpar(zeta.ars,ps.order,N,FALSE)
+			zeta.par <- cbind(zeta.par,matrix(ars.coef,nrow=N))
+		}
+		if(qs.order > 0)
+		{
+			zeta.mas <- zeta[(p.order*N^2+q.order*N^2+ps.order*N^2+1):(p.order*N^2+q.order*N^2+ps.order*N^2+qs.order*N^2)]
+			mas.coef <- sigex.varpar(zeta.mas,qs.order,N,FALSE)
+			zeta.par <- cbind(zeta.par,matrix(mas.coef,nrow=N))
+		}
+		zeta.par <- array(zeta.par,c(N,N,p.order+q.order+ps.order+qs.order))
 	}
 
 	# cycles

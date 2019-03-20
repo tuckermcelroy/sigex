@@ -46,6 +46,7 @@ sigex.par2zeta <- function(mdlPar,mdlType)
 	#			 cited as mdl[[2]]
 	#	Outputs:
 	#		zeta: see background.
+	#	Requires: sigex.ivarpar
 	#
 	####################################################################
 
@@ -132,6 +133,67 @@ phi2psi <- function(phi)
 		{
 			mas.coef <- mdlPar[(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
 			zeta.mas <- phi2psi(mas.coef)
+		}
+		zeta <- c(zeta.ar,zeta.ma,zeta.ars,zeta.mas)
+	}
+
+	# VARMA  
+	if(mdlClass %in% c("varma"))
+	{
+		p.order <- mdlOrder[1]
+		q.order <- mdlOrder[2]
+		ar.coef <- NULL
+		ma.coef <- NULL
+		zeta.ar <- NULL
+		zeta.ma <- NULL
+		if(p.order > 0) 
+		{
+			ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
+			zeta.ar <- sigex.ivarpar(ar.coef)
+		}
+		if(q.order > 0) 
+		{
+			ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
+			zeta.ma <- sigex.ivarpar(-1*ma.coef)
+		}
+		zeta <- c(zeta.ar,zeta.ma)
+	}
+
+	# SVARMA
+	if(mdlClass %in% c("svarma"))
+	{
+		p.order <- mdlOrder[1]
+		q.order <- mdlOrder[2]
+		ps.order <- mdlOrder[3]
+		qs.order <- mdlOrder[4]
+		s.period <- mdlOrder[5]
+		ar.coef <- NULL
+		ma.coef <- NULL
+		ars.coef <- NULL
+		mas.coef <- NULL
+		zeta.ar <- NULL
+		zeta.ma <- NULL
+		zeta.ars <- NULL
+		zeta.mas <- NULL
+		if(p.order > 0) 
+		{
+			ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
+			zeta.ar <- sigex.ivarpar(ar.coef)
+		}
+		if(q.order > 0) 
+		{
+			ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
+			zeta.ma <- sigex.ivarpar(ma.coef)
+		}
+		if(ps.order > 0) 
+		{
+			ars.coef <- mdlPar[,,(p.order+q.order+1):(p.order+q.order+ps.order),drop=FALSE]
+			zeta.ars <- sigex.ivarpar(ars.coef)
+		}
+		if(qs.order > 0)
+		{
+			mas.coef <- mdlPar[,,(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order),drop=FALSE]
+			zeta.mas <- sigex.ivarpar(mas.coef)
 		}
 		zeta <- c(zeta.ar,zeta.ma,zeta.ars,zeta.mas)
 	}

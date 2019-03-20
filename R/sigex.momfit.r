@@ -33,6 +33,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 	#		whether the hyper-parameter is fixed for purposes of estimation.
 	#	Notes: does not handle missing values in data.ts.
 	#		ARMA model parameters are not estimated, but taken as given
+	#		Does not work with VARMA/SVARMA specification
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object
 	#		param: see background; this is an initial specification for

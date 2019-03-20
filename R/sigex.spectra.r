@@ -63,6 +63,27 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 	#
 	####################################################################
 
+polymulMat <- function(amat,bmat)
+{
+        p <- dim(amat)[3]-1
+        q <- dim(bmat)[3]-1
+        N <- dim(amat)[2]
+
+        r <- p+q
+        bmat.pad <- array(0,c(N,N,r+1))
+        for(i in 1:(q+1)) { bmat.pad[,,i] <- bmat[,,i] }
+        cmat <- array(0,c(N,N,r+1))
+        cmat[,,1] <- amat[,,1] %*% bmat.pad[,,1]
+        for(j in 2:(r+1))
+        {
+                cmat[,,j] <- amat[,,1] %*% bmat.pad[,,j]
+                for(k in 1:min(p,j-1))
+                { cmat[,,j] <- cmat[,,j] + amat[,,k+1] %*% bmat.pad[,,j-k] }
+        }
+
+        return(cmat)
+}
+
 	N <- dim(as.matrix(L.par))[1]
 	mdlType <- mdl[[2]][[comp]]
 	mdlClass <- mdlType[[1]]
@@ -139,6 +160,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 		}
 		ar.poly <- polymult(c(1,-1*ar.coef),c(1,-1*ars.coef))
 		ma.poly <- polymult(c(1,-1*ma.coef),c(1,-1*mas.coef))
+		ma.poly <- polymult(ma.poly,delta)
 		comp.MA <- array(t(ma.poly %x% diag(N)),c(N,N,length(ma.poly)))
 		comp.AR <- array(t(ar.poly %x% diag(N)),c(N,N,length(ar.poly)))
 		comp.sigma <- xi.mat
@@ -180,6 +202,72 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 		comp.MA <- array(t(madiff.stab %x% diag(N)),c(N,N,length(madiff.stab)))
 		comp.AR <- array(t(ar.poly %x% diag(N)),c(N,N,length(ar.poly)))
 		comp.sigma <- ma.scale*xi.mat
+	}
+
+	# VARMA model
+	if(mdlClass == "varma")
+	{
+		p.order <- mdlOrder[1]
+		q.order <- mdlOrder[2]
+		ar.coef <- NULL
+		ma.coef <- NULL
+		if(p.order > 0) ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
+		if(q.order > 0) ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
+		ar.array <- array(cbind(diag(N),-1*matrix(ar.coef,nrow=N)),c(N,N,p.order+1))
+		ma.array <- array(cbind(diag(N),matrix(ma.coef,nrow=N)),c(N,N,q.order+1))
+		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
+		madiff.array <- polymulMat(delta.array,ma.array) 
+		comp.MA <- madiff.array
+		comp.AR <- ar.array
+		comp.sigma <- xi.mat
+	}
+
+	# SVARMA model
+	if(mdlClass == "svarma")
+	{
+		p.order <- mdlOrder[1]
+		q.order <- mdlOrder[2]
+		ps.order <- mdlOrder[3]
+		qs.order <- mdlOrder[4]
+		s.period <- mdlOrder[5]
+		stretch <- c(rep(0,s.period-1),1)
+		ar.coef <- NULL
+		ma.coef <- NULL
+		ars.coef <- NULL
+		mas.coef <- NULL
+		ar.array <- array(diag(N),c(N,N,1))
+		ma.array <- array(diag(N),c(N,N,1))
+		ars.array <- array(diag(N),c(N,N,1))
+		mas.array <- array(diag(N),c(N,N,1))
+		if(p.order > 0) 
+		{
+			ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
+			ar.array <- array(cbind(diag(N),-1*matrix(ar.coef,nrow=N)),c(N,N,p.order+1))
+		}
+		if(q.order > 0) 
+		{
+			ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
+			ma.array <- array(cbind(diag(N),-1*matrix(ma.coef,nrow=N)),c(N,N,q.order+1))
+		}
+		if(ps.order > 0) 
+		{
+			ars.coef <- matrix(mdlPar[,,(p.order+q.order+1):(p.order+q.order+ps.order),drop=FALSE],c(N,N,ps.order))
+			ars.coef <- array(t(stretch) %x% ars.coef,c(N,N,s.period*ps.order)) 
+			ars.array <- array(cbind(diag(N),-1*matrix(ars.coef,nrow=N)),c(N,N,s.period*ps.order+1))
+		}
+		if(qs.order > 0)
+		{
+			mas.coef <- matrix(mdlPar[,,(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order),drop=FALSE],c(N,N,qs.order))
+			mas.coef <- array(t(stretch) %x% mas.coef,c(N,N,s.period*qs.order))
+			mas.array <- array(cbind(diag(N),-1*matrix(mas.coef,nrow=N)),c(N,N,s.period*qs.order+1))
+		}
+		ar.poly <- polymulMat(ar.array,ars.array) 
+		ma.poly <- polymulMat(ma.array,mas.array) 
+		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
+		madiff.array <- polymulMat(delta.array,ma.poly) 
+		comp.MA <- madiff.array
+		comp.AR <- ar.poly
+		comp.sigma <- xi.mat
 	}
 
 	# Butterworth cycle
