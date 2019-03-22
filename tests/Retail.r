@@ -511,32 +511,48 @@ end <- c(end.date[3],end.day)
 dataALL.ts <- sigex.load(retail,begin,period,colnames(retail),TRUE)
  
 
-
 ## all data with no transform
 transform <- "none"
 aggregate <- FALSE
 subseries <- 5
 range <- NULL
 data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
+trend.reg <- rep(1,T)
 
+X.mat <- cbind(trend.reg,easter.reg1,easter.reg2,black.reg,labor.reg,weak.reg,
+	tdmon.reg,tdtue.reg,tdwed.reg,tdthu.reg,tdfri.reg,tdsat.reg)
+beta <- solve( t(X.mat) %*% X.mat ) %*% t(X.mat) %*% data.ts
+data.ts <- data.ts - X.mat %*% beta 
 T <- dim(data.ts)[1]
-
-phi1 <- -.3
-phi2 <- 0
-phi3 <- .9
-my.filter <- polymult(polymult(c(1,-1*phi1),c(1,rep(0,6),-1*phi2)),c(1,rep(0,363),-1*phi3))
-
-ent.ts <- filter(data.ts,my.filter,method="convolution",sides=1)[length(my.filter):T]
-plot(ts(ent.ts))
-acf(ent.ts,lag=50)
-acf(ent.ts,lag=800)
-
-
+ 
 
 #### seasonal vector form
 
+
 data.mat <- t(matrix(data.ts[1:1288],nrow=7))
-acf(data.mat,lag.max=60)
+#acf(data.mat,lag.max=60)
+
+## VARMA model
+
+
+N <- dim(data.mat)[2]
+T <- dim(data.mat)[1]
+
+mdl <- NULL
+mdl <- sigex.add(mdl,seq(1,N),"varma",c(1,0),0,"process",1)
+mdl <- sigex.meaninit(mdl,data.mat,0)	
+
+par.init <- sigex.default(mdl,data.mat)[[1]]
+flag.init <- sigex.default(mdl,data.mat)[[2]]
+psi.init <- sigex.par2psi(par.init,flag.init,mdl)
+
+resid.init <- sigex.resid(psi.init,mdl,data.ts)
+resid.init <- sigex.load(t(resid.init),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+acf(resid.init,lag.max=2*period)
+
+
+
+
 
 x.acf <- acf(data.mat[,1],lag.max=100,type="covariance")$acf
 p.order <- 53
@@ -548,6 +564,10 @@ my.inds
 
 
 
+
+
+
+
 ent.ts <- filter(data.ts,my.filter,method="convolution",sides=1)[length(my.filter):length(data.ts)]
 plot(ts(ent.ts))
 acf(ent.ts,lag.max=p.order)
@@ -556,26 +576,5 @@ pacf(ent.ts,lag.max=p.order)
 
 
 
-
-sqrtm <- function(A) {
-	# Function returns the square root of the matrix
-	# Input: 
-	#   A: m x m non-negative definite matrix
-	# Output:
-	#   m x m matrix
-	return(eigen(A)$vectors %*% diag(sqrt(eigen(A)$values)) %*% t(eigen(A)$vectors))
-}
-
-N <- 3
-p <- 2
-psi <- rnorm(p*N^2)
-psi
-delta <- (-1)^rbinom(p,1,prob=.5)
-delta
-phi <- sigex.varpar(psi,p,N,delta,TRUE)
-phi
-sigex.ivarpar(phi)
-
  
  
-

@@ -56,17 +56,19 @@ sqrtm <- function(A) {
 	phi.comp <- rbind(phi.mat,cbind(diag(N*(p-1)),matrix(0,N*(p-1),N)))
 	v.mat <- array(0,dim=c(N,N,p))
 	q.mat <- v.mat
-	u.mat = array(0,dim=c(N,N,(p+1)))
+	u.mat <- array(0,dim=c(N,N,(p+1)))
 	c.mat <- u.mat
 	d.mat <- u.mat
 	if(p==1)
 	{
 		U.bmat <- matrix(solve((diag(N^2*p^2) - phi.comp %x% phi.comp),
 			as.vector(diag(N)),tol=1e-40),N*p,N*p)
-		v.mat[,,1] = U.bmat - diag(N)
-            q.mat[,,1] = solve(sqrtm(v.mat[,,1])) %*% phi.mat %*% sqrtm(U.bmat)
-            u.mat[,,1] = U.bmat
-            u.mat[,,2] = phi.mat %*% U.bmat
+		v.mat[,,1] <- U.bmat - diag(N)
+		q.mat[,,1] <- diag(N)
+		if(min(Mod(eigen(v.mat[,,1])$values))>0) {
+	            q.mat[,,1] <- solve(sqrtm(v.mat[,,1])) %*% phi.mat %*% sqrtm(U.bmat) }
+            u.mat[,,1] <- U.bmat
+            u.mat[,,2] <- phi.mat %*% U.bmat
 	} else 
 	{
 		U.bmat <- matrix(solve((diag(N^2*p^2) - phi.comp %x% phi.comp),
@@ -82,7 +84,9 @@ sqrtm <- function(A) {
 		c.mat[,,2] <- u.mat[,,1] - txi %*% solve(bigu) %*% t(txi)
 		d.mat[,,2] <- u.mat[,,1] - tkappa %*% solve(bigu) %*% t(tkappa)
 		v.mat[,,1] <- c.mat[,,1] - c.mat[,,2]
-		q.mat[,,1] <- solve(sqrtm(v.mat[,,1])) %*% u.mat[,,2] %*% solve(sqrtm(d.mat[,,1]))
+		q.mat[,,1] <- diag(N)
+		if(min(Mod(eigen(v.mat[,,1])$values))>0) {
+			q.mat[,,1] <- solve(sqrtm(v.mat[,,1])) %*% u.mat[,,2] %*% solve(sqrtm(d.mat[,,1])) }
 		for(j in 2:p) 
 		{
 			tt <- u.mat[,,(j+1)] - txi %*% solve(bigu) %*% t(tkappa)
@@ -92,7 +96,9 @@ sqrtm <- function(A) {
                   d.mat[,,(j+1)] <- u.mat[,,1] - tkappa %*% solve(bigu) %*% t(tkappa) 
                   c.mat[,,(j+1)] <- u.mat[,,1] - txi %*% solve(bigu) %*% t(txi)
                   v.mat[,,j] <- c.mat[,,j] - c.mat[,,(j+1)]
-                  q.mat[,,j] <- solve(sqrtm(v.mat[,,j])) %*% tt %*% solve(sqrtm(d.mat[,,j])) 
+			q.mat[,,j] <- diag(N)
+			if(min(Mod(eigen(v.mat[,,j])$values))>0) {
+	                  q.mat[,,j] <- solve(sqrtm(v.mat[,,j])) %*% tt %*% solve(sqrtm(d.mat[,,j])) }
 		}
 	}
 
@@ -105,22 +111,13 @@ sqrtm <- function(A) {
 		psi[1:choose(N,2),j] <- L.mat
 		r <- sign(det(q.mat[,,j]))*exp(sum(d.vec)/(2*N))
 		psi[choose(N,2)+1,j] <- r
-		e.vec <- d.vec[-N] - sum(d.vec)/N
+		e.vec <- rep(0,N-1)
+		if(abs(r)>0) { e.vec <- d.vec[-N] - sum(d.vec)/N }
 		psi[(choose(N, 2) + 2):choose(N + 1, 2), j] <- e.vec
 		s.mat <- 2 * solve(diag(N) + diag(rep(sign(det(q.mat[,,j])),N)) %*% 
 				q.mat[,,j]) - diag(N)
  		psi[(choose(N+1,2)+1):N^2,j] <- s.mat[lower.tri(s.mat)]
 	}
-
-#	for(j in 1:p)
-#	{
-#		out <- getGCD(v.mat[,,j],N)
-#		psi[1:choose(N+1,2),j] <- c(out[[1]][lower.tri(out[[1]])],log(out[[2]]))
-#		delta[j] <- sign(det(q.mat[,,j]))
-#		s.mat <- 2 * solve(diag(N) + diag(c(delta[j],rep(1,(N-1)))) %*% q.mat[, , j]) - diag(N)
-#		psi[(choose(N+1,2)+1):N^2,j] <- s.mat[lower.tri(s.mat)]
-#	}
-
 	psi <- as.vector(matrix(psi,ncol=1))
 
 	return(psi)
