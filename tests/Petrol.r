@@ -193,7 +193,7 @@ fade <- 40
 par(mfrow=c(2,1),mar=c(5,4,4,5)+.1)
 for(i in 1:N)
 {
-	plot(data.ts[,i],xlab="Year",ylab="Trend",ylim=c(min(data.ts[,i])-2,max(data.ts[,i])),
+	plot(data.ts[,i],xlab="Year",ylab="Trend",ylim=c(min(data.ts[,i]),max(data.ts[,i])),
 		lwd=2,yaxt="n",xaxt="n")
 	sigex.graph(extract.trend,reg.trend,begin.date,period,i,0,trendcol,fade)
 	axis(1,cex.axis=1)

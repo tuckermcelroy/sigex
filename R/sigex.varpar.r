@@ -1,4 +1,4 @@
-sigex.varpar <- function(psi,var.order,N,debug=FALSE)
+sigex.varpar <- function(psi,var.order,N,delta,debug=FALSE)
 {
 
 	##########################################################################
@@ -37,6 +37,7 @@ sigex.varpar <- function(psi,var.order,N,debug=FALSE)
 	#		psi: vector of real numbers, of length p*N^2
 	#		var.order: the VAR order p 
 	#		N: dimension of the process
+	#		delta: p-vector of plus/minus one
 	#		debug: a Boolean flag; if true, outputs stability check
 	#	Outputs:
 	#		param: N x N x var.order array
@@ -61,33 +62,14 @@ sqrtm <- function(A) {
 	{
 		l.mat <- diag(N)
 		l.mat[lower.tri(l.mat)] <- psi.mat[1:choose(N, 2), j]
-		r <- psi.mat[choose(N,2)+1]
-		e.vec <- psi.mat[(choose(N, 2) + 2):choose(N + 1, 2), j]
-		e.last <- -sum(e.vec)
-		e.vec <- c(e.vec,e.last)
-		e.mat <- diag(exp(e.vec))
-		d.vec <- e.vec + log(r^2)
-		d.mat <- diag(exp(d.vec))
-   		v.mat[,,j] <- l.mat %*% d.mat %*% t(l.mat)
+		d.mat <- diag(exp(psi.mat[(choose(N, 2) + 1):choose(N + 1, 2), j]))
+  		v.mat[,,j] <- l.mat %*% d.mat %*% t(l.mat)
 		s.mat <- diag(0, N)
 		s.mat[lower.tri(s.mat)] <- psi.mat[(choose(N + 1, 2) + 1):(N^2), j]
-    		s.mat <- s.mat - t(s.mat)
-    		Q.mat[,,j] <- diag(rep(sign(r),N)) %*% 
+   		s.mat <- s.mat - t(s.mat)
+   		Q.mat[,,j] <- diag(c(delta[j], rep(1, (N - 1)))) %*% 
 			(diag(N) - s.mat) %*% solve(diag(N) + s.mat)
   	}
-
-#	for(j in 1:var.order)
-#	{
-#		l.mat <- diag(N)
-#		l.mat[lower.tri(l.mat)] <- psi.mat[1:choose(N, 2), j]
-#		d.mat <- diag(exp(psi.mat[(choose(N, 2) + 1):choose(N + 1, 2), j]))
-#  		v.mat[,,j] <- l.mat %*% d.mat %*% t(l.mat)
-#		s.mat <- diag(0, N)
-#		s.mat[lower.tri(s.mat)] <- psi.mat[(choose(N + 1, 2) + 1):(N^2), j]
-#   		s.mat <- s.mat - t(s.mat)
-#   		Q.mat[,,j] <- diag(c(delta[j], rep(1, (N - 1)))) %*% 
-#			(diag(N) - s.mat) %*% solve(diag(N) + s.mat)
-#  	}
 
 	l.mat <- diag(N)
 	l.mat[lower.tri(l.mat)] <- psi.mat[1:choose(N, 2),(var.order + 1)]
