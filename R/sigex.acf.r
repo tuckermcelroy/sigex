@@ -100,6 +100,7 @@ polymulMat <- function(amat,bmat)
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
 		ar.coef <- NULL
+
 		ma.coef <- NULL
 		if(p.order > 0) ar.coef <- mdlPar[1:p.order]
 		if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
@@ -206,11 +207,11 @@ polymulMat <- function(amat,bmat)
 		ar.coef <- NULL
 		ma.coef <- NULL
 		if(p.order > 0) ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
-		if(q.order > 0) ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
-		ma.array <- array(cbind(diag(N),matrix(ma.coef,nrow=N)),c(N,N,q.order+1))
+		if(q.order > 0) ma.coef <- matrix(mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE],nrow=N)
+		ma.array <- array(cbind(diag(N),ma.coef),c(N,N,q.order+1))
 		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
 		madiff.array <- polymulMat(delta.array,ma.array) 
-		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1],diag(N), 
+		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],diag(N), 
 			maxlag=maxlag) 
 		x.acf <- psi.acf %x% xi.mat
 	}
