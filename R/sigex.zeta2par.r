@@ -144,6 +144,8 @@ psi2phi <- function(psi)
 	{
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
+		ar.delta <- mdlBounds[[1]]
+		ma.delta <- mdlBounds[[2]]
 		ar.coef <- NULL
 		ma.coef <- NULL
 		zeta.ar <- NULL
@@ -152,13 +154,13 @@ psi2phi <- function(psi)
 		if(p.order > 0) 
 		{
 			zeta.ar <- zeta[1:(p.order*N^2)]
-			ar.coef <- sigex.varpar(zeta.ar,p.order,N,FALSE)
+			ar.coef <- sigex.varpar(zeta.ar,p.order,N,ar.delta,FALSE)
 			zeta.par <- matrix(ar.coef,nrow=N)
 		}
 		if(q.order > 0) 
 		{
 			zeta.ma <- zeta[(p.order*N^2 +1):(p.order*N^2 + q.order*N^2)]
-			ma.coef <- -1*sigex.varpar(zeta.ma,q.order,N,FALSE)
+			ma.coef <- -1*sigex.varpar(zeta.ma,q.order,N,ma.delta,FALSE)
 			zeta.par <- cbind(zeta.par,matrix(ma.coef,nrow=N))
 		}
 		zeta.par <- array(zeta.par,c(N,N,p.order+q.order))
@@ -172,6 +174,10 @@ psi2phi <- function(psi)
 		ps.order <- mdlOrder[3]
 		qs.order <- mdlOrder[4]
 		s.period <- mdlOrder[5]
+		ar.delta <- mdlBounds[[1]]
+		ma.delta <- mdlBounds[[2]]
+		ars.delta <- mdlBounds[[3]]
+		mas.delta <- mdlBounds[[4]]
 		ar.coef <- NULL
 		ma.coef <- NULL
 		ars.coef <- NULL
@@ -184,25 +190,25 @@ psi2phi <- function(psi)
 		if(p.order > 0) 
 		{
 			zeta.ar <- zeta[1:(p.order*N^2)]
-			ar.coef <- sigex.varpar(zeta.ar,p.order,N,FALSE)
+			ar.coef <- sigex.varpar(zeta.ar,p.order,N,ar.delta,FALSE)
 			zeta.par <- matrix(ar.coef,nrow=N)
 		}
 		if(q.order > 0) 
 		{
 			zeta.ma <- zeta[(p.order*N^2 +1):(p.order*N^2 + q.order*N^2)]
-			ma.coef <- sigex.varpar(zeta.ma,q.order,N,FALSE)
+			ma.coef <- sigex.varpar(zeta.ma,q.order,N,ma.delta,FALSE)
 			zeta.par <- cbind(zeta.par,matrix(ma.coef,nrow=N))
 		}
 		if(ps.order > 0) 
 		{
 			zeta.ars <- zeta[(p.order*N^2+q.order*N^2+1):(p.order*N^2+q.order*N^2+ps.order*N^2)]
-			ars.coef <- sigex.varpar(zeta.ars,ps.order,N,FALSE)
+			ars.coef <- sigex.varpar(zeta.ars,ps.order,N,ars.delta,FALSE)
 			zeta.par <- cbind(zeta.par,matrix(ars.coef,nrow=N))
 		}
 		if(qs.order > 0)
 		{
 			zeta.mas <- zeta[(p.order*N^2+q.order*N^2+ps.order*N^2+1):(p.order*N^2+q.order*N^2+ps.order*N^2+qs.order*N^2)]
-			mas.coef <- sigex.varpar(zeta.mas,qs.order,N,FALSE)
+			mas.coef <- sigex.varpar(zeta.mas,qs.order,N,mas.delta,FALSE)
 			zeta.par <- cbind(zeta.par,matrix(mas.coef,nrow=N))
 		}
 		zeta.par <- array(zeta.par,c(N,N,p.order+q.order+ps.order+qs.order))

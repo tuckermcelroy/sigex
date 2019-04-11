@@ -149,12 +149,12 @@ phi2psi <- function(phi)
 		if(p.order > 0) 
 		{
 			ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
-			zeta.ar <- sigex.ivarpar(ar.coef)
+			zeta.ar <- sigex.ivarpar(ar.coef)[[1]]
 		}
 		if(q.order > 0) 
 		{
 			ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
-			zeta.ma <- sigex.ivarpar(-1*ma.coef)
+			zeta.ma <- sigex.ivarpar(-1*ma.coef)[[1]]
 		}
 		zeta <- c(zeta.ar,zeta.ma)
 	}
@@ -178,22 +178,22 @@ phi2psi <- function(phi)
 		if(p.order > 0) 
 		{
 			ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
-			zeta.ar <- sigex.ivarpar(ar.coef)
+			zeta.ar <- sigex.ivarpar(ar.coef)[[1]]
 		}
 		if(q.order > 0) 
 		{
 			ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
-			zeta.ma <- sigex.ivarpar(ma.coef)
+			zeta.ma <- sigex.ivarpar(ma.coef)[[1]]
 		}
 		if(ps.order > 0) 
 		{
 			ars.coef <- mdlPar[,,(p.order+q.order+1):(p.order+q.order+ps.order),drop=FALSE]
-			zeta.ars <- sigex.ivarpar(ars.coef)
+			zeta.ars <- sigex.ivarpar(ars.coef)[[1]]
 		}
 		if(qs.order > 0)
 		{
 			mas.coef <- mdlPar[,,(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order),drop=FALSE]
-			zeta.mas <- sigex.ivarpar(mas.coef)
+			zeta.mas <- sigex.ivarpar(mas.coef)[[1]]
 		}
 		zeta <- c(zeta.ar,zeta.ma,zeta.ars,zeta.mas)
 	}
