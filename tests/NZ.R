@@ -479,25 +479,3 @@ wk.irr <- sigex.getwk(data,param,mdl,6,TRUE,grid,len)
 
 ##### SCRAP
 
-
-#### seasonal vector form
-
-data.mat <- t(matrix(data.ts[1:5446],nrow=7))
-acf(data.mat,lag.max=60)
-
-x.acf <- acf(data.mat[,1],lag.max=100,type="covariance")$acf
-
-
-
-
-p.order <- 53
-phi.ar <- solve(toeplitz(x.acf[1:p.order]),x.acf[2:(p.order+1)])
-plot(ts(phi.ar))
-kappa <- phi2psi(phi.ar)
-my.inds <- which(abs(kappa)>.2)
-my.inds
-
-
-temp <- ar.ols(data.mat,order=53,aic=FALSE)
-
-dput(imm)
