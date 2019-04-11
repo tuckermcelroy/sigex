@@ -58,31 +58,10 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 	#		x.acf: matrix of dimension N x N*maxlag, consisting of autocovariance
 	#			matrices stacked horizontally, i.e.
 	#			x.acf = [ gamma(0), gamma(1), ..., gamma(maxlag-1)]
-	#	Requires: polymult, polysum, ARMAauto, VARMAauto, specFact,
+	#	Requires: polymult, polysum, polymulMat, ARMAauto, VARMAauto, specFact,
 	#		specFactmvar, sigex.getcycle, sigex.canonize
 	#
 	####################################################################
-
-polymulMat <- function(amat,bmat)
-{
-        p <- dim(amat)[3]-1
-        q <- dim(bmat)[3]-1
-        N <- dim(amat)[2]
-
-        r <- p+q
-        bmat.pad <- array(0,c(N,N,r+1))
-        for(i in 1:(q+1)) { bmat.pad[,,i] <- bmat[,,i] }
-        cmat <- array(0,c(N,N,r+1))
-        cmat[,,1] <- amat[,,1] %*% bmat.pad[,,1]
-        for(j in 2:(r+1))
-        {
-                cmat[,,j] <- amat[,,1] %*% bmat.pad[,,j]
-                for(k in 1:min(p,j-1))
-                { cmat[,,j] <- cmat[,,j] + amat[,,k+1] %*% bmat.pad[,,j-k] }
-        }
-
-        return(cmat)
-}
 
 	mdlType <- mdl[[2]][[comp]]
 	mdlClass <- mdlType[[1]]
@@ -211,9 +190,9 @@ polymulMat <- function(amat,bmat)
 		ma.array <- array(cbind(diag(N),ma.coef),c(N,N,q.order+1))
 		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
 		madiff.array <- polymulMat(delta.array,ma.array) 
-		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],diag(N), 
-			maxlag=maxlag) 
-		x.acf <- psi.acf %x% xi.mat
+		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat, 
+			maxlag=maxlag)[,,1:maxlag] 
+		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
 
 	# SVARMA model
@@ -259,9 +238,9 @@ polymulMat <- function(amat,bmat)
 		ma.poly <- polymulMat(ma.array,mas.array) 
 		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
 		madiff.array <- polymulMat(delta.array,ma.poly) 
-		psi.acf <- VARMAauto(phi = -1*ar.poly[,,-1], theta = madiff.array[,,-1],diag(N), 
-			maxlag=maxlag) 
-		x.acf <- psi.acf %x% xi.mat
+		psi.acf <- VARMAauto(phi = -1*ar.poly[,,-1,drop=FALSE], theta = madiff.array[,,-1,drop=FALSE],
+			xi.mat, maxlag=maxlag)[,,1:maxlag] 
+		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
 
 	# Butterworth cycle

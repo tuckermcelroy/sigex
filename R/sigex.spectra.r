@@ -58,31 +58,10 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 	#	Outputs:
 	#		f.spec: array of dimension N x N x (grid+1), consisting of spectrum
 	#			at frequencies pi*j/grid for 0 <= j <= grid
-	#	Requires: polymult, polysum, ARMAauto, VARMAauto, specFact,
-	#		specFactmvar, sigex.getcycle, sigex.canonize
+	#	Requires: polymult, polysum, polymulMat, ARMAauto, VARMAauto, 
+	#		specFact, specFactmvar, sigex.getcycle, sigex.canonize
 	#
 	####################################################################
-
-polymulMat <- function(amat,bmat)
-{
-        p <- dim(amat)[3]-1
-        q <- dim(bmat)[3]-1
-        N <- dim(amat)[2]
-
-        r <- p+q
-        bmat.pad <- array(0,c(N,N,r+1))
-        for(i in 1:(q+1)) { bmat.pad[,,i] <- bmat[,,i] }
-        cmat <- array(0,c(N,N,r+1))
-        cmat[,,1] <- amat[,,1] %*% bmat.pad[,,1]
-        for(j in 2:(r+1))
-        {
-                cmat[,,j] <- amat[,,1] %*% bmat.pad[,,j]
-                for(k in 1:min(p,j-1))
-                { cmat[,,j] <- cmat[,,j] + amat[,,k+1] %*% bmat.pad[,,j-k] }
-        }
-
-        return(cmat)
-}
 
 	N <- dim(as.matrix(L.par))[1]
 	mdlType <- mdl[[2]][[comp]]
@@ -211,10 +190,10 @@ polymulMat <- function(amat,bmat)
 		q.order <- mdlOrder[2]
 		ar.coef <- NULL
 		ma.coef <- NULL
-		if(p.order > 0) ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
-		if(q.order > 0) ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
-		ar.array <- array(cbind(diag(N),-1*matrix(ar.coef,nrow=N)),c(N,N,p.order+1))
-		ma.array <- array(cbind(diag(N),matrix(ma.coef,nrow=N)),c(N,N,q.order+1))
+		if(p.order > 0) ar.coef <- matrix(mdlPar[,,1:p.order,drop=FALSE],nrow=N)
+		if(q.order > 0) ma.coef <- matrix(mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE],nrow=N)
+		ar.array <- array(cbind(diag(N),-1*ar.coef),c(N,N,p.order+1))
+		ma.array <- array(cbind(diag(N),ma.coef),c(N,N,q.order+1))
 		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
 		madiff.array <- polymulMat(delta.array,ma.array) 
 		comp.MA <- madiff.array
