@@ -23,7 +23,7 @@ VARMAauto <- function(phi,theta,sigma,maxlag)
 
 	################# Documentation #####################################
 	#
-	#	Purpose: computes autocovariances of VARMA 
+	#	Purpose: computes autocovariances of VARMA
 	#	Background: function computes autocovariances of VARMA (p,q) from lag zero
 	#		to maxlag, with array inputs phi and theta.  VARMA equation:
 	#	(1 - phi[1]B ... - phi[p]B^p) X_t = (1 + theta[1]B ...+ theta[q]B^q) WN_t
@@ -72,7 +72,7 @@ if (length(phi) > 0) p <- dim(phi)[3]
 if (length(theta) > 0) q <- dim(theta)[3]
 Kmat <- apply(diag(m^2),1,Kcommut,m,m)
 
-if (q == 0) { gamMA <- array(sigma,c(m,m,1)) } else 
+if (q == 0) { gamMA <- array(sigma,c(m,m,1)) } else
 {
 	temp <- polymulMat(array(cbind(diag(m),matrix(theta,m,m*q)),c(m,m,q+1)),
 		array(sigma,c(m,m,1)))
@@ -82,7 +82,7 @@ if (q == 0) { gamMA <- array(sigma,c(m,m,1)) } else
 gamMA <- gamMA[,,(q+1):(2*q+1)]
 gamMAvec <- matrix(gamMA,m^2*(q+1),1)
 
-if (p > 0) 
+if (p > 0)
 {
 	Amat <- matrix(0,nrow=m^2*(p+1),ncol=m^2*(2*p+1))
 	Amat <- array(Amat,c(m^2,p+1,m^2,2*p+1))
@@ -104,7 +104,7 @@ if (p > 0)
 		}
 	}
 	Amat <- cbind(matrix(Amat[,,,p+1],m^2*(p+1),m^2),
-			matrix(Amat[,,,(p+2):(2*p+1)],m^2*(p+1),m^2*(p)) + 
+			matrix(Amat[,,,(p+2):(2*p+1)],m^2*(p+1),m^2*(p)) +
 			matrix(newA[,,,p:1],m^2*(p+1),m^2*(p)))
 
 	Bmat <- matrix(0,nrow=m^2*(q+1),ncol=m^2*(p+q+1))
@@ -124,21 +124,22 @@ if (p > 0)
 #	Binv <- solve(Bmat)
 #	gamMix <- Binv %*% gamMAvec
 	gamMix <- solve(Bmat,gamMAvec)
-	if (p <= q) gamMixTemp <- gamMix[1:((p+1)*m^2)] else 
+	if (p <= q) gamMixTemp <- gamMix[1:((p+1)*m^2)] else
 		gamMixTemp <- c(gamMix,rep(0,(p-q)*m^2))
-	gamARMA <- solve(Amat) %*% gamMixTemp 
+	# gamARMA <- solve(Amat) %*% gamMixTemp
+	gamARMA <- solve(Amat, gamMixTemp)
 	gamMix <- array(matrix(gamMix,m,m*(q+1)),c(m,m,q+1))
 	gamARMA <- array(matrix(gamARMA,m,m*(p+1)),c(m,m,p+1))
-} else 
+} else
 {
 	gamARMA <- array(gamMA[,,1],c(m,m,1))
-	if (q == 0) { gamMix <- array(sigma,c(m,m,1)) } else 	
+	if (q == 0) { gamMix <- array(sigma,c(m,m,1)) } else
 		gamMix <- gamMA[,,1:(q+1)]
 }
 
-if (maxlag <= p) 
+if (maxlag <= p)
 {
-	gamARMA <- gamARMA[,,1:(maxlag+1)] 
+	gamARMA <- gamARMA[,,1:(maxlag+1)]
 } else
 {
 	if (maxlag > q) gamMix <- array(cbind(matrix(gamMix,m,m*(q+1)),
@@ -147,7 +148,7 @@ if (maxlag <= p)
 	{
 		len <- dim(gamARMA)[3]
 		acf <- gamMix[,,p+1+k]
-		if (p > 0) 
+		if (p > 0)
 		{
 			temp <- NULL
 			for(i in 1:p)
@@ -155,7 +156,7 @@ if (maxlag <= p)
 				temp <- rbind(temp,gamARMA[,,len-i+1])
 			}
 			acf <- acf + matrix(phi,m,m*p) %*% temp
-		} 
+		}
 		gamARMA <- array(cbind(matrix(gamARMA,m,m*len),acf),c(m,m,len+1))
 	}
 }
