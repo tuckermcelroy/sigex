@@ -361,20 +361,20 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 	# compute VMA and VAR spectra
 
 	lambda <- pi*seq(0,grid)/grid
-	f.ma <- rep(1,(grid+1)) %x% comp.MA[,,1]  
+	f.ma <- t(rep(1,(grid+1))) %x% comp.MA[,,1]  
 	if(dim(comp.MA)[3] > 1) {
 	for(i in 2:dim(comp.MA)[3])
 	{
-		f.ma <- f.ma + exp(-1i*lambda*(i-1)) %x% comp.MA[,,i]  
+		f.ma <- f.ma + t(exp(-1i*lambda*(i-1))) %x% comp.MA[,,i]  
 	} }
-	f.ma <- array(t(f.ma),c(N,N,(grid+1)))
-	f.ar <- rep(1,(grid+1)) %x% comp.AR[,,1]  
+	f.ma <- array(f.ma,c(N,N,(grid+1)))
+	f.ar <- t(rep(1,(grid+1))) %x% comp.AR[,,1]  
 	if(dim(comp.AR)[3] > 1) {
 	for(i in 2:dim(comp.AR)[3])
 	{
-		f.ar <- f.ar + exp(-1i*lambda*(i-1)) %x% comp.AR[,,i] 
+		f.ar <- f.ar + t(exp(-1i*lambda*(i-1))) %x% comp.AR[,,i] 
 	} }
-	f.ar <- array(t(f.ar),c(N,N,(grid+1)))
+	f.ar <- array(f.ar,c(N,N,(grid+1)))
 
 	### compute spectrum
 	f.wold <- array(t(rep(1,(grid+1)) %x% diag(N)),c(N,N,(grid+1)))
