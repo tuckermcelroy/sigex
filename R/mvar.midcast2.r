@@ -45,9 +45,9 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	#		x.acf: array of dimension N x T x N of autocovariances for process w_t,
 	#			where there are N series, of total length T each.
 	#		z: raw data as N x T matrix with missing values at various time points.
-	#			Missing values are at any 1 <= t <= T, and occur for all N series, 
-	#			and are denoted with a 1i.  That is, 
-	#			Im(z[,t]) = rep(1i,N) encodes missing values.
+	#			Missing values are at any 1 <= t <= T, and occur for some of the N series
+  #     (the ragged case), and are denoted with a 1i.  That is, 
+	#			Im(z[,t]) = rep(1i,N) or subset thereof encodes missing values.
 	#		delta: differencing polynomial (corresponds to delta(B) in Background)
 	#			written in format c(delta0,delta1,...,deltad)
 	#	Notes: to get H forecasts, append matrix(1i,N,H) to input x.  To get aftcasts,
@@ -80,6 +80,17 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	all.indices <- seq(1,T)
 	full.indices <- all.indices[colSums(Im(z)==1)==0]
 	cast.indices <- setdiff(all.indices,full.indices)
+	ragged <- NULL
+	leads.rag <- NULL
+	for(t in 1:length(cast.indices))
+	{
+	  rag.series <- all.series[Im(z[,cast.indices[t]])==1]
+	  if(length(rag.series)<N) 
+	  { 
+	    ragged[[length(ragged)+1]] <- rag.series 
+      leads.rag <- c(leads.rag,cast.indices[t])
+	  }
+	}
 	d <- length(delta) - 1
 
 	# This version does not presume that the first d values are not missing 
@@ -122,30 +133,61 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		cast.index.tlen <- intersect(cast.indices,seq(t-t.len,t-1))
 		cast.len <- length(cast.index.tlen)
 		
-		if(is.element(t,cast.indices))	# if t is missing
-		{		
-			casts.x <- cbind(casts.x,new.pred)
-			if(cast.len==0)
-			{
-				if(length(casts.var)==0) { casts.var <- new.var } else {
-					new.covar <- matrix(0,nrow=length(cast.index.t)*N,ncol=N)
-					casts.var <- rbind(cbind(casts.var,new.covar),cbind(t(new.covar),new.var)) 
-				}
-			} else
-			{
-				casts.var.array <- array(casts.var,c(N,length(cast.index.t),N,length(cast.index.t)))
-				range.t <- (length(cast.index.t)-cast.len+1):length(cast.index.t)
-				casts.var.array <- casts.var.array[,,,range.t,drop=FALSE]
-				if(t-1-t.len>0) { l.pred <- cbind(matrix(0,N,N*(t-1-t.len)),l.pred) }
-				l.array <- array(l.pred,c(N,N,t-1))
-				l.array <- l.array[,,cast.index.tlen,drop=FALSE]
-				l.pred.tlen <- matrix(l.array,nrow=N)
-		 		new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen)
-				new.var <- new.var + l.pred.tlen %*% 
-					matrix(casts.var.array[,range.t,,,drop=FALSE],nrow=cast.len*N,ncol=cast.len*N) %*% t(l.pred.tlen)
-				casts.var <- rbind(cbind(casts.var,new.covar),cbind(t(new.covar),new.var)) 
-			}
-		} else 	# if t is observed
+		if(is.element(t,cast.indices))	# if t is completely or partially missing
+		{	
+		  
+		  # HERE
+		  if(is.element(t,leads.rag))  # if t is partially missing
+		  {
+		    raggeds <- ragged[[seq(1,length(leads.rag))[leads.rag %in% t]]]
+		    select.mat <- diag(N)[-raggeds,]
+		    if(cast.len>0)
+		    {
+		      casts.var.array <- array(casts.var,c(N,length(cast.index.t),N,length(cast.index.t)))
+		      range.t <- (length(cast.index.t)-cast.len+1):length(cast.index.t)
+		      casts.var.array <- casts.var.array[,,,range.t,drop=FALSE]
+		      if(t-1-t.len>0) { l.pred <- cbind(matrix(0,N,N*(t-1-t.len)),l.pred) }
+		      l.array <- array(l.pred,c(N,N,t-1))
+		      l.array <- l.array[,,cast.index.tlen,drop=FALSE]
+		      l.pred.tlen <- matrix(l.array,nrow=N)
+		      new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen) %*% t(select.mat)
+		      new.var <- new.var + l.pred.tlen %*% 
+		        matrix(casts.var.array[,range.t,,,drop=FALSE],nrow=cast.len*N,ncol=cast.len*N) %*% t(l.pred.tlen)
+		      update <- matrix(new.covar %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% 
+		                         (Re(z[-raggeds,t,drop=FALSE]) - select.mat %*% new.pred),nrow=N)
+		      casts.x <- casts.x + update
+		      update <- new.covar %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% t(new.covar)
+		      casts.var <- casts.var - update
+		    }
+		    new.eps <- solve(t(chol(select.mat %*% new.var %*% t(select.mat)))) %*% 
+		      (Re(z[-raggeds,t,drop=FALSE]) - select.mat %*% new.pred)   
+		    eps <- rbind(eps,new.eps)
+		    Qseq <- Qseq + t(new.eps) %*% new.eps 
+		    logdet <- logdet + log(det(new.var))
+		  } else {    # if t is completely missing
+  			casts.x <- cbind(casts.x,new.pred)
+	  		if(cast.len==0)
+		  	{
+			  	if(length(casts.var)==0) { casts.var <- new.var } else {
+				  	new.covar <- matrix(0,nrow=length(cast.index.t)*N,ncol=N)
+					  casts.var <- rbind(cbind(casts.var,new.covar),cbind(t(new.covar),new.var)) 
+  				}
+	  		} else
+		  	{
+			  	casts.var.array <- array(casts.var,c(N,length(cast.index.t),N,length(cast.index.t)))
+				  range.t <- (length(cast.index.t)-cast.len+1):length(cast.index.t)
+				  casts.var.array <- casts.var.array[,,,range.t,drop=FALSE]
+  				if(t-1-t.len>0) { l.pred <- cbind(matrix(0,N,N*(t-1-t.len)),l.pred) }
+				  l.array <- array(l.pred,c(N,N,t-1))
+				  l.array <- l.array[,,cast.index.tlen,drop=FALSE]
+  				l.pred.tlen <- matrix(l.array,nrow=N)
+		 		  new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen)
+  				new.var <- new.var + l.pred.tlen %*% 
+					  matrix(casts.var.array[,range.t,,,drop=FALSE],nrow=cast.len*N,ncol=cast.len*N) %*% t(l.pred.tlen)
+				  casts.var <- rbind(cbind(casts.var,new.covar),cbind(t(new.covar),new.var)) 
+		  	}
+		  }	
+		} else 	# if t is fully  observed
 		{
 			if(cast.len>0)
 			{
@@ -684,6 +726,10 @@ mvar.midcast2 <- function(x.acf,z,delta)
 
 	print(lik)
 
+	
+	
+	
+	
  	return(list(casts.x,casts.var,c(Qseq,logdet),eps)) 
 }
 

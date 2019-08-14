@@ -1,4 +1,4 @@
-sigex.midcast <- function(psi,mdl,data.ts,leads)
+sigex.midcast <- function(psi,mdl,data.ts,leads,ragged)
 {
 
 	##########################################################################
@@ -38,6 +38,11 @@ sigex.midcast <- function(psi,mdl,data.ts,leads)
 	#			to obtain an estimate of x_t.  These integers don't have
 	#			to be a subset of {1,2,...,T}.  Include integers greater than
 	#			T to get forecasts, or less than 1 to get aftcasts. 
+  #   ragged: a list with number of items equal to the number of leads
+  #     within the sample {1,2,...,T}.  (Pass ragged=NULL if no midcasts are needed.)
+  #     Each element contains indices of vector components that are missing.
+  #     Note: ragged[[j]] must be non-empty, where leads[j] is the time
+  #      where at least one missing value (in-sample) occurs.
 	#	Outputs:
 	#		list containing casts.x and casts.var 
 	#		casts.x: N x H matrix of forecasts, midcasts, aftcasts, where H
@@ -63,7 +68,14 @@ sigex.midcast <- function(psi,mdl,data.ts,leads)
 	leads.out <- setdiff(leads,leads.mid)
 	leads.fore <- leads.out[leads.out>0]
 	leads.aft <- setdiff(leads.out,leads.fore)
-	if(length(leads.mid)>0) { z[,leads.mid] <- rep(1i,N) }
+	if(length(leads.mid)>0) 
+	{ 
+	  for(t in 1:length(leads.mid))
+	  {
+	    raggeds <- ragged[[seq(1,length(leads))[leads %in% leads.mid[t]]]]
+	    z[raggeds,leads.mid[t]] <- rep(1i,length(raggeds)) 
+	  }
+	}
 	if(length(leads.fore)>0) { z <- cbind(z,matrix(1i,nrow=N,ncol=length(leads.fore))) }
 	if(length(leads.aft)>0) { z <- cbind(matrix(1i,nrow=N,ncol=length(leads.aft)),z) }
 	TH <- dim(z)[2]
