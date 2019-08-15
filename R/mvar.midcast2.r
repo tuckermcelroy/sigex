@@ -85,7 +85,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	for(t in 1:length(cast.indices))
 	{
 	  rag.series <- all.series[Im(z[,cast.indices[t]])==1]
-	  if(length(rag.series)<N) 
+	  if(length(rag.series)<=N) 
 	  { 
 	    ragged[[length(ragged)+1]] <- rag.series 
       leads.rag <- c(leads.rag,cast.indices[t])
@@ -116,6 +116,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	eps <- NULL
 	Qseq <- 0
 	logdet <- 0
+	# track indices of casted variables up to present time
 	cast.index.t <- intersect(cast.indices,seq(t.hash+1,t.hash+d))
 	t.star <- T
 	t.len <- d
@@ -124,93 +125,142 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	if(t.hash < T-d) {
 	for(t in (t.hash+d+1):T)
 	{ 
+	  # determine whether full info, or partial/completely missing
+	  #  base case: full info
+	  select.mat <- diag(N)
+	  omit.mat <- NULL
+	  raggeds <- NULL
+	  rags.ind <- leads.rag %in% t
+	  if(length(rags.ind)>0) # partial/completely missing 
+	  {   
+	    raggeds <- ragged[[seq(1,length(leads.rag))[rags.ind]]]
+	    if(length(raggeds)<N) # partial missing
+	    {
+  	    select.mat <- diag(N)[-raggeds,,drop=FALSE]
+	      omit.mat <- diag(N)[raggeds,,drop=FALSE]
+	    } else # completely missing
+	    {
+	      select.mat <- NULL
+	      omit.mat <- diag(N)
+	    }
+	  }  
+
 		#  get casts and covars of observations t.hash+1:t based on sigma-field_{t.hash+1:t}
-		
-		# first pad out preds.x  with known (unstored) entries
+		# first, construct preds.x from known (unstored) entries and stored casts;
+	  #   preds.x is E [ X_{t-1} | F_{t-1} ]
 		if(length(cast.index.t) > 0) { preds.x[,cast.index.t] <- casts.x }
+	  # obtain E [ x_t | F_{t-1} ]
 		new.pred <- l.pred %*% matrix(preds.x[,(t-t.len):(t-1)],ncol=1)
-		new.var <- v.pred
+		
+	  # second, get prediction variance, to obtain new.var given by Var [ x_t | F_{t-1} ]
+		#   cast.index.tlen tracks cast indices up to now, looking back t.len time points,
+		#   where t.len is the range at which all dependence is effectively nil
 		cast.index.tlen <- intersect(cast.indices,seq(t-t.len,t-1))
 		cast.len <- length(cast.index.tlen)
-		
-		if(is.element(t,cast.indices))	# if t is completely or partially missing
-		{	
-		  
-		  # HERE
-		  if(is.element(t,leads.rag))  # if t is partially missing
-		  {
-		    raggeds <- ragged[[seq(1,length(leads.rag))[leads.rag %in% t]]]
-		    select.mat <- diag(N)[-raggeds,]
-		    if(cast.len>0)
-		    {
-		      casts.var.array <- array(casts.var,c(N,length(cast.index.t),N,length(cast.index.t)))
-		      range.t <- (length(cast.index.t)-cast.len+1):length(cast.index.t)
-		      casts.var.array <- casts.var.array[,,,range.t,drop=FALSE]
-		      if(t-1-t.len>0) { l.pred <- cbind(matrix(0,N,N*(t-1-t.len)),l.pred) }
-		      l.array <- array(l.pred,c(N,N,t-1))
-		      l.array <- l.array[,,cast.index.tlen,drop=FALSE]
-		      l.pred.tlen <- matrix(l.array,nrow=N)
-		      new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen) %*% t(select.mat)
-		      new.var <- new.var + l.pred.tlen %*% 
-		        matrix(casts.var.array[,range.t,,,drop=FALSE],nrow=cast.len*N,ncol=cast.len*N) %*% t(l.pred.tlen)
-		      update <- matrix(new.covar %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% 
-		                         (Re(z[-raggeds,t,drop=FALSE]) - select.mat %*% new.pred),nrow=N)
-		      casts.x <- casts.x + update
-		      update <- new.covar %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% t(new.covar)
-		      casts.var <- casts.var - update
-		    }
-		    new.eps <- solve(t(chol(select.mat %*% new.var %*% t(select.mat)))) %*% 
-		      (Re(z[-raggeds,t,drop=FALSE]) - select.mat %*% new.pred)   
-		    eps <- rbind(eps,new.eps)
-		    Qseq <- Qseq + t(new.eps) %*% new.eps 
-		    logdet <- logdet + log(det(new.var))
-		  } else {    # if t is completely missing
-  			casts.x <- cbind(casts.x,new.pred)
-	  		if(cast.len==0)
-		  	{
-			  	if(length(casts.var)==0) { casts.var <- new.var } else {
-				  	new.covar <- matrix(0,nrow=length(cast.index.t)*N,ncol=N)
-					  casts.var <- rbind(cbind(casts.var,new.covar),cbind(t(new.covar),new.var)) 
-  				}
-	  		} else
-		  	{
-			  	casts.var.array <- array(casts.var,c(N,length(cast.index.t),N,length(cast.index.t)))
-				  range.t <- (length(cast.index.t)-cast.len+1):length(cast.index.t)
-				  casts.var.array <- casts.var.array[,,,range.t,drop=FALSE]
-  				if(t-1-t.len>0) { l.pred <- cbind(matrix(0,N,N*(t-1-t.len)),l.pred) }
-				  l.array <- array(l.pred,c(N,N,t-1))
-				  l.array <- l.array[,,cast.index.tlen,drop=FALSE]
-  				l.pred.tlen <- matrix(l.array,nrow=N)
-		 		  new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen)
-  				new.var <- new.var + l.pred.tlen %*% 
-					  matrix(casts.var.array[,range.t,,,drop=FALSE],nrow=cast.len*N,ncol=cast.len*N) %*% t(l.pred.tlen)
-				  casts.var <- rbind(cbind(casts.var,new.covar),cbind(t(new.covar),new.var)) 
-		  	}
-		  }	
-		} else 	# if t is fully  observed
+		if(cast.len==0) # no casts within t.len time points
 		{
-			if(cast.len>0)
-			{
-				casts.var.array <- array(casts.var,c(N,length(cast.index.t),N,length(cast.index.t)))
-				range.t <- (length(cast.index.t)-cast.len+1):length(cast.index.t)
-				casts.var.array <- casts.var.array[,,,range.t,drop=FALSE]
-				if(t-1-t.len>0) { l.pred <- cbind(matrix(0,N,N*(t-1-t.len)),l.pred) }
-				l.array <- array(l.pred,c(N,N,t-1))
-				l.array <- l.array[,,cast.index.tlen,drop=FALSE]
-				l.pred.tlen <- matrix(l.array,nrow=N)
-		 		new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen)
-				new.var <- new.var + l.pred.tlen %*% 
-					matrix(casts.var.array[,range.t,,,drop=FALSE],nrow=cast.len*N,ncol=cast.len*N) %*% t(l.pred.tlen)
-				update <- matrix(new.covar %*% solve(new.var) %*% (Re(z[,t,drop=FALSE]) - new.pred),nrow=N)
-				casts.x <- casts.x + update
-				update <- new.covar %*% solve(new.var) %*% t(new.covar)
-				casts.var <- casts.var - update
-			}
-			new.eps <- solve(t(chol(new.var))) %*% (Re(z[,t,drop=FALSE]) - new.pred)   
-			eps <- rbind(eps,new.eps)
-			Qseq <- Qseq + t(new.eps) %*% new.eps 
-			logdet <- logdet + log(det(new.var))
+		  new.var <- v.pred
+		} else # at least one cast within t.len time points
+		{
+		  casts.var.array <- array(casts.var,c(N,length(cast.index.t),N,length(cast.index.t)))
+		  range.t <- (length(cast.index.t)-cast.len+1):length(cast.index.t)
+		  casts.var.array <- casts.var.array[,,,range.t,drop=FALSE]
+		  if(t-1-t.len>0) { l.pred <- cbind(matrix(0,N,N*(t-1-t.len)),l.pred) }
+		  l.array <- array(l.pred,c(N,N,t-1))
+		  l.array <- l.array[,,cast.index.tlen,drop=FALSE]
+		  l.pred.tlen <- matrix(l.array,nrow=N)
+			new.var <- v.pred + l.pred.tlen %*% 
+		    matrix(casts.var.array[,range.t,,,drop=FALSE],nrow=cast.len*N,ncol=cast.len*N) %*% t(l.pred.tlen)
 		}
+		
+		# third, update casts.x by changing the stored portions of 
+		#   E [ X_{t-1} | F_{t-1} ] to E [ X_{t-1} | F_t ] and 
+		#   appending E [ x_t | F_t ] if partially/completely missing
+    if(cast.len>0)  # at least one cast within t.len time points
+    {
+      if(length(raggeds)<N)  # update only if full info or partially missing (do nothing if fully missing)
+      {  
+		    new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% 
+		      t(l.pred.tlen) %*% t(select.mat)
+		    update <- matrix(new.covar %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% 
+		      (Re(z[-raggeds,t,drop=FALSE]) - select.mat %*% new.pred),nrow=N)
+		    casts.x <- casts.x + update
+      }  
+    }  
+    if(length(raggeds)>0)   # add new cast E [ x_t | F_t ] if partially/completely missing
+    {
+      new.cast <- Re(z[,t,drop=FALSE])
+      partial.cast <- omit.mat %*% new.pred
+      if(length(raggeds)<N)  # partial missing case
+      {
+        partial.cast <- partial.cast + omit.mat %*% new.var %*% t(select.mat) %*% 
+          solve(select.mat %*% new.var %*% t(select.mat)) %*% 
+          (Re(z[-raggeds,t,drop=FALSE]) - select.mat %*% new.pred)
+      }  
+      new.cast[raggeds,drop=FALSE] <- partial.cast
+      casts <- cbind(casts,new.cast)
+    }  
+ 	 	
+    # fourth, update casts.var by changing the stored portions of 
+		#   Var [ X_{t-1} | F_{t-1} ] to Var [ X_{t-1} | F_t ] and 
+		#   appending new covariances if partially/completely missing
+		if(cast.len>0)  # at least one cast within t.len time points
+		{
+		  if(length(raggeds)<N)  # update only if full info or partially missing (do nothing if fully missing)
+		  {  
+		    new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% 
+		      t(l.pred.tlen) %*% t(select.mat)
+		    update <- new.covar %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% t(new.covar)
+		    casts.var <- casts.var - update 
+		  }  
+		}  
+		if(length(raggeds)>0)   # add new covar [ x_t | F_t ] if partially/completely missing
+		{
+		  proj <- diag(N) # completely missing case
+		  if(length(raggeds)<N)  # partial missing case
+		  {
+		    proj <- diag(N) - t(select.mat) %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% 
+		      select.mat %*% new.var
+		  }  
+		  # now augment casts.var
+		  # special case: no cast within t.len time points.  
+		  #   Either: (i) this is the first cast,
+		  #   Or: (ii) previous casts were long ago
+		  if(cast.len==0) # special case
+		  {
+		    if(length(casts.var)==0)  # (i) of special case
+		    { 
+		      casts.var <- new.var 
+		    } else  # (ii) of special case
+		    {  
+		      new.covar <- matrix(0,nrow=length(cast.index.t)*N,ncol=N)
+		    }
+		  }		    
+		  # do regular case (and special case) augmentation
+		  casts.var <- rbind(cbind(casts.var,new.covar %*% proj),
+		                     cbind(t(new.covar %*% proj),new.var %*% proj)) 
+		}  	  
+		  
+	  # fifth, get ragged residuals	  
+		if(length(raggeds)>0)  # case of partially/completely missing
+		{  
+		  new.eps <- rep(1i,N)
+		  if(length(raggeds)<N)  # partial missing case
+		  {
+		    partial.eps <- solve(t(chol(select.mat %*% new.var %*% t(select.mat)))) %*% 
+		      (Re(z[-raggeds,t,drop=FALSE]) - select.mat %*% new.pred) 
+		    new.eps[-raggeds,drop=FALSE] <- partial.eps
+		  }  
+		} else # case of full info
+		{
+		  new.eps <- solve(t(chol(new.var))) %*% (Re(z[,t,drop=FALSE]) - new.pred)
+		}  
+		eps <- rbind(eps,new.eps)
+		Qseq <- Qseq + t(Re(new.eps)) %*% Re(new.eps)
+		# HERE only update if some non-missing...
+		logdet <- logdet + log(det(new.var))
+		
+		# updating
 		cast.index.t <- intersect(cast.indices,seq(t.hash+1,t))
 		preds.x <- Re(z[,1:t,drop=FALSE])
 	
