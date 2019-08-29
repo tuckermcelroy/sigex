@@ -109,6 +109,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	v.pred <- as.matrix(delta[1]^{-2}*x.acf[,1,])
 	v.derp <- as.matrix(delta[d+1]^{-2}*x.acf[,1,])
 	#  get casts and covars of observations t.hash+1:t based on sigma-field_{t.hash+1:t}
+	#   Note: store more than needed in preds.x, makes it easier for indexing later
 	preds.x <- Re(z[,1:(t.hash+d),drop=FALSE])
 	new.covar <- NULL
 	casts.x <- NULL
@@ -131,7 +132,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	  omit.mat <- NULL
 	  raggeds <- NULL
 	  rags.ind <- leads.rag %in% t
-	  if(length(rags.ind)>0) # partial/completely missing 
+	  if(sum(rags.ind)>0) # partial/completely missing 
 	  {   
 	    raggeds <- ragged[[seq(1,length(leads.rag))[rags.ind]]]
 	    if(length(raggeds)<N) # partial missing
@@ -180,9 +181,8 @@ mvar.midcast2 <- function(x.acf,z,delta)
     {
       if(length(raggeds)<N)  # update only if full info or partially missing (do nothing if fully missing)
       {  
-		    new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% 
-		      t(l.pred.tlen) %*% t(select.mat)
-		    update <- matrix(new.covar %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% 
+		    new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen) 
+		    update <- matrix(new.covar %*% t(select.mat) %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% 
 		      (Re(z[-raggeds,t,drop=FALSE]) - select.mat %*% new.pred),nrow=N)
 		    casts.x <- casts.x + update
       }  
@@ -198,7 +198,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
           (Re(z[-raggeds,t,drop=FALSE]) - select.mat %*% new.pred)
       }  
       new.cast[raggeds,drop=FALSE] <- partial.cast
-      casts <- cbind(casts,new.cast)
+      casts.x <- cbind(casts.x,new.cast)
     }  
  	 	
     # fourth, update casts.var by changing the stored portions of 
@@ -206,11 +206,11 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		#   appending new covariances if partially/completely missing
 		if(cast.len>0)  # at least one cast within t.len time points
 		{
+		  new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen) 
 		  if(length(raggeds)<N)  # update only if full info or partially missing (do nothing if fully missing)
 		  {  
-		    new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% 
-		      t(l.pred.tlen) %*% t(select.mat)
-		    update <- new.covar %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% t(new.covar)
+		    update <- new.covar %*% t(select.mat) %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% 
+		      select.mat %*% t(new.covar)
 		    casts.var <- casts.var - update 
 		  }  
 		}  
@@ -230,21 +230,25 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		  {
 		    if(length(casts.var)==0)  # (i) of special case
 		    { 
-		      casts.var <- new.var 
+		      new.block <- NULL
 		    } else  # (ii) of special case
 		    {  
 		      new.covar <- matrix(0,nrow=length(cast.index.t)*N,ncol=N)
+		      new.block <- new.covar %*% proj
 		    }
-		  }		    
+		  } else
+		  {
+		    new.block <- new.covar %*% proj
+		  }
 		  # do regular case (and special case) augmentation
-		  casts.var <- rbind(cbind(casts.var,new.covar %*% proj),
-		                     cbind(t(new.covar %*% proj),new.var %*% proj)) 
+		  casts.var <- rbind(cbind(casts.var,new.block),
+		                     t(rbind(new.block,t(new.var %*% proj))))
 		}  	  
 		  
 	  # fifth, get ragged residuals	  
 		if(length(raggeds)>0)  # case of partially/completely missing
 		{  
-		  new.eps <- rep(1i,N)
+		  new.eps <- matrix(rep(1i,N),ncol=1)
 		  new.det <- 1
 		  if(length(raggeds)<N)  # partial missing case
 		  {
@@ -350,7 +354,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	  omit.mat <- NULL
 	  raggeds <- NULL
 	  rags.ind <- leads.rag %in% t
-	  if(length(rags.ind)>0) # partial/completely missing 
+	  if(sum(rags.ind)>0) # partial/completely missing 
 	  {   
 	    raggeds <- ragged[[seq(1,length(leads.rag))[rags.ind]]]
 	    if(length(raggeds)<N) # partial missing
@@ -387,10 +391,8 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		  l.array <- array(l.derp,c(N,N,T-t))
 		  l.array <- l.array[,,cast.index.tlen-t,drop=FALSE]
 		  l.pred.tlen <- matrix(l.array,nrow=N)
-		  new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen)
 		  new.var <- new.var + l.pred.tlen %*% 
 		    matrix(casts.var.array[,range.t,,,drop=FALSE],nrow=cast.len*N,ncol=cast.len*N) %*% t(l.pred.tlen)
-		  casts.var <- rbind(cbind(new.var,t(new.covar)),cbind(new.covar,casts.var)) 
 		}
 		
 		# third, update casts.x by changing the stored portions of 
@@ -400,9 +402,8 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		{
 		  if(length(raggeds)<N)  # update only if full info or partially missing (do nothing if fully missing)
 		  {  
-		    new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% 
-		      t(l.pred.tlen) %*% t(select.mat)
-		    update <- matrix(new.covar %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% 
+		    new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen) 
+		    update <- matrix(new.covar %*% t(select.mat) %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% 
 		                       (Re(z[-raggeds,t,drop=FALSE]) - select.mat %*% new.pred),nrow=N)
 		    casts.x <- casts.x + update
 		  }  
@@ -426,11 +427,11 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		#   appending new covariances if partially/completely missing
 		if(cast.len>0)  # at least one cast within t.len time points
 		{
+		  new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen) 
 		  if(length(raggeds)<N)  # update only if full info or partially missing (do nothing if fully missing)
 		  {  
-		    new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% 
-		      t(l.pred.tlen) %*% t(select.mat)
-		    update <- new.covar %*% solve(select.mat %*% new.var %*% t(select.mat)) %*% t(new.covar)
+		    update <- new.covar %*% t(select.mat) %*% solve(select.mat %*% new.var %*% t(select.mat)) %*%
+		      select.mat %*% t(new.covar)
 		    casts.var <- casts.var - update 
 		  }  
 		}  
@@ -450,21 +451,25 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		  {
 		    if(length(casts.var)==0)  # (i) of special case
 		    { 
-		      casts.var <- new.var 
+		      new.block <- NULL
 		    } else  # (ii) of special case
 		    {  
 		      new.covar <- matrix(0,nrow=length(cast.index.t)*N,ncol=N)
-		    }
-		  }		    
+		      new.block <- new.covar %*% proj
+		    } 
+		  } else
+		  {
+		    new.block <- new.covar %*% proj
+		  }
 		  # do regular case (and special case) augmentation
-		  casts.var <- rbind(cbind(new.var %*% proj,t(new.covar %*% proj)),
-		                     cbind(new.covar %*% proj,casts.var))
-		}  	  
+		  casts.var <- rbind(t(rbind(t(new.var %*% proj),new.block)),
+	  	                   cbind(new.block,casts.var))
+		} 
 		
 		# fifth, get ragged residuals	  
 		if(length(raggeds)>0)  # case of partially/completely missing
 		{  
-		  new.eps <- rep(1i,N)
+		  new.eps <- matrix(rep(1i,N),ncol=1)
 		  new.det <- 1
 		  if(length(raggeds)<N)  # partial missing case
 		  {
