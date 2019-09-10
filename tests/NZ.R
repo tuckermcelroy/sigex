@@ -98,14 +98,13 @@ T <- dim(x)[2]
 # stochastic effects
 delta.trend <- c(1,-1)
 delta.ann <- c(1,-2*cos(2*pi/365),1)
-def <- c(0,1,0,1)
 
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"canonWN",delta.trend,def)				# trend-cycle (annual cycle)
-mdl <- sigex.add(mdl,seq(1,N),"canonWN",c(1,-2*cos(2*pi/7),1),def)      	# first atomic weekly seas
-mdl <- sigex.add(mdl,seq(1,N),"canonWN",c(1,-2*cos(4*pi/7),1),def)      	# second atomic weekly seas
-mdl <- sigex.add(mdl,seq(1,N),"canonWN",c(1,-2*cos(6*pi/7),1),def)      	# third atomic weekly seas
-mdl <- sigex.add(mdl,seq(1,N),"wn",1,def)   						# irregular
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend-cycle",delta.trend)		
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"first weekly seasonal",c(1,-2*cos(2*pi/7),1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"second weekly seasonal",c(1,-2*cos(4*pi/7),1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"third weekly seasonal",c(1,-2*cos(6*pi/7),1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)
 
 # fixed effects
 

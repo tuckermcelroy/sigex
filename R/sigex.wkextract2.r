@@ -103,7 +103,8 @@ sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,leads.
 	cast.mse <- array(0,c(N,N,T+2*horizon))
 	if(needMSE)
 	{
-		casts.all <- sigex.midcast(psi,mdl,data.ts,leads.all)
+	  ragged <- NULL
+		casts.all <- sigex.midcast(psi,mdl,data.ts,leads.all,ragged)
 		casts.var <- array(casts.all[[2]],c(N,len.all,N,len.all))
 		data.ext <- data.demean
 		if(len.mid>0) data.ext[leads.mid,] <- 
