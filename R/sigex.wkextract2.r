@@ -118,7 +118,8 @@ sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,leads.
 			range.t <- intersect(seq(t-window,t+window),leads.all)
 			len.t <- length(range.t)
 			if(len.t==0) { cast.mse[,,t+horizon] <- 0*diag(N) } else {
-			wk.coefs <- wk.filter[,,window-t+1+rev(range.t),drop=FALSE]
+      wk.coefs <- wk.filter[,,window+1+t-range.t,drop=FALSE]
+			  #			wk.coefs <- wk.filter[,,window-t+1+rev(range.t),drop=FALSE]
 			cast.mse[,,t+horizon] <- matrix(wk.coefs,c(N,N*len.t)) %*% 
 				matrix(casts.var[,seq(0,len.t-1)+t.start,,seq(0,len.t-1)+t.start,drop=FALSE],c(len.t*N,len.t*N)) %*%
 				t(matrix(wk.coefs,c(N,N*len.t))) }

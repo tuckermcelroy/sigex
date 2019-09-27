@@ -78,7 +78,7 @@ sigex.extract <- function(data.ts,filter,mdl,param)
 	}
 	xvec <- matrix(t(data.diff),nrow=N*T,ncol=1)
 	 
-   	extract <- filter[[1]] %*% xvec
+  extract <- filter[[1]] %*% xvec
 	extract <- t(matrix(extract,nrow=N,ncol=T))
 
 	mse <- t(matrix(diag(filter[[2]]),N,T))

@@ -173,6 +173,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 			new.var <- v.pred + l.pred.tlen %*% 
 		    matrix(casts.var.array[,range.t,,,drop=FALSE],nrow=cast.len*N,ncol=cast.len*N) %*% t(l.pred.tlen)
 		}
+print(new.var)
 		
 		# third, update casts.x by changing the stored portions of 
 		#   E [ X_{t-1} | F_{t-1} ] to E [ X_{t-1} | F_t ] and 
@@ -197,10 +198,10 @@ mvar.midcast2 <- function(x.acf,z,delta)
           solve(select.mat %*% new.var %*% t(select.mat)) %*% 
           (Re(z[-raggeds,t,drop=FALSE]) - select.mat %*% new.pred)
       }  
-      new.cast[raggeds,drop=FALSE] <- partial.cast
+      new.cast[raggeds] <- partial.cast
       casts.x <- cbind(casts.x,new.cast)
     }  
- 	 	
+
     # fourth, update casts.var by changing the stored portions of 
 		#   Var [ X_{t-1} | F_{t-1} ] to Var [ X_{t-1} | F_t ] and 
 		#   appending new covariances if partially/completely missing
@@ -244,7 +245,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		  casts.var <- rbind(cbind(casts.var,new.block),
 		                     t(rbind(new.block,t(new.var %*% proj))))
 		}  	  
-		  
+
 	  # fifth, get ragged residuals	  
 		if(length(raggeds)>0)  # case of partially/completely missing
 		{  
@@ -391,10 +392,10 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		  l.array <- array(l.derp,c(N,N,T-t))
 		  l.array <- l.array[,,cast.index.tlen-t,drop=FALSE]
 		  l.pred.tlen <- matrix(l.array,nrow=N)
-		  new.var <- new.var + l.pred.tlen %*% 
+		  new.var <- v.derp + l.pred.tlen %*% 
 		    matrix(casts.var.array[,range.t,,,drop=FALSE],nrow=cast.len*N,ncol=cast.len*N) %*% t(l.pred.tlen)
 		}
-		
+
 		# third, update casts.x by changing the stored portions of 
 		#   E [ X_{t+1} | F_{t+1} ] to E [ X_{t+1} | F_t ] and 
 		#   appending E [ x_t | F_t ] if partially/completely missing
@@ -418,7 +419,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		      solve(select.mat %*% new.var %*% t(select.mat)) %*% 
 		      (Re(z[-raggeds,t,drop=FALSE]) - select.mat %*% new.pred)
 		  }  
-		  new.cast[raggeds,drop=FALSE] <- partial.cast
+		  new.cast[raggeds] <- partial.cast
 		  casts.x <- cbind(new.cast,casts.x)
 		}  
 		

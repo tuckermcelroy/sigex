@@ -14,7 +14,7 @@ load_all(".")
 ######################
 ### Part I: load data
  
-# automatic
+# automatic: raw data 
 
 # processing
  
@@ -91,13 +91,30 @@ x <- t(data)
 N <- dim(x)[1]
 T <- dim(x)[2]
 
+## setup holiday regressors
+
+# Easter Day
+easter.reg1 <- gethol(easter.dates,0,0,start.date,end.date)
+# pre-Easter
+easter.reg2 <- gethol(easter.dates,8,-1,start.date,end.date)
+# Cyber Monday
+#cyber.reg <- gethol(cyber.dates,0,0,start.date,end.date)
+# Black Friday
+#black.reg <- gethol(black.dates,0,0,start.date,end.date)
+# Superbowl Sunday
+#super.reg <- gethol(super.dates,0,0,start.date,end.date)
+# Labor Day
+#labor.reg <- gethol(labor.dates,0,0,start.date,end.date)
+# Chinese New Year
+#cny.reg <- gethol(cny.dates,0,0,start.date,end.date)
+
 
 #######################
 # Default Model
 
 # stochastic effects
 delta.trend <- c(1,-1)
-delta.ann <- c(1,-2*cos(2*pi/365),1)
+#delta.ann <- c(1,-2*cos(2*pi/365),1)
 
 mdl <- NULL
 mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend-cycle",delta.trend)		
@@ -109,6 +126,29 @@ mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)
 # fixed effects
 
 mdl <- sigex.meaninit(mdl,data,0)
+for(i in 1:N) {
+mdl <- sigex.reg(mdl,i,ts(as.matrix(easter.reg1[range]),
+	start=begin,frequency=period,names="Easter Day"))
+mdl <- sigex.reg(mdl,i,ts(as.matrix(easter.reg2[range]),
+	start=begin,frequency=period,names="pre-Easter"))
+#mdl <- sigex.reg(mdl,i,ts(as.matrix(cyber.reg[range]),
+#	start=begin,frequency=period,names="Cyber"))
+#mdl <- sigex.reg(mdl,i,ts(as.matrix(black.reg[range]),
+#	start=begin,frequency=period,names="Black"))
+#mdl <- sigex.reg(mdl,i,ts(as.matrix(super.reg[range]),
+#	start=begin,frequency=period,names="Super"))
+#mdl <- sigex.reg(mdl,i,ts(as.matrix(labor.reg[range]),
+#	start=begin,frequency=period,names="Labor"))
+#mdl <- sigex.reg(mdl,i,ts(as.matrix(cny.reg[range]),
+#	start=begin,frequency=period,names="CNY"))
+#mdl <- sigex.reg(mdl,i,ts(as.matrix(ao.reg[,1]),
+#	start=begin,frequency=period,names="AO1"))
+#mdl <- sigex.reg(mdl,i,ts(as.matrix(ao.reg[,2]),
+#	start=begin,frequency=period,names="AO2"))
+#mdl <- sigex.reg(mdl,i,ts(as.matrix(ao.reg[,3]),
+#	start=begin,frequency=period,names="AO3"))
+}
+
 
 par.default <- sigex.default(mdl,data)[[1]]
 flag.default <- sigex.default(mdl,data)[[2]]
@@ -149,7 +189,7 @@ log(sigex.conditions(data,psi.mom,mdl.mom))
 # model checking
 
 sigex.portmanteau(t(resid.mom),48,length(psi.mom))
-sigex.gausscheck(t(resid.mom))
+sigex.gausscheck(t(resid.mom[,1:4000]))
 #acf(t(resid.mom),lag.max=40)
 
 # bundle for default span
@@ -273,25 +313,26 @@ window <- 200
 horizon <- 2000
 #leads <- c(-rev(seq(0,window-1)),seq(1,T),seq(T+1,T+window))
 #data.ext <- t(sigex.cast(psi,mdl,data,leads,TRUE))
-
-extract.trendann <- sigex.wkextract(psi,mdl,data,1,grid,window,0)
-extract.seas.week <- sigex.wkextract(psi,mdl,data,c(2,3,4),grid,window,0)
-extract.seas.week1 <- sigex.wkextract(psi,mdl,data,2,grid,window,0)
-extract.seas.week2 <- sigex.wkextract(psi,mdl,data,3,grid,window,0)
-extract.seas.week3 <- sigex.wkextract(psi,mdl,data,4,grid,window,0)
-extract.sa <- sigex.wkextract(psi,mdl,data,c(1,5),grid,window,0)
-extract.irr <- sigex.wkextract(psi,mdl,data,5,grid,window,0)
+ 
+extract.trendann <- sigex.wkextract2(psi,mdl,data,1,grid,window,horizon,NULL,0)
+extract.seas.week <- sigex.wkextract2(psi,mdl,data,c(2,3,4),grid,window,horizon,NULL,0)
+extract.seas.week1 <- sigex.wkextract2(psi,mdl,data,2,grid,window,horizon,NULL,0)
+extract.seas.week2 <- sigex.wkextract2(psi,mdl,data,3,grid,window,horizon,NULL,0)
+extract.seas.week3 <- sigex.wkextract2(psi,mdl,data,4,grid,window,horizon,NULL,0)
+extract.sa <- sigex.wkextract2(psi,mdl,data,c(1,5),grid,window,horizon,NULL,0)
+extract.irr <- sigex.wkextract2(psi,mdl,data,5,grid,window,horizon,NULL,0)
 
 
 ##################################################################
-#################### HP splitting of trend and cycle #################
+#################### LP splitting of trend and cycle #################
 
-alpha <- .1
-hp.snr <- 4*(1/alpha -1)^(-2)*(1- cos(2*pi/365))^2
+cutoff <- pi/365
+trunc <- 50000	# appropriate for mu = pi/(365)
 
-extract.trend <- sigex.hpfiltering(mdl,data,1,NULL,psi,hp.snr,grid,window,TRUE)
-extract.seas.ann <- sigex.hpfiltering(mdl,data,1,NULL,psi,hp.snr,grid,window,FALSE)
-extract.trendirreg <- sigex.hpfiltering(mdl,data,1,5,psi,hp.snr,grid,window,TRUE)
+extract.trend <- sigex.lpfiltering(mdl,data,1,NULL,psi,cutoff,grid,window,trunc,TRUE)
+extract.seas.ann <- sigex.lpfiltering(mdl,data,1,NULL,psi,cutoff,grid,window,trunc,FALSE)
+extract.trendirreg <- sigex.lpfiltering(mdl,data,1,5,psi,cutoff,grid,window,trunc,TRUE)
+ 
 
 
 #########################################
