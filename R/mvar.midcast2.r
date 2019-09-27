@@ -173,8 +173,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 			new.var <- v.pred + l.pred.tlen %*% 
 		    matrix(casts.var.array[,range.t,,,drop=FALSE],nrow=cast.len*N,ncol=cast.len*N) %*% t(l.pred.tlen)
 		}
-print(new.var)
-		
+
 		# third, update casts.x by changing the stored portions of 
 		#   E [ X_{t-1} | F_{t-1} ] to E [ X_{t-1} | F_t ] and 
 		#   appending E [ x_t | F_t ] if partially/completely missing
