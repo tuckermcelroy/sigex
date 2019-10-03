@@ -33,7 +33,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 	#	Inputs:
 	#		psi: see background. 
 	#		mdl: the specified sigex model, a list object
-	#		data.ts: a T x N matrix ts object, 
+	#		data.ts: a T x N matrix ts object (with no missing values)
 	#			corresponding to N time series of length T
 	#		leads: an integer sequence of desired casts; include index t
 	#			to obtain an estimate of x_t.  These integers don't have

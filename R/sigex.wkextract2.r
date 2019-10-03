@@ -1,4 +1,4 @@
-sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,leads.mid,needMSE)
+sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,needMSE)
 {
 
 	##########################################################################
@@ -50,15 +50,16 @@ sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,leads.
 	#	Inputs:
 	#		psi: see background.  
 	#		mdl: the specified sigex model, a list object
-	#		data.ts: a T x N matrix ts object
-	#		sigcomps: indices of the latent components composing the signal
+  #		data.ts: a T x N matrix ts object; any  values to be imputed
+  #			must be encoded with NA in that entry.  The NA is for missing value,
+  #     or an enforced imputation (e.g. extreme-value adjustment).
+  #		sigcomps: indices of the latent components composing the signal
 	#		grid: desired number of frequencies for spectrum calculations
 	#		window: max index of the WK filter coefficients
 	#		horizon: a positive integer indicating how many forecasts and
 	#			aftcasts of the signal should be generated
-	#		leads.mid: indices in {1,2,...,T} for which midcasts will be generated
-	#		needMSE: a binary flag, set to 1 if you want MSE based on casting error
-	#			(or if there are any missing values); else (with a 0) the routine
+	#		needMSE: a binary flag, set to 1 if you want MSE based on casting error,
+	#			or if there are any missing values; else (with value 0) the routine
 	#			runs faster and returns only WK portion of MSE.
 	#	Outputs:
 	#		list object of extract.sig, upp, and low
@@ -80,6 +81,8 @@ sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,leads.
 	wk.mse <- wk.out[[2]]
 	wk.len <- 2*window+1
 	
+	leads.mid <- NULL
+	for(k in 1:N) { leads.mid <- union(leads.mid,seq(1,T)[is.na(data.ts)[,k]]) }
 	leads.aft <- seq(1-horizon-window,0)
 	leads.fore <- seq(T+1,T+horizon+window)
 	leads.all <- union(leads.aft,union(leads.mid,leads.fore))
@@ -92,6 +95,7 @@ sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,leads.
 	beta.par <- param[[4]]
 	ind <- 0
 	data.demean <- data.ts
+	data.demean[is.na(data.demean)] <- 1i
 	for(k in 1:N)
 	{
 		reg.mat <- mdl[[4]][[k]]
@@ -103,8 +107,7 @@ sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,leads.
 	cast.mse <- array(0,c(N,N,T+2*horizon))
 	if(needMSE)
 	{
-	  ragged <- NULL
-		casts.all <- sigex.midcast(psi,mdl,data.ts,leads.all,ragged)
+		casts.all <- sigex.midcast(psi,mdl,data.ts,horizon+window)
 		casts.var <- array(casts.all[[2]],c(N,len.all,N,len.all))
 		data.ext <- data.demean
 		if(len.mid>0) data.ext[leads.mid,] <- 
@@ -119,7 +122,6 @@ sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,leads.
 			len.t <- length(range.t)
 			if(len.t==0) { cast.mse[,,t+horizon] <- 0*diag(N) } else {
       wk.coefs <- wk.filter[,,window+1+t-range.t,drop=FALSE]
-			  #			wk.coefs <- wk.filter[,,window-t+1+rev(range.t),drop=FALSE]
 			cast.mse[,,t+horizon] <- matrix(wk.coefs,c(N,N*len.t)) %*% 
 				matrix(casts.var[,seq(0,len.t-1)+t.start,,seq(0,len.t-1)+t.start,drop=FALSE],c(len.t*N,len.t*N)) %*%
 				t(matrix(wk.coefs,c(N,N*len.t))) }

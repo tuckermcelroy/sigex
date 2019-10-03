@@ -39,9 +39,10 @@ sigex.resid <- function(psi,mdl,data.ts)
 	#	Inputs:
 	#		psi: see background. 
 	#		mdl: the specified sigex model, a list object
-	#		data.ts: a T x N matrix ts object; any missing values 
-	#			must be encoded with 1i in that entry
-	#	Outputs:
+  #		data.ts: a T x N matrix ts object; any  values to be imputed
+  #			must be encoded with NA in that entry.  The NA is for missing value,
+  #     or an enforced imputation (e.g. extreme-value adjustment).
+  #	Outputs:
 	#		resids: a N x (T-d) matrix of residuals, where d is
 	#			the order of the full differencing polynomial.
 	#			(A failure returns Inf.)
@@ -56,6 +57,7 @@ sigex.resid <- function(psi,mdl,data.ts)
 	psi <- Re(psi)
 
 	z <- x
+	z[is.na(z)] <- 1i
 	L.par <- mdl[[3]]
 	D.par <- mdl[[3]]
 	zeta.par <- vector("list",length(mdl[[3]]))

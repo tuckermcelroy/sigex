@@ -59,12 +59,15 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	#		casts.x: N x H matrix of backcasts, midcasts, aftcasts, where H
 	#			is the total number of time indices with missing values.
 	#			So if times.na is a subset of seq(1,T) corresponding to indices
-	#			with missing values, we can fill in all NAs via
-	#				z[,times.na] <- casts.x
+	#			with missing values, we can fill in all NAs via	z[,times.na] <- casts.x.
+  #     If a subset is missing at some time t, casts.x for that time t contains
+  #     the casts together with the known values.
 	#		casts.var: NH x NH matrix of covariances of casting errors.
 	#			note that casts.var.array <- array(casts.var,c(N,H,N,H)) 
 	#			corresponds to cast.var.array[,j,,k] equal to the 
-	#			covariance between the jth and kth casting errors
+	#			covariance between the jth and kth casting errors.
+  #     If a subset is missing at some time t, the corresponding block of casts.var
+  #     will have zeros corresponding to the known values.
 	#		Qseq: quadratic form portion of the Gaussian divergence based on
 	#			missing value formulation (McElroy and Monsell, 2015 JASA)
 	#		logdet: log determinant portion of the Gaussian divergence
@@ -80,11 +83,11 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	all.indices <- seq(1,T)
 	full.indices <- all.indices[colSums(Im(z)==1)==0]
 	cast.indices <- setdiff(all.indices,full.indices)
-	ragged <- NULL
+	ragged <- list()
 	leads.rag <- NULL
 	for(t in 1:length(cast.indices))
 	{
-	  rag.series <- all.series[Im(z[,cast.indices[t]])==1]
+	  rag.series <- all.series[Im(z[,cast.indices[t]])==1,drop=FALSE]
 	  if(length(rag.series)<=N) 
 	  { 
 	    ragged[[length(ragged)+1]] <- rag.series 
@@ -866,10 +869,6 @@ mvar.midcast2 <- function(x.acf,z,delta)
 
 	print(lik)
 
-	
-	
-	
-	
- 	return(list(casts.x,casts.var,c(Qseq,logdet),eps)) 
+	return(list(casts.x,casts.var,c(Qseq,logdet),eps)) 
 }
 

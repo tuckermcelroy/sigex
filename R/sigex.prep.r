@@ -49,6 +49,7 @@ sigex.prep <- function(data.ts,transform,aggregate,subseries,range=NULL,plot=FAL
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object,
 	#			corresponding to N time series of length T
+  #     has NA for any missing values (ragged edge allowed)
 	#		transform: a character indicating an instantaneous
 	#			transformation to be applied; current options are
 	#			"none", "log", and "logistic"

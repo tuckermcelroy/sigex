@@ -1,4 +1,4 @@
-sigex.midcast <- function(psi,mdl,data.ts,leads,ragged)
+sigex.midcast <- function(psi,mdl,data.ts,castspan)
 {
 
 	##########################################################################
@@ -32,17 +32,10 @@ sigex.midcast <- function(psi,mdl,data.ts,leads,ragged)
 	#	Inputs:
 	#		psi: see background. 
 	#		mdl: the specified sigex model, a list object
-	#		data.ts: a T x N matrix ts object, 
-	#			corresponding to N time series of length T
-	#		leads: an integer sequence of desired casts; include index t
-	#			to obtain an estimate of x_t.  These integers don't have
-	#			to be a subset of {1,2,...,T}.  Include integers greater than
-	#			T to get forecasts, or less than 1 to get aftcasts. 
-  #   ragged: a list with number of items equal to the number of leads
-  #     within the sample {1,2,...,T}.  (Pass ragged=NULL if no midcasts are needed.)
-  #     Each element contains indices of vector components that are missing.
-  #     Note: ragged[[j]] must be non-empty, where leads[j] is the time
-  #      where at least one missing value (in-sample) occurs.
+  #		data.ts: a T x N matrix ts object; any  values to be imputed
+  #			must be encoded with NA in that entry.  The NA is for missing value,
+  #     or an enforced imputation (e.g. extreme-value adjustment).
+  #   castspan: an non-negative integer horizon giving number of fore- and aft-casts
 	#	Outputs:
 	#		list containing casts.x and casts.var 
 	#		casts.x: N x H matrix of forecasts, midcasts, aftcasts, where H
@@ -54,7 +47,7 @@ sigex.midcast <- function(psi,mdl,data.ts,leads,ragged)
 	#			covariance between the jth and kth casting errors
 	#	Notes: presumes that regression effects have already been removed.
 	#	Requires: sigex.param2gcd, sigex.zeta2par, sigex.zetalen, sigex.acf, sigex.delta,
-	#			mvar.midcast2
+	#			mvar.midcast2, sigex.i2rag
 	#
 	####################################################################
 
@@ -64,18 +57,30 @@ sigex.midcast <- function(psi,mdl,data.ts,leads,ragged)
 	psi <- Re(psi)
 
 	z <- x
-	leads.mid <- intersect(seq(1,T),leads)
-	leads.out <- setdiff(leads,leads.mid)
-	leads.fore <- leads.out[leads.out>0]
-	leads.aft <- setdiff(leads.out,leads.fore)
-	if(length(leads.mid)>0) 
-	{ 
-	  for(t in 1:length(leads.mid))
-	  {
-	    raggeds <- ragged[[seq(1,length(leads))[leads %in% leads.mid[t]]]]
-	    z[raggeds,leads.mid[t]] <- rep(1i,length(raggeds)) 
-	  }
+	z[is.na(z)] <- 1i
+	out <- sigex.i2rag(z)
+	leads.mid <- out[[1]]
+#	ragged <- out[[2]]
+  leads.fore <- NULL
+  leads.aft <- NULL
+	if(castspan > 0)
+	{
+	  leads.fore <- seq(T+1,T+castspan)
+	  leads.acf <- seq(1-castspan,0)
 	}
+	leads <- union(leads.aft,leads.mid,leads.fore)
+  
+	#  alter z, inserting 1i for any in-sample imputations
+#	if(length(leads.mid)>0) 
+#	{ 
+#	  for(t in 1:length(leads.mid))
+#	  {
+#	    raggeds <- ragged[[seq(1,length(leads))[leads %in% leads.mid[t]]]]
+#	    z[raggeds,leads.mid[t]] <- rep(1i,length(raggeds)) 
+#	  }
+#	}
+
+	#  alter z, inserting 1i for any out-of-sample forecasts/aftcasts
 	if(length(leads.fore)>0) { z <- cbind(z,matrix(1i,nrow=N,ncol=length(leads.fore))) }
 	if(length(leads.aft)>0) { z <- cbind(matrix(1i,nrow=N,ncol=length(leads.aft)),z) }
 	TH <- dim(z)[2]
