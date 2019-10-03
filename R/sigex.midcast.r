@@ -66,9 +66,9 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 	if(castspan > 0)
 	{
 	  leads.fore <- seq(T+1,T+castspan)
-	  leads.acf <- seq(1-castspan,0)
+	  leads.aft <- seq(1-castspan,0)
 	}
-	leads <- union(leads.aft,leads.mid,leads.fore)
+#	leads.all <- union(leads.aft,union(leads.mid,leads.fore))
   
 	#  alter z, inserting 1i for any in-sample imputations
 #	if(length(leads.mid)>0) 
