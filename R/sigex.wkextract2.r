@@ -69,7 +69,7 @@ sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,needMS
 	#		low: as extract.sig, minus twice the standard error
 	#	Requires: sigex.psi2par, sigex.wk, sigex.midcast, sigex.cast
 	#
-	####################################################################
+	#####################################################################
 
 	x <- t(data.ts)
 	N <- dim(x)[1]
