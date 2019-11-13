@@ -129,7 +129,7 @@ sigex.resid <- function(psi,mdl,data.ts)
 
 	resids <- lik.output
 
-	return(resids)
+	return(list(resids,x.acf))
 }
 
 
