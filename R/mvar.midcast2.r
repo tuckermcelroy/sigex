@@ -201,7 +201,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
           solve(select.mat %*% new.var %*% t(select.mat)) %*% 
           (Re(z[non.raggeds,t,drop=FALSE]) - select.mat %*% new.pred)
       }  
-      new.cast[raggeds] <- partial.cast
+      new.cast[raggeds,1] <- partial.cast
       casts.x <- cbind(casts.x,new.cast)
     }  
 
@@ -258,7 +258,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		  {
 		    partial.eps <- solve(t(chol(select.mat %*% new.var %*% t(select.mat)))) %*% 
 		      (Re(z[non.raggeds,t,drop=FALSE]) - select.mat %*% new.pred) 
-		    new.eps[non.raggeds,drop=FALSE] <- partial.eps
+		    new.eps[non.raggeds,1] <- partial.eps
 		    new.det <- det(chol(select.mat %*% new.var %*% t(select.mat)))
 		  }  
 		} else # case of full info
@@ -423,7 +423,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		      solve(select.mat %*% new.var %*% t(select.mat)) %*% 
 		      (Re(z[non.raggeds,t,drop=FALSE]) - select.mat %*% new.pred)
 		  }  
-		  new.cast[raggeds] <- partial.cast
+		  new.cast[raggeds,1] <- partial.cast
 		  casts.x <- cbind(new.cast,casts.x)
 		}  
 		
@@ -480,7 +480,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 		  {
 		    partial.eps <- solve(t(chol(select.mat %*% new.var %*% t(select.mat)))) %*% 
 		      (Re(z[non.raggeds,t,drop=FALSE]) - select.mat %*% new.pred) 
-		    new.eps[non.raggeds,drop=FALSE] <- partial.eps
+		    new.eps[non.raggeds,1] <- partial.eps
 		    new.det <- det(chol(select.mat %*% new.var %*% t(select.mat)))
 		  }  
 		} else # case of full info
@@ -663,7 +663,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	        solve(select.mat %*% new.var %*% t(select.mat)) %*% 
 	        (Re(z[non.raggeds,t,drop=FALSE]) - select.mat %*% new.pred)
 	    }  
-	    new.cast[raggeds] <- partial.cast
+	    new.cast[raggeds,1] <- partial.cast
 	    casts.x <- cbind(casts.x,new.cast)
 	  }  
 	  
@@ -883,7 +883,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	        solve(select.mat %*% new.var %*% t(select.mat)) %*% 
 	        (Re(z[non.raggeds,t,drop=FALSE]) - select.mat %*% new.pred)
 	    }  
-	    new.cast[raggeds] <- partial.cast
+	    new.cast[raggeds,1] <- partial.cast
 	    casts.x <- cbind(new.cast,casts.x)
 	  }  
 	  

@@ -60,7 +60,6 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 	z[is.na(z)] <- 1i
 	out <- sigex.i2rag(z)
 	leads.mid <- out[[1]]
-#	ragged <- out[[2]]
   leads.fore <- NULL
   leads.aft <- NULL
 	if(castspan > 0)
@@ -68,18 +67,7 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 	  leads.fore <- seq(T+1,T+castspan)
 	  leads.aft <- seq(1-castspan,0)
 	}
-#	leads.all <- union(leads.aft,union(leads.mid,leads.fore))
-  
-	#  alter z, inserting 1i for any in-sample imputations
-#	if(length(leads.mid)>0) 
-#	{ 
-#	  for(t in 1:length(leads.mid))
-#	  {
-#	    raggeds <- ragged[[seq(1,length(leads))[leads %in% leads.mid[t]]]]
-#	    z[raggeds,leads.mid[t]] <- rep(1i,length(raggeds)) 
-#	  }
-#	}
-
+ 
 	#  alter z, inserting 1i for any out-of-sample forecasts/aftcasts
 	if(length(leads.fore)>0) { z <- cbind(z,matrix(1i,nrow=N,ncol=length(leads.fore))) }
 	if(length(leads.aft)>0) { z <- cbind(matrix(1i,nrow=N,ncol=length(leads.aft)),z) }
