@@ -589,7 +589,7 @@ mvar.midcast2 <- function(x.acf,z,delta)
 
 	# Forward Pass:	
 	if(t.hash < T) {
-	for(t in (t.hash+1):T)
+  for(t in (t.hash+1):T)
 	{ 
 	  # determine whether full info, or partial/completely missing
 	  #  base case: full info
@@ -720,8 +720,8 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	    {
 	      partial.eps <- solve(t(chol(select.mat %*% new.var %*% t(select.mat)))) %*% 
 	        (Re(z[non.raggeds,t,drop=FALSE]) - select.mat %*% new.pred) 
-	      new.eps[non.raggeds,drop=FALSE] <- partial.eps
-	      new.det <- det(chol(select.mat %*% new.var %*% t(select.mat)))
+	      new.eps[non.raggeds,1] <- partial.eps
+	      new.det <- (det(chol(select.mat %*% new.var %*% t(select.mat))))^2
 	    }  
 	  } else # case of full info
 	  {
@@ -940,8 +940,8 @@ mvar.midcast2 <- function(x.acf,z,delta)
 	    {
 	      partial.eps <- solve(t(chol(select.mat %*% new.var %*% t(select.mat)))) %*% 
 	        (Re(z[non.raggeds,t,drop=FALSE]) - select.mat %*% new.pred) 
-	      new.eps[non.raggeds,drop=FALSE] <- partial.eps
-	      new.det <- det(chol(select.mat %*% new.var %*% t(select.mat)))
+	      new.eps[non.raggeds,1] <- partial.eps
+	      new.det <- (det(chol(select.mat %*% new.var %*% t(select.mat))))^2
 	    }  
 	  } else # case of full info
 	  {
