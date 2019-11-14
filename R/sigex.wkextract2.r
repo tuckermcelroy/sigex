@@ -1,4 +1,4 @@
-sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,needMSE)
+sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,target,grid,window,horizon,needMSE)
 {
 
 	##########################################################################
@@ -53,8 +53,11 @@ sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,needMS
   #		data.ts: a T x N matrix ts object; any  values to be imputed
   #			must be encoded with NA in that entry.  The NA is for missing value,
   #     or an enforced imputation (e.g. extreme-value adjustment).
-  #		sigcomps: indices of the latent components composing the signal
-	#		grid: desired number of frequencies for spectrum calculations
+  #		sigcomps: indices of the latent components composing the signal S_t
+  #   target: array of dimension c(N,N,p+1) for degree p matrix polynomial
+  #     phi (B) such that target signal is phi (B) S_t.
+  #     normal usage is target <- array(diag(N),c(N,N,1))
+  #		grid: desired number of frequencies for spectrum calculations
 	#		window: max index of the WK filter coefficients
 	#		horizon: a positive integer indicating how many forecasts and
 	#			aftcasts of the signal should be generated
@@ -76,7 +79,7 @@ sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,grid,window,horizon,needMS
 	T <- dim(x)[2]
 	param <- sigex.psi2par(psi,mdl,data.ts)
 
-	wk.out <- sigex.wk(data.ts,param,mdl,sigcomps,FALSE,grid,window)
+	wk.out <- sigex.wk(data.ts,param,mdl,sigcomps,target,FALSE,grid,window)
 	wk.filter <- wk.out[[1]]
 	wk.mse <- wk.out[[2]]
 	wk.len <- 2*window+1

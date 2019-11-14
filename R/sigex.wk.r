@@ -1,4 +1,4 @@
-sigex.wk <- function(data.ts,param,mdl,sigcomps,plotit=TRUE,grid,len)
+sigex.wk <- function(data.ts,param,mdl,sigcomps,target,plotit=TRUE,grid,len)
 {
 
 	##########################################################################
@@ -46,8 +46,11 @@ sigex.wk <- function(data.ts,param,mdl,sigcomps,plotit=TRUE,grid,len)
 	#		data.ts: a T x N matrix ts object
 	#		param: see background.  Must have form specified by mdl
 	#		mdl: the specified sigex model, a list object
-	#		sigcomps: indices of the latent components composing the signal
-	#		plotit: binary flag to indicate whether plots should be generated;
+	#		sigcomps: indices of the latent components composing the signal S_t
+	#   target: array of dimension c(N,N,p+1) for degree p matrix polynomial
+  #     phi (B) such that target signal is phi (B) S_t.
+  #     normal usage is target <- array(diag(N),c(N,N,1))
+  #		plotit: binary flag to indicate whether plots should be generated;
 	#			only gives output if N <= 3
 	#		grid: desired number of frequencies for spectrum calculations
 	#		len: max index of the filter coefficients
@@ -73,8 +76,18 @@ quad <- function(z)
 	N <- dim(x)[1]
 	lambda <- pi*seq(0,grid)/grid
 	
+	f.phi <- t(rep(1,(grid+1))) %x% target[,,1]  
+	if(dim(target)[3] > 1) {
+	  for(i in 2:dim(target)[3])
+	  {
+	    f.phi <- f.phi + t(exp(-1i*lambda*(i-1))) %x% target[,,i]  
+	  } }
+	f.phi <- array(f.phi,c(N,N,(grid+1)))
+	
 	### wk filter 
 	frf.wk <- sigex.frf(data.ts,param,mdl,sigcomps,grid)
+	frf.new <- do.call(cbind,lapply(seq(1,grid+1),function(i) f.phi[,,i] %*% frf.wk[,,i] ))
+	frf.wk <- array(frf.new,c(N,N,grid+1))
 	psi.wk <- Re(apply(frf.wk,c(1,2),quad))
 	for(i in 1:len)
 	{
@@ -93,6 +106,8 @@ quad <- function(z)
 
 	### wk MSE
 	frf.wksig <- sigex.wkmse(data.ts,param,mdl,sigcomps,grid)
+	frf.new <- do.call(cbind,lapply(seq(1,grid+1),function(i) f.phi[,,i] %*% frf.wksig[,,i] %*% Conj(t(f.phi[,,i]))))
+	frf.wksig <- array(frf.new,c(N,N,grid+1))
 	mse.wksig <- Re(apply(frf.wksig,c(1,2),quad))
 
 	if(plotit && (N <= 4)) {
