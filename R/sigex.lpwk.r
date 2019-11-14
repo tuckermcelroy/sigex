@@ -70,7 +70,8 @@ sigex.lpwk <- function(data.ts,param,mdl,trendcyclecomp,grid,len,cutoff,trunc)
 
 	x <- t(data.ts)
 	N <- dim(x)[1]
-	wkcoeff <- sigex.wk(data.ts,param,mdl,trendcyclecomp,FALSE,grid,len)
+	target <- array(diag(N),c(N,N,1))
+	wkcoeff <- sigex.wk(data.ts,param,mdl,trendcyclecomp,target,FALSE,grid,len)
 	mid <- trunc+len
 	lpcoeff <- c(cutoff/pi,sin(cutoff*seq(1,mid))/(pi*seq(1,mid)))	
 	lpcoeff <- c(rev(lpcoeff),lpcoeff[-1]) 
