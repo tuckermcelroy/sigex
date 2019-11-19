@@ -44,7 +44,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 	#			is the total number of forecasts and aftcasts	
 	#	Notes: presumes that regression effects have already been removed.
 	#	Requires: sigex.param2gcd, sigex.zeta2par, sigex.zetalen, sigex.acf, sigex.delta,
-	#			mvar.forecast2
+	#			mvar.forecast
 	#
 	####################################################################
 
@@ -135,7 +135,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 	if(fore.index > T)
 	{
 		x.fore <- cbind(x.diff,matrix(1i,N,(fore.index-T)))
-		diff.cast <- mvar.forecast2(x.acf,x.fore,FALSE)[[1]]
+		diff.cast <- mvar.forecast(x.acf,x.fore,FALSE)[[1]]
 		if(del > 0) {
 			fore.cast <- as.matrix(filter(init = matrix(data.diff[del:1,],ncol=N),
 				x=t(diff.cast)/fulldiff[1],filter=-1*fulldiff[-1]/fulldiff[1],
@@ -148,7 +148,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 	{
 		x.rev <- t(as.matrix(t(x.diff)[seq(Tdiff,1),]))
 		x.aft <- cbind(x.rev,matrix(1i,N,(1-aft.index)))
-		diff.cast <- mvar.forecast2(aperm(x.acf,c(3,2,1)),x.aft,FALSE)[[1]]
+		diff.cast <- mvar.forecast(aperm(x.acf,c(3,2,1)),x.aft,FALSE)[[1]]
  		if(del > 0) {
 			aft.cast <- as.matrix(filter(init = matrix(data.diff[(Tdiff+1):T,],ncol=N),
 				x=t(diff.cast)/fulldiff[del+1],filter=-1*rev(fulldiff)[-1]/fulldiff[del+1],

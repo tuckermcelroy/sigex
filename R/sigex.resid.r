@@ -47,7 +47,7 @@ sigex.resid <- function(psi,mdl,data.ts)
 	#			the order of the full differencing polynomial.
 	#			(A failure returns Inf.)
 	#	Requires: sigex.zetalen, sigex.zeta2par, sigex.param2gcd, sigex.delta,
-	#			mvar.midcast2, sigex.acf
+	#			mvar.midcast, sigex.acf
 	#
 	####################################################################
  
@@ -123,7 +123,7 @@ sigex.resid <- function(psi,mdl,data.ts)
 	}
 
 	delta <- sigex.delta(mdl,0)
-	attempt <- try(mvar.midcast2(x.acf,z,delta))
+	attempt <- try(mvar.midcast(x.acf,z,delta))
 	if(!inherits(attempt, "try-error")) {
 		lik.output <- attempt[[4]] } else lik.output <- Inf
 

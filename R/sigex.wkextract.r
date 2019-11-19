@@ -1,9 +1,9 @@
-sigex.wkextract2 <- function(psi,mdl,data.ts,sigcomps,target,grid,window,horizon,needMSE)
+sigex.wkextract <- function(psi,mdl,data.ts,sigcomps,target,grid,window,horizon,needMSE)
 {
 
 	##########################################################################
 	#
-	#	sigex.wkextract2
+	#	sigex.wkextract
 	# 	    Copyright (C) 2017  Tucker McElroy
 	#
 	#    This program is free software: you can redistribute it and/or modify

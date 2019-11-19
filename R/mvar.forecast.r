@@ -1,9 +1,9 @@
-mvar.forecast2 <- function(x.acf,z,needMSE)
+mvar.forecast <- function(x.acf,z,needMSE)
 {
 
 	##########################################################################
 	#
-	#	mvar.forecast2
+	#	mvar.forecast
 	# 	    Copyright (C) 2017  Tucker McElroy
 	#
 	#    This program is free software: you can redistribute it and/or modify
@@ -52,7 +52,7 @@ mvar.forecast2 <- function(x.acf,z,needMSE)
 	#		pred.stack: NT x H matrix of predictors, which can be used to
 	#			obtain uncertainty...
 	#	Notes: running this code with needMSE=1 makes it slower, but yields
-	#		pred.stack, however the routine mvar.midcast2 is preferred for
+	#		pred.stack, however the routine mvar.midcast is preferred for
 	#		obtaining any casts with uncertainty.  I think the pred.stack feature
 	#		here should be deprecated, but not sure if I want to completely
  	#		remove it in case another application comes up.

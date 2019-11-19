@@ -94,7 +94,7 @@ mdl <- sigex.meaninit(mdl,data.ts,0)
 par.default <- sigex.default(mdl,data.ts)[[1]]
 flag.default <- sigex.default(mdl,data.ts)[[2]]
 psi.default <- sigex.par2psi(par.default,flag.default,mdl)
-resid.init <- sigex.resid(psi.default,mdl,data.ts)
+resid.init <- sigex.resid(psi.default,mdl,data.ts)[[1]]
 resid.init <- sigex.load(t(resid.init),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 acf(resid.init,lag.max=40)
 
@@ -107,7 +107,7 @@ acf(resid.init,lag.max=40)
 mdl.mom <- mdl
 par.mom <- sigex.momfit(data.ts,par.default,mdl.mom)
 psi.mom <- sigex.par2psi(par.mom,flag.default,mdl.mom)
-resid.mom <- sigex.resid(psi.mom,mdl.mom,data.ts)
+resid.mom <- sigex.resid(psi.mom,mdl.mom,data.ts)[[1]]
 resid.mom <- sigex.load(t(resid.mom),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 
 ## compute a reduced rank model
@@ -117,7 +117,7 @@ mdl.mom <- reduced.mom[[1]]
 par.mom <- reduced.mom[[2]]
 flag.mom <- sigex.default(mdl.mom,data.ts)[[2]]
 psi.mom <- sigex.par2psi(par.mom,flag.mom,mdl.mom)
-resid.mom <- sigex.resid(psi.mom,mdl.mom,data.ts)
+resid.mom <- sigex.resid(psi.mom,mdl.mom,data.ts)[[1]]
 resid.mom <- sigex.load(t(resid.mom),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 acf(resid.mom,lag.max=40)
 

@@ -177,7 +177,7 @@ par.init[[3]][[5]] <- c(.5)
 flag.init <- sigex.default(mdl,data.ts)[[2]]
 psi.init <- sigex.par2psi(par.init,flag.init,mdl)
 
-resid.init <- sigex.resid(psi.init,mdl,data.ts)
+resid.init <- sigex.resid(psi.init,mdl,data.ts)[[1]]
 resid.init <- sigex.load(t(resid.init),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 acf(resid.init,lag.max=2*period)
 
@@ -202,7 +202,7 @@ hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
 ##  model checking 
-resid.mle <- sigex.resid(psi.mle,mdl.mle,data.ts)
+resid.mle <- sigex.resid(psi.mle,mdl.mle,data.ts)[[1]]
 resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 sigex.portmanteau(resid.mle,period,length(psi.mle))
 sigex.gausscheck(resid.mle)
@@ -349,7 +349,7 @@ par.init <- sigex.default(mdl,data.mat)[[1]]
 flag.init <- sigex.default(mdl,data.mat)[[2]]
 psi.init <- sigex.par2psi(par.init,flag.init,mdl)
 
-resid.init <- sigex.resid(psi.init,mdl,data.mat)
+resid.init <- sigex.resid(psi.init,mdl,data.mat)[[1]]
 resid.init <- sigex.load(t(resid.init),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 acf(resid.init,lag.max=2*period)
 

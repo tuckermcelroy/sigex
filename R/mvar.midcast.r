@@ -1,9 +1,9 @@
-mvar.midcast2 <- function(x.acf,z,delta)
+mvar.midcast <- function(x.acf,z,delta)
 {
 
 	##########################################################################
 	#
-	#	mvar.midcast2
+	#	mvar.midcast
 	# 	    Copyright (C) 2017  Tucker McElroy
 	#
 	#    This program is free software: you can redistribute it and/or modify

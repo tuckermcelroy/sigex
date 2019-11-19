@@ -48,7 +48,7 @@ sigex.lik <- function(psi,mdl,data.ts)
 	#			corresponding to model, for differenced time series,
 	#			with hyper-parameter psi. (A failure returns Inf.)
 	#	Requires: sigex.zetalen, sigex.zeta2par, sigex.param2gcd, sigex.delta,
-	#			mvar.midcast2, sigex.acf
+	#			mvar.midcast, sigex.acf
 	#
 	####################################################################
  
@@ -124,7 +124,7 @@ sigex.lik <- function(psi,mdl,data.ts)
 	}
 
 	delta <- sigex.delta(mdl,0)
-	attempt <- try(mvar.midcast2(x.acf,z,delta),TRUE)
+	attempt <- try(mvar.midcast(x.acf,z,delta),TRUE)
 	if(!inherits(attempt, "try-error")) {
 		lik.output <- attempt[[3]] } else lik.output <- Inf
 	
