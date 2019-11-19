@@ -155,7 +155,7 @@ flag.default <- sigex.default(mdl,data)[[2]]
 psi.default <- sigex.par2psi(par.default,flag.default,mdl)
 #sigex.psi2par(psi.default,mdl,data)	# check
 #sigex.lik(psi.default,mdl,data)
-#resid.init <- sigex.resid(psi.default,mdl,data)
+#resid.init <- sigex.resid(psi.default,mdl,data)[[1]]
 #acf(t(resid.init),lag.max=40)
 
 
@@ -168,7 +168,7 @@ psi.default <- sigex.par2psi(par.default,flag.default,mdl)
 mdl.mom <- mdl
 par.mom <- sigex.momfit(data,par.default,mdl.mom)
 psi.mom <- sigex.par2psi(par.mom,flag.default,mdl.mom)
-resid.mom <- sigex.resid(psi.mom,mdl.mom,data)
+resid.mom <- sigex.resid(psi.mom,mdl.mom,data)[[1]]
 
 #thresh <- -6.22
 #thresh <- -3.92
@@ -180,7 +180,7 @@ mdl.mom <- reduced.mom[[1]]
 par.mom <- reduced.mom[[2]]
 flag.mom <- sigex.default(mdl.mom,data)[[2]]
 psi.mom <- sigex.par2psi(par.mom,flag.mom,mdl.mom)
-#resid.mom <- sigex.resid(psi.mom,mdl.mom,data)
+#resid.mom <- sigex.resid(psi.mom,mdl.mom,data)[[1]]
 }
 
 log(sigex.conditions(data,psi.mom,mdl.mom))
@@ -214,7 +214,7 @@ psi.mle[flag.mle==1] <- fit.mle[[1]]$par
 psi.mle <- psi.mle + 1i*flag.mle
 hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
-resid.mle <- sigex.resid(psi.mle,mdl.mle,data)
+resid.mle <- sigex.resid(psi.mle,mdl.mle,data)[[1]]
 acf(t(resid.mle),lag.max=40)
 
 print(eigen(hess)$values)
@@ -252,7 +252,7 @@ psi.mle2[flag.mle2==1] <- fit.mle2[[1]]$par
 psi.mle2 <- psi.mle2 + 1i*flag.mle2
 hess2 <- fit.mle2[[1]]$hessian
 par.mle2 <- fit.mle2[[2]]
-resid.mle2 <- sigex.resid(psi.mle2,mdl.mle2,data)
+resid.mle2 <- sigex.resid(psi.mle2,mdl.mle2,data)[[1]]
 acf(t(resid.mle2),lag.max=40)
 
 print(eigen(hess)$values)
@@ -313,14 +313,15 @@ window <- 200
 horizon <- 2000
 #leads <- c(-rev(seq(0,window-1)),seq(1,T),seq(T+1,T+window))
 #data.ext <- t(sigex.cast(psi,mdl,data,leads,TRUE))
+target <- array(diag(N),c(N,N,1))
  
-extract.trendann <- sigex.wkextract2(psi,mdl,data,1,grid,window,horizon,NULL,0)
-extract.seas.week <- sigex.wkextract2(psi,mdl,data,c(2,3,4),grid,window,horizon,NULL,0)
-extract.seas.week1 <- sigex.wkextract2(psi,mdl,data,2,grid,window,horizon,NULL,0)
-extract.seas.week2 <- sigex.wkextract2(psi,mdl,data,3,grid,window,horizon,NULL,0)
-extract.seas.week3 <- sigex.wkextract2(psi,mdl,data,4,grid,window,horizon,NULL,0)
-extract.sa <- sigex.wkextract2(psi,mdl,data,c(1,5),grid,window,horizon,NULL,0)
-extract.irr <- sigex.wkextract2(psi,mdl,data,5,grid,window,horizon,NULL,0)
+extract.trendann <- sigex.wkextract2(psi,mdl,data,1,target,grid,window,horizon,FALSE)
+extract.seas.week <- sigex.wkextract2(psi,mdl,data,c(2,3,4),target,grid,window,horizon,FALSE)
+extract.seas.week1 <- sigex.wkextract2(psi,mdl,data,2,target,grid,window,horizon,NULL,FALSE)
+extract.seas.week2 <- sigex.wkextract2(psi,mdl,data,3,target,grid,window,horizon,NULL,FALSE)
+extract.seas.week3 <- sigex.wkextract2(psi,mdl,data,4,target,grid,window,horizon,NULL,FALSE)
+extract.sa <- sigex.wkextract2(psi,mdl,data,c(1,5),target,grid,window,horizon,NULL,FALSE)
+extract.irr <- sigex.wkextract2(psi,mdl,data,5,target,grid,window,horizon,NULL,FALSE)
 
 
 ##################################################################
