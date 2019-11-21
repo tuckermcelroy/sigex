@@ -58,7 +58,7 @@ sigex.psi2eta <- function(psi,constraint)
     ## compute mapping from free variables
     fixed.dim <- dim(constraint.mat)[1]
     free.dim <- dim(constraint.mat)[2] - fixed.dim 
-    psi <- psi[constraint.pivot]
+    psi <- psi[constraint.ipivot]
     #nu <- psi[1:fixed.dim]
     eta <- psi[(fixed.dim+1):(fixed.dim+free.dim)]
    }

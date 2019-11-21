@@ -58,7 +58,8 @@ sigex.eta2psi <- function(eta,constraint)
     ## compute mapping from free variables
     fixed.dim <- dim(constraint.mat)[1]
     free.dim <- dim(constraint.mat)[2] - fixed.dim 
-    trans.mat <- solve(constraint.r[,1:fixed.dim,drop=FALSE],constraint.r[,(fixed.dim+1):psi.len,drop=FALSE])
+    trans.mat <- solve(constraint.r[,1:fixed.dim,drop=FALSE],
+                       constraint.r[,(fixed.dim+1):(fixed.dim+free.dim),drop=FALSE])
     trans.vec <- solve(constraint.r[,1:fixed.dim,drop=FALSE]) %*% solve(constraint.q) %*% constraint.vec
     nu <- trans.vec - trans.mat %*% eta
     psi <- c(nu,eta)[constraint.ipivot]
