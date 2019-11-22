@@ -53,7 +53,6 @@ sigex.psi2par <- function(psi,mdl,data.ts)
 	L.par <- mdl[[3]]
 	D.par <- mdl[[3]]
 	zeta.par <- vector("list",length(mdl[[3]]))
-	psi <- Re(psi)
 
 	# get xi portion
 	ind <- 0

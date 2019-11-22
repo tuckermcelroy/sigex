@@ -1,4 +1,4 @@
-sigex.default <- function(mdl,data.ts)
+sigex.default <- function(mdl,data.ts,constraint)
 {
 
 	##########################################################################
@@ -23,7 +23,7 @@ sigex.default <- function(mdl,data.ts)
 
 	################# Documentation #####################################
 	#
-	#	Purpose: initializes param with zeroes
+	#	Purpose: initializes param with zeroes according to the constraints
 	#	Background:	
 	#		param is the name for the model parameters entered into 
 	#		a list object with a more intuitive structure, whereas
@@ -38,14 +38,14 @@ sigex.default <- function(mdl,data.ts)
 	#	Inputs:
 	#		mdl: the specified sigex model, a list object
 	#		data.ts: a T x N matrix ts object
-	#	Outputs:
-	#		list object with par.default and flag
-	#		par.default: this is param, filled from a psi of all zeroes;
-	#			see background.  Will have form specified by mdl.
-	#		flag: string of ones, of length same as psi,
-	#			with a 1 denoting that the corresponding hyper-parameter is to
-	#			be estimated (by default, no parameters are fixed).
-	#	Requires: sigex.zetalen, sigex.psi2par
+  #		constraint: matrix of the form [Q , C], with C (constraint.mat)
+  #     the matrix of constraints and Q (constraint.vec) the vector
+  #     of constraint constants, such that C psi = Q. 
+  #     Use NULL if there are no constraints
+  #	Outputs:
+	#		par.default: this is param, filled from a psi of all zeroes,
+	#			subject to constraints.  Will have form specified by mdl.
+	#	Requires: sigex.zetalen, sigex.psi2par, sigex.eta2pi
 	#
 	####################################################################
  
@@ -69,11 +69,17 @@ sigex.default <- function(mdl,data.ts)
 	{
 		psi.len <- psi.len + dim(mdl[[4]][[k]])[2]
 	}
-	psi <- rep(0,psi.len) + 1i*rep(1,psi.len)
+	psi <- rep(0,psi.len)
+	
+	if(length(constraint) > 0) 
+	{
+	  eta <- rep(0,dim(constraint)[2] -1 - dim(constraint)[1])
+	  psi <- sigex.eta2psi(eta,constraint)
+	}
+	
 	par.default <- sigex.psi2par(psi,mdl,data.ts)
-	flag <- Im(psi)
 
-	return(list(par.default,flag))
+	return(par.default)
 }
 
 

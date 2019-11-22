@@ -38,10 +38,11 @@ sigex.psi2eta <- function(psi,constraint)
   #     the matrix of constraints and Q (constraint.vec) the vector
   #     of constraint constants, such that C psi = Q.
   #	Outputs:
-  #		eta: see background.
+  #		list of nu and eta: see background.
   #
   ####################################################################
   
+  nu <- NULL
   eta <- psi
   if(length(constraint) > 0) 
   {
@@ -59,11 +60,11 @@ sigex.psi2eta <- function(psi,constraint)
     fixed.dim <- dim(constraint.mat)[1]
     free.dim <- dim(constraint.mat)[2] - fixed.dim 
     psi <- psi[constraint.pivot]
-    #nu <- psi[1:fixed.dim]
+    nu <- psi[1:fixed.dim]
     eta <- psi[(fixed.dim+1):(fixed.dim+free.dim)]
    }
   
-  return(eta)
+  return(list(nu,eta))
 }
 
 

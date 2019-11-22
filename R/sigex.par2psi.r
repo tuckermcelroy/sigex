@@ -1,4 +1,4 @@
-sigex.par2psi <- function(param,flag,mdl)
+sigex.par2psi <- function(param,mdl)
 {
 
 	##########################################################################
@@ -38,9 +38,6 @@ sigex.par2psi <- function(param,flag,mdl)
 	#		beta ~ all regression parameters
 	#	Inputs:
 	#		param: see background.  Must have form specified by mdl
-	#		flag: string of zeros and ones, of length same as psi,
-	#			with a 1 if the corresponding hyper-parameter is to
-	#			be estimated, and 0 if it is fixed
 	#		mdl: the specified sigex model, a list object
 	#	Outputs:
 	#		psi: see background.
@@ -66,7 +63,6 @@ sigex.par2psi <- function(param,flag,mdl)
 
 	beta <- param[[4]]
 	psi <- c(xi,zeta,beta)
-	psi <- psi + 1i*flag
 
 	return(psi)
 }

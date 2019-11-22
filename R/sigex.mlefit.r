@@ -1,4 +1,4 @@
-sigex.mlefit <- function(data.ts,param,flag,mdl,method,hess=TRUE,whittle=FALSE,debug=FALSE)
+sigex.mlefit <- function(data.ts,param,constraint,mdl,method,hess=TRUE,whittle=FALSE,debug=FALSE)
 {
 
 	##########################################################################
@@ -39,9 +39,10 @@ sigex.mlefit <- function(data.ts,param,flag,mdl,method,hess=TRUE,whittle=FALSE,d
 	#			must be encoded with 1i in that entry
 	#		param: see background; this is an initial specification to 
 	#			start the nonlinear optimization routines
-	#		flag: string of numbers, of length same as psi,
-	#			with a 1 denoting that the corresponding hyper-parameter is to
-	#			be estimated, and 0 if it is fixe.
+  #		constraint: matrix of the form [Q , C], with C (constraint.mat)
+  #     the matrix of constraints and Q (constraint.vec) the vector
+  #     of constraint constants, such that C psi = Q. 
+  #     Use NULL if there are no constraints
 	#		mdl: the specified sigex model, a list object
 	#	   	method: "bfgs" for BFGS, "sann" for simulated annealing, "cg" for conjugate gradient
 	#		hess: a Boolean flag; if true, for BFGS it runs
@@ -65,24 +66,29 @@ sigex.mlefit <- function(data.ts,param,flag,mdl,method,hess=TRUE,whittle=FALSE,d
 	T <- dim(x)[2]
 
 	par.est <- NULL
-	psi <- sigex.par2psi(param,flag,mdl)
-	psi <- Re(psi)
-	psi.est <- psi[flag==1]
-	psi.fix <- psi[flag==0]	
-	fix.lik <- function(psi.est,psi.fix,mdl,data.ts,flag)
+	psi <- sigex.par2psi(param,mdl)
+	# check
+	if(length(constraint)>0)
 	{
-		psi.full <- flag
-		psi.full[flag==1] <- psi.est
-		psi.full[flag==0] <- psi.fix
-		if(debug) psi.now <<- psi.full
+	  constraint[,-1] %*% psi - constraint[,1]
+	}
+	
+  nueta <- sigex.psi2eta(psi,constraint)
+  nu <- nueta[[1]]
+  eta <- nueta[[2]]
+
+	fix.lik <- function(eta)
+	{
+	  psi <- sigex.eta2psi(eta,constraint)
+	  if(debug) psi.now <<- psi
 		if(whittle)
 		{
-			out <- sigex.whittle(psi.full,mdl,data.ts)
+			out <- sigex.whittle(psi,mdl,data.ts)
 		} else
 		{
-			out <- sigex.lik(psi.full,mdl,data.ts)
+			out <- sigex.lik(psi,mdl,data.ts)
 		}
-		if(debug) psi.last <<- psi.full
+		if(debug) psi.last <<- psi
 		return(out)
 	}
 
