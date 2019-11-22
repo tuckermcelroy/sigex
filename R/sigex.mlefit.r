@@ -64,7 +64,7 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	#
 	####################################################################
   
-  fix.lik <- function(eta)
+  fix.lik <- function(eta,constraint,mdl,data.ts,whittle,debug)
   {
     psi <- sigex.eta2psi(eta,constraint)
     if(debug) psi.now <<- psi
@@ -101,16 +101,16 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	
 	# initial attempt to fit
 	if(method=="bfgs") {
-	mle <- try(nlminb(eta,fix.lik,mdl=mdl,data.ts=data.ts,flag=flag,
-		lower=lower.bound,upper=upper.bound,
-		control=list(iter.max=50,eval.max=200)),TRUE) 
+	mle <- try(nlminb(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
+	          whittle=whittle,debug=debug,lower=lower.bound,upper=upper.bound,
+		        control=list(iter.max=50,eval.max=200)),TRUE) 
 	}
 	if(method=="sann") {
-	mle <- optim(psi.est,fix.lik,psi.fix=psi.fix,mdl=mdl,data.ts=data.ts,
-		flag=flag,method="SANN",control=list(maxit=5000)) }
+	mle <- optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
+	             whittle=whittle,debug=debug,method="SANN",control=list(maxit=5000)) }
 	if(method=="cg") {
-	mle <- optim(psi.est,fix.lik,psi.fix=psi.fix,mdl=mdl,data.ts=data.ts,
-		flag=flag,method="CG",control=list(maxit=50,trace=10)) }
+	mle <- optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
+	             whittle=whittle,debug=debug,method="CG",control=list(maxit=50,trace=10)) }
 
 	# if the fit was successful, we can report results;
 	#	also, we can try to get the hessian - in this case,
@@ -118,19 +118,15 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	#	(if not desired, set hess = FALSE)
 	if(!inherits(mle, "try-error")) {
 		if(hess) {
-			psi.est <- mle$par
-			mle.hess <- try(optim(psi.est,fix.lik,psi.fix=psi.fix,mdl=mdl,
-				data.ts=data.ts,flag=flag,
-				lower=lower.bound,upper=upper.bound,
-				method="L-BFGS-B",hessian=TRUE,
-				control=list(maxit=100))) 
+			eta.est <- mle$par
+			mle.hess <- try(optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
+			                      whittle=whittle,debug=debug,lower=lower.bound,upper=upper.bound,
+				                    method="L-BFGS-B",hessian=TRUE,control=list(maxit=100))) 
 			if(!inherits(mle.hess, "try-error")) { mle <- mle.hess }
 		}
-		psi.est <- mle$par
-		psi <- flag
-		psi[flag==1] <- psi.est
-		psi[flag==0] <- psi.fix
-		par.est <- sigex.psi2par(psi,mdl,data.ts) } else mle <- Inf
+		eta.est <- mle$par
+		psi.est <- sigex.eta2psi(eta.est,constraint)
+		par.est <- sigex.psi2par(psi.est,mdl,data.ts) } else mle <- Inf
 
 	return(list(mle,par.est))
 }
