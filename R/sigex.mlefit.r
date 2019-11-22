@@ -1,4 +1,4 @@
-sigex.mlefit <- function(data.ts,param,constraint,mdl,method,hess=TRUE,whittle=FALSE,debug=FALSE)
+sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRUE,whittle=FALSE,debug=FALSE)
 {
 
 	##########################################################################
@@ -44,7 +44,10 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,hess=TRUE,whittle=F
   #     of constraint constants, such that C psi = Q. 
   #     Use NULL if there are no constraints
 	#		mdl: the specified sigex model, a list object
-	#	   	method: "bfgs" for BFGS, "sann" for simulated annealing, "cg" for conjugate gradient
+	#	  method: "bfgs" for BFGS, "sann" for simulated annealing, 
+  #     "cg" for conjugate gradient
+  #   thresh: pre-parameters theta satisfy |theta|< thresh; 
+  #     set thresh = Inf if no thresholding is desired
 	#		hess: a Boolean flag; if true, for BFGS it runs
 	#			another round of BFGS to get Hessian matrix
 	#		whittle: a Boolean flag; if true, uses Whittle likelihood instead of
@@ -61,45 +64,44 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,hess=TRUE,whittle=F
 	#
 	####################################################################
   
-	x <- t(data.ts)
+  fix.lik <- function(eta)
+  {
+    psi <- sigex.eta2psi(eta,constraint)
+    if(debug) psi.now <<- psi
+    if(whittle)
+    {
+      out <- sigex.whittle(psi,mdl,data.ts)
+    } else
+    {
+      out <- sigex.lik(psi,mdl,data.ts)
+    }
+    if(debug) psi.last <<- psi
+    return(out)
+  }
+  
+  x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
 
 	par.est <- NULL
 	psi <- sigex.par2psi(param,mdl)
-	# check
+	# check: should be zero if constraint holds for initial value
 	if(length(constraint)>0)
 	{
-	  constraint[,-1] %*% psi - constraint[,1]
+	  check <- sum((constraint[,-1] %*% psi - constraint[,1])^2)
+	  print(check)
 	}
-	
   nueta <- sigex.psi2eta(psi,constraint)
   nu <- nueta[[1]]
   eta <- nueta[[2]]
 
-	fix.lik <- function(eta)
-	{
-	  psi <- sigex.eta2psi(eta,constraint)
-	  if(debug) psi.now <<- psi
-		if(whittle)
-		{
-			out <- sigex.whittle(psi,mdl,data.ts)
-		} else
-		{
-			out <- sigex.lik(psi,mdl,data.ts)
-		}
-		if(debug) psi.last <<- psi
-		return(out)
-	}
-
 	# set thresholding to prevent crash (irrelevant for SANN)
-#	lower.bound <- rep(-30,length(psi.est))
-	lower.bound <- rep(-10,length(psi.est))
-	upper.bound <- rep(10,length(psi.est))
-
+	lower.bound <- rep(-thresh,length(eta))
+	upper.bound <- rep(thresh,length(eta))
+	
 	# initial attempt to fit
 	if(method=="bfgs") {
-	mle <- try(nlminb(psi.est,fix.lik,psi.fix=psi.fix,mdl=mdl,data.ts=data.ts,flag=flag,
+	mle <- try(nlminb(eta,fix.lik,mdl=mdl,data.ts=data.ts,flag=flag,
 		lower=lower.bound,upper=upper.bound,
 		control=list(iter.max=50,eval.max=200)),TRUE) 
 	}
