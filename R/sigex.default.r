@@ -45,7 +45,7 @@ sigex.default <- function(mdl,data.ts,constraint)
   #	Outputs:
 	#		par.default: this is param, filled from a psi of all zeroes,
 	#			subject to constraints.  Will have form specified by mdl.
-	#	Requires: sigex.zetalen, sigex.psi2par, sigex.eta2pi
+	#	Requires: sigex.zetalen, sigex.psi2par, sigex.eta2psi
 	#
 	####################################################################
  

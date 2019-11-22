@@ -60,7 +60,8 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	#		list with mle and par.est
 	#		mle: an object of type outputted by optim
 	#		par.est: type param, with the estimated parameters filled in
-	#	Requires: sigex.par2psi, sigex.psi2par, sigex.lik, sigex.whittle
+	#	Requires: sigex.par2psi, sigex.psi2par, sigex.lik, sigex.whittle, 
+  #   sigex.eta2psi, sigex.psi2eta
 	#
 	####################################################################
   
