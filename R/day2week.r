@@ -44,6 +44,7 @@ day2week <- function(date)
 	#		dayofweek: number 1 through 7, where 1 is Sunday, 2 is Monday, etc.
 	#	Notes:
 	#		calibrated according to Jan 1, 1600 being a Saturday
+  # Require: date2day
 	#
 	#####################################################################
 

@@ -47,7 +47,8 @@ day2date <- function(day,start.date)
 	#	Outputs:
 	#		end.date: the ending date  in month-day-year format,
 	#			a 3-element vector
-	#
+	# Requires:  date2day
+  #
 	#####################################################################
 
 	year.counter <- start.date[3]
