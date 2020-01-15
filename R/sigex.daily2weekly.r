@@ -1,9 +1,9 @@
-sigex.embed.daily2weekly <- function(data.ts,first.day,start.date)
+sigex.daily2weekly <- function(data.ts,first.day,start.date)
 {
   
   ##########################################################################
   #
-  #	sigex.embed.daily2weekly
+  #	sigex.daily2weekly
   # 	    Copyright (C) 2020  Tucker McElroy
   #
   #    This program is free software: you can redistribute it and/or modify
