@@ -31,10 +31,13 @@ sigex.constrainreg <- function(mdl,data.ts,regindex,combos)
   #     for i=1,...,N of the regressors for the ith series involved.
   #   combos: a vector of linear combinations, the subvectors have length
   #     J_i corresponding to regindex, and a first element which is Q
+  #     BUT: if set to NULL, then all regressors in regindex are constrained
+  #       to have the same value.
   #	Outputs:
   #		constraint: row vector of the form [Q , C], with C (constraint.mat)
   #     the vector of constraints and Q (constraint.vec) the  
-  #     constraint constant, such that C psi = Q. 
+  #     constraint constant, such that C psi = Q.
+  #     When combos=NULL, constraint will be a matrix
   #	Requires: sigex.default, sigex.par2psi
   #
   ####################################################################
@@ -48,9 +51,24 @@ sigex.constrainreg <- function(mdl,data.ts,regindex,combos)
     psi.index <- c(psi.index,mark + regindex[[i]])
     mark <- mark + dim(mdl[[4]][[i]])[2]
   }
-  constraint <- rep(0,length(psi.mle))
-  constraint[psi.index] <- combos[-1]
-  constraint <- c(combos[1],constraint)
+  if(length(combos)>0) 
+  {
+    constraint <- rep(0,length(psi.mle))
+    constraint[psi.index] <- combos[-1]
+    constraint <- c(combos[1],constraint)
+  } else
+  {
+    psi.one <- psi.index[1]
+    constraint <- NULL
+    for(k in 2:length(psi.index))
+    {
+      constraint.new <- rep(0,length(psi.mle))
+      constraint.new[psi.one] <- 1
+      constraint.new[psi.index[k]] <- -1 
+      constraint.new <- c(0,constraint.new)
+      constraint <- rbind(constraint,constraint.new)
+    }
+  }
   
   return(constraint)
 }
