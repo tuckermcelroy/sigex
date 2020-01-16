@@ -109,29 +109,34 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
     ind <- ind+len
   }
   
-  # HERE
   cast.mse <- array(0,c(N,N,T+2*horizon))
   if(needMSE)
   {
-    casts.all <- sigex.midcast(psi,mdl,data.ts,max(len.aft,len.fore))
-    casts.var <- array(casts.all[[2]],c(N,len.all,N,len.all))
+    # need to get len.aft aftcasts and len.fore forecasts; use sigex.midcast to
+    #   get len.aft+len.fore aftcasts and forecasts (each side), and then drop
+    #   len.fore aftcasts and len.aft forecasts.
+    casts.all <- sigex.midcast(psi,mdl,data.ts,len.aft+len.fore)
+    casts.x <- casts.all[[1]][,(len.fore+1):(2*len.fore+len.mid+len.aft),drop=FALSE]
+    casts.var <- array(casts.all[[2]],c(N,2*len.aft+len.mid+2*len.fore,N,2*len.aft+len.mid+2*len.fore))
+    casts.var <- casts.var[,(len.fore+1):(2*len.fore+len.mid+len.aft),,
+                           (len.fore+1):(2*len.fore+len.mid+len.aft),drop=FALSE]
     data.ext <- data.demean
-    if(len.mid>0) data.ext[leads.mid,] <- 
-      t(casts.all[[1]][,(len.aft+1):(len.aft+len.mid)])
-    data.ext <- rbind(t(casts.all[[1]][,1:len.aft,drop=FALSE]),data.ext,
-                      t(casts.all[[1]][,(len.aft+len.mid+1):len.all,drop=FALSE]))
+    if(len.mid>0) data.ext[leads.mid,] <- t(casts.x[,(len.aft+1):(len.aft+len.mid)])
+    data.ext <- rbind(t(casts.x[,1:len.aft,drop=FALSE]),data.ext,
+                      t(casts.x[,(len.aft+len.mid+1):len.all,drop=FALSE]))
     t.start <- 1
     for(t in seq(1-horizon,T+horizon))
     {
       #			print(t.start)
-      range.t <- intersect(seq(t-window,t+window),leads.all)
+      range.t <- intersect(seq(t-(L-1-shift),t+(shift)),leads.all)
       len.t <- length(range.t)
       if(len.t==0) { cast.mse[,,t+horizon] <- 0*diag(N) } else {
-        wk.coefs <- wk.filter[,,window+1+t-range.t,drop=FALSE]
-        cast.mse[,,t+horizon] <- matrix(wk.coefs,c(N,N*len.t)) %*% 
+        adhoc.coefs <- adhoc[,,z+1+t-range.t,drop=FALSE]
+        #wk.coefs <- wk.filter[,,window+1+t-range.t,drop=FALSE]
+        cast.mse[,,t+horizon] <- matrix(adhoc.coefs,c(N,N*len.t)) %*% 
           matrix(casts.var[,seq(0,len.t-1)+t.start,,seq(0,len.t-1)+t.start,drop=FALSE],c(len.t*N,len.t*N)) %*%
-          t(matrix(wk.coefs,c(N,N*len.t))) }
-      if(is.element(t-window,leads.all)) { t.start <- t.start + 1 }
+          t(matrix(adhoc.coefs,c(N,N*len.t))) }
+      if(is.element(t-(L-1-shift),leads.all)) { t.start <- t.start + 1 }
     }
   } else
   {

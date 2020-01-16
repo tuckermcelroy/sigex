@@ -47,7 +47,7 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 	#			covariance between the jth and kth casting errors
 	#	Notes: presumes that regression effects have already been removed.
 	#	Requires: sigex.param2gcd, sigex.zeta2par, sigex.zetalen, sigex.acf, sigex.delta,
-	#			mvar.midcast2, sigex.i2rag
+	#			mvar.midcast, sigex.i2rag
 	#
 	####################################################################
 
