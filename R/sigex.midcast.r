@@ -137,7 +137,7 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 	}
 
 	delta <- sigex.delta(mdl,0)
-	attempt <- try(mvar.midcast2(x.acf,z,delta))
+	attempt <- try(mvar.midcast(x.acf,z,delta))
 	if(!inherits(attempt, "try-error")) {
 		casts.x <- attempt[[1]]
 		casts.var <- attempt[[2]] }
