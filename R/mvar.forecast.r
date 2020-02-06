@@ -32,9 +32,7 @@ mvar.forecast <- function(x.acf,z,needMSE)
 	#		Gaussian conditional expectations of missing values (midcasts),
 	#		or future values (forecasts), or past values (aftcasts).
 	#		Also of interest is the Gaussian likelihood resulting from
-	#		such a sample, and the residuals.  The theory is discussed in
-	#		"Casting Vector Time Series: Algorithms for Forecasting,
-	#		Imputation, and Signal Extraction," McElroy (2018).
+	#		such a sample, and the residuals.  
 	#	Inputs:
 	#		x.acf: array of dimension N x T x N of autocovariances for process w_t,
 	#			where there are N series, of total length T each.

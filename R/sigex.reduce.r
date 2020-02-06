@@ -1,4 +1,4 @@
-sigex.reduce <- function(data.ts,param,flag,mdl,thresh,modelflag)
+sigex.reduce <- function(data.ts,param,mdl,thresh,modelflag)
 {
 
 	##########################################################################
@@ -42,15 +42,10 @@ sigex.reduce <- function(data.ts,param,flag,mdl,thresh,modelflag)
 	#		param is the name for the model parameters entered into 
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
-	#		manifold) together with imaginary component flagging 
-	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object
 	#		param: see background
-	#		flag: string of ones, of length same as psi,
-	#			with a 1 denoting that the corresponding hyper-parameter is to
-	#			be estimated (by default, no parameters are fixed).
 	#		mdl: the specified sigex model, a list object.  This is whatever
 	#			model you have so far specified, to which you will be adding
 	#			model structure corresponding to the new component.  If this
@@ -75,7 +70,7 @@ sigex.reduce <- function(data.ts,param,flag,mdl,thresh,modelflag)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
 	
-	psi.red <- sigex.par2psi(param,flag,mdl)
+	psi.red <- sigex.par2psi(param,mdl)
 	log.conds <- log(sigex.conditions(data.ts,psi.red,mdl))
 
 	if(modelflag) {

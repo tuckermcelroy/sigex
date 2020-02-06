@@ -27,9 +27,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 	#		a faster version of sigex.midcast, if you don't need midcasts
 	#	Background:	
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
-	#		manifold) together with imaginary component flagging 
-	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
 	#	Inputs:
 	#		psi: see background. 
 	#		mdl: the specified sigex model, a list object
@@ -51,7 +49,6 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
-	psi <- Re(psi)
 
 	indices <- union(seq(1,T),leads)
 	aft.index <- min(indices)

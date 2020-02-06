@@ -28,9 +28,7 @@ sigex.zetalen <- function(mdlType)
 	#		param is the name for the model parameters entered into 
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
-	#		manifold) together with imaginary component flagging 
-	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Format: psi has three portions, psi = [xi,zeta,beta]
 	#		xi ~ all hyper-parameters for covariance matrices
 	#		zeta ~ all hyper-parameters for t.s. models

@@ -35,9 +35,7 @@ sigex.conditions <- function(data.ts,psi,mdl)
 	#		param is the name for the model parameters entered into 
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
-	#		manifold) together with imaginary component flagging 
-	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object
 	#		psi: see background.  
@@ -54,7 +52,6 @@ sigex.conditions <- function(data.ts,psi,mdl)
 	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
-	psi <- Re(psi)
 
 	# get xi portion
 	ind <- 0

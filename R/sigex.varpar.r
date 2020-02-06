@@ -28,9 +28,7 @@ sigex.varpar <- function(psi,var.order,N,delta,debug=FALSE)
 	#		param is the name for the model parameters entered into 
 	#		an array object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
-	#		manifold) together with imaginary component flagging 
-	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
 	#		Algorithm is that of Roy, McElroy, Linton.
 	#	Notes: only for use with N > 1 and p > 0
 	#	Inputs:

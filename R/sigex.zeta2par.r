@@ -28,9 +28,7 @@ sigex.zeta2par <- function(zeta,mdlType)
 	#		param is the name for the model parameters entered into 
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
-	#		manifold) together with imaginary component flagging 
-	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
 	#	Notes: this is a functional inverse to sigex.par2zeta
 	#		bounds: gives bounds for rho and omega, cycle parameters in zeta
 	#			rho lies in (bounds[1],bounds[2])

@@ -32,9 +32,7 @@ mvar.midcast <- function(x.acf,z,delta)
 	#		Gaussian conditional expectations of missing values (midcasts),
 	#		or future values (forecasts), or past values (aftcasts).
 	#		Also of interest is the Gaussian likelihood resulting from
-	#		such a sample, and the residuals.  The theory is discussed in
-	#		"Casting Vector Time Series: Algorithms for Forecasting,
-	#		Imputation, and Signal Extraction," McElroy (2018).
+	#		such a sample, and the residuals.  
 	#		It is required that at least d
 	#		contiguous values be observed, where d is the order of delta(B).
 	#		If the first d values are contiguous, we can do a forward pass;

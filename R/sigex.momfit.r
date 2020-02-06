@@ -28,9 +28,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 	#		param is the name for the model parameters entered into 
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
-	#		manifold) together with imaginary component flagging 
-	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Notes: does not handle missing values in data.ts.
 	#		ARMA model parameters are not estimated, but taken as given
 	#		Does not work with VARMA/SVARMA specification

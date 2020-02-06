@@ -26,9 +26,7 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 	#	Purpose: computes predictors for variables at various indices
 	#	Background:	
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
-	#		manifold) together with imaginary component flagging 
-	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter manifold)
 	#	Inputs:
 	#		psi: see background. 
 	#		mdl: the specified sigex model, a list object

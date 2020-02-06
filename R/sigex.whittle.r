@@ -28,9 +28,7 @@ sigex.whittle <- function(psi,mdl,data.ts)
 	#		param is the name for the model parameters entered into 
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
-	#		manifold) together with imaginary component flagging 
-	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
 	#	Format: psi has three portions, psi = [xi,zeta,beta]
 	#		xi ~ all hyper-parameters for covariance matrices
 	#		zeta ~ all hyper-parameters for t.s. models
@@ -54,8 +52,7 @@ sigex.whittle <- function(psi,mdl,data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
 	param <- sigex.psi2par(psi,mdl,data.ts)
-	psi <- Re(psi)
- 
+
 	z <- x
 	z[is.na(z)] <- 1i
 	L.par <- mdl[[3]]

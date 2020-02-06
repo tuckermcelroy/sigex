@@ -28,12 +28,8 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	#		param is the name for the model parameters entered into 
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
-	#		manifold) together with imaginary component flagging 
-	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter manifold)  
 	#	Notes: handles missing values in data.ts, which are indicated by 1i.
-	#		To fix values of psi, set the imaginary part to zero 
-	#		by modifying flag (change 1 to 0)
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object; any missing values 
 	#			must be encoded with 1i in that entry

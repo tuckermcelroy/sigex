@@ -28,9 +28,7 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	#		param is the name for the model parameters entered into 
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
-	#		manifold) together with imaginary component flagging 
-	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
 	#	Inputs:
 	#		psi: see background. 
 	#		mdl: the specified sigex model, a list object
@@ -49,7 +47,6 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	####################################################################
 
 	N <- length(mdl[[4]])
-	psi <- Re(psi)
 	boundlist <- mdl[[5]]
 	delta <- sigex.delta(mdl,0)
 	d <- length(delta) - 1

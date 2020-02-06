@@ -28,9 +28,7 @@ sigex.ivarpar <- function(param)
 	#		param is the name for the model parameters entered into 
 	#		an array object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter
-	#		manifold) together with imaginary component flagging 
-	#		whether the hyper-parameter is fixed for purposes of estimation.
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
 	#		Algorithm is that of Roy, McElroy, Linton.
 	#	Notes: only for use with N > 1 and p > 0
 	#	Inputs:
@@ -52,7 +50,7 @@ sqrtm <- function(A) {
 }
 
 	N <- dim(param)[1]
-  	p <- dim(param)[3]
+  p <- dim(param)[3]
 	phi.mat <- matrix(param,N,N*p)
 	phi.comp <- rbind(phi.mat,cbind(diag(N*(p-1)),matrix(0,N*(p-1),N)))
 	v.mat <- array(0,dim=c(N,N,p))
