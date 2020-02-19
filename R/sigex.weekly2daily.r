@@ -1,9 +1,9 @@
-sigex.daily2weekly <- function(data.ts,first.day,start.date)
+sigex.weekly2daily <- function(data.ts,first.day)
 {
   
   ##########################################################################
   #
-  #	sigex.daily2weekly
+  #	sigex.weekly2daily
   # 	    Copyright (C) 2020  Tucker McElroy
   #
   #    This program is free software: you can redistribute it and/or modify
@@ -23,23 +23,26 @@ sigex.daily2weekly <- function(data.ts,first.day,start.date)
   
   ################# Documentation #####################################
   #
-  #	Purpose: embeds a daily time series as a weekly time series
+  #	Purpose: de-embeds a weekly time series as a daily time series
   #	Inputs:
-  #		data.ts: a T x 1 matrix ts object; any  values to be imputed
+  #		data.ts: a T x 7 matrix ts object; any  values to be imputed
   #			must be encoded with NA in that entry.  The NA is for missing value,
   #     or an enforced imputation (e.g. extreme-value adjustment).
   #   first.day is a number between 1 and 7 that indicates what day of the week
   #     should correspond to the first component of the 7-vector.
   #     So 1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday, 
   #       5 = Thursday, 6 = Friday, 7 = Sunday.
-  #		start.date: a given starting date in month-day-year format,
-  #			a 3-element vector
   #	outputs:
-  #   data.ts: a T x 7 matrix ts object; any  values to be imputed
+  #   data.ts: a T x 1 matrix ts object; any  values to be imputed
   #			are marked with NA in that entry.  The NA is for missing value.
   # Requires: day2week, date2day
   #
   ##############################################################
+  
+  start.week <- start(data.ts)[2]
+  day.inyear <- 7*(start.week-1) + 1 + first.day
+  
+  #HERE
   
   start.day <- date2day(start.date[1],start.date[2],start.date[3])
   week.days <- c("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday")
@@ -56,5 +59,4 @@ sigex.daily2weekly <- function(data.ts,first.day,start.date)
   return(data.ts)
 }
 
-  
-  
+

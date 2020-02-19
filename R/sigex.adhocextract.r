@@ -56,7 +56,7 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
   #   shift: gives the integer offset for the adhoc filter:
   #     filter coefficients have indices -shift,...,0,...,L-1-shift
   #     set shift = 0 for a causal filter
-  #		horizon: a positive integer indicating how many forecasts and
+  #		horizon: a non-negative integer indicating how many forecasts and
   #			aftcasts of the signal should be generated
   #		needMSE: a binary flag, set to 1 if you want MSE based on casting error,
   #			or if there are any missing values; else (with value 0) the routine
@@ -76,11 +76,6 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
   T <- dim(x)[2]
   param <- sigex.psi2par(psi,mdl,data.ts)
   L <- dim(adhoc)[3]
-  
-  #wk.out <- sigex.wk(data.ts,param,mdl,sigcomps,target,FALSE,grid,window)
-  #wk.filter <- wk.out[[1]]
-  #wk.mse <- wk.out[[2]]
-  #wk.len <- 2*window+1
   
   # The filter output is sum_{j=-shift}^{L-1-shift} psi_j x_{t-j}.
   # In order to generate output for times t = (1-horizon):(T+horizon),
@@ -131,8 +126,7 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
       range.t <- intersect(seq(t-(L-1-shift),t+(shift)),leads.all)
       len.t <- length(range.t)
       if(len.t==0) { cast.mse[,,t+horizon] <- 0*diag(N) } else {
-        adhoc.coefs <- adhoc[,,z+1+t-range.t,drop=FALSE]
-        #wk.coefs <- wk.filter[,,window+1+t-range.t,drop=FALSE]
+        adhoc.coefs <- adhoc[,,shift+1+t-range.t,drop=FALSE]
         cast.mse[,,t+horizon] <- matrix(adhoc.coefs,c(N,N*len.t)) %*% 
           matrix(casts.var[,seq(0,len.t-1)+t.start,,seq(0,len.t-1)+t.start,drop=FALSE],c(len.t*N,len.t*N)) %*%
           t(matrix(adhoc.coefs,c(N,N*len.t))) }
@@ -156,7 +150,7 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
       output.k <- output.k[-seq(1,L-1)]
       output.j <- output.j + output.k
     }
-    mse <- cast.mse[j,j,]
+    mse <- max(0,cast.mse[j,j,])
     extract.sig <- cbind(extract.sig,output.j)
     upp <- cbind(upp,output.j + 2*sqrt(mse))
     low <- cbind(low,output.j - 2*sqrt(mse))
