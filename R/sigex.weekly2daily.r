@@ -39,22 +39,21 @@ sigex.weekly2daily <- function(data.ts,first.day)
   #
   ##############################################################
   
+  start.year <- start(data.ts)[1]
   start.week <- start(data.ts)[2]
-  day.inyear <- 7*(start.week-1) + 1 + first.day
-  
-  #HERE
-  
-  start.day <- date2day(start.date[1],start.date[2],start.date[3])
-  week.days <- c("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday")
-  days.index <- seq(first.day,first.day+6) %% 7
-  days.index[days.index==0] <- 7
-  ragged.fore <- day2week(start.date) - first.day
-  if(ragged.fore > 0) { data.ts <- c(rep(NA,ragged.fore),data.ts) }
-  ragged.aft <- length(data.ts) %% 7
-  if(ragged.aft > 0) { data.ts <- c(data.ts,rep(NA,7-ragged.aft))}
-  data.mat <- t(matrix(data.ts,nrow=7))
-  data.ts <- ts(data.mat,start=c(start.date[3],ceiling(start.day/7)),frequency=52,
-                names=week.days[days.index])
+
+  day.lead <- day2week(c(1,1,start.year)) - first.day
+  if(day.lead < 0) { day.lead <- day.lead + 7 }
+  day.index <- 7*(week.index-1) - day.lead + 1
+  year.index <- start.year
+  if(day.index <= 0)
+  {
+    day.index <- date2day(12,31,start.year-1) + day.index
+    year.index <- year.index-1
+  }
+  #start.date <- day2date(day.index,c(1,1,year.index))
+  data.ts <- matrix(t(data.ts),ncol=1)
+  data.ts <- sigex.load(data.ts,c(day.index,year.index),365,"",FALSE)
   
   return(data.ts)
 }

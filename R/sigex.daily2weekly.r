@@ -46,11 +46,13 @@ sigex.daily2weekly <- function(data.ts,first.day,start.date)
   days.index <- seq(first.day,first.day+6) %% 7
   days.index[days.index==0] <- 7
   ragged.fore <- day2week(start.date) - first.day
+  if(ragged.fore < 0) { ragged.fore <- ragged.fore + 7 }
   if(ragged.fore > 0) { data.ts <- c(rep(NA,ragged.fore),data.ts) }
   ragged.aft <- length(data.ts) %% 7
   if(ragged.aft > 0) { data.ts <- c(data.ts,rep(NA,7-ragged.aft))}
+  week.index <- ceiling((start.day - ragged.fore -1)/7) + 1
   data.mat <- t(matrix(data.ts,nrow=7))
-  data.ts <- ts(data.mat,start=c(start.date[3],ceiling(start.day/7)),frequency=52,
+  data.ts <- ts(data.mat,start=c(start.date[3],week.index),frequency=53,
                 names=week.days[days.index])
   
   return(data.ts)
