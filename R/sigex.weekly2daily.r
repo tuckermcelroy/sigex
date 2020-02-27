@@ -35,7 +35,7 @@ sigex.weekly2daily <- function(data.ts,first.day)
   #	outputs:
   #   data.ts: a T x 1 matrix ts object; any  values to be imputed
   #			are marked with NA in that entry.  The NA is for missing value.
-  # Requires: day2week, date2day
+  # Requires: day2week, date2day, sigex.load
   #
   ##############################################################
   
@@ -44,7 +44,7 @@ sigex.weekly2daily <- function(data.ts,first.day)
 
   day.lead <- day2week(c(1,1,start.year)) - first.day
   if(day.lead < 0) { day.lead <- day.lead + 7 }
-  day.index <- 7*(week.index-1) - day.lead + 1
+  day.index <- 7*(start.week-1) - day.lead + 1
   year.index <- start.year
   if(day.index <= 0)
   {
@@ -53,7 +53,7 @@ sigex.weekly2daily <- function(data.ts,first.day)
   }
   #start.date <- day2date(day.index,c(1,1,year.index))
   data.ts <- matrix(t(data.ts),ncol=1)
-  data.ts <- sigex.load(data.ts,c(day.index,year.index),365,"",FALSE)
+  data.ts <- sigex.load(data.ts,c(year.index,day.index),365,"",FALSE)
   
   return(data.ts)
 }
