@@ -1,4 +1,4 @@
-## SigEx: Multivariate Signal Extraction R Package
+## Ecce Signum: Multivariate Signal Extraction R Package
 
 Disclaimer - This report is released to inform interested parties of research and
 to encourage discussion. The views expressed on statistical issues
@@ -10,9 +10,9 @@ Census Bureau.
 As the package is not yet on CRAN, it needs to be installed from GitHub:
 
     library(devtools)  # if you don't have devtools: install.packages("devtools")
-    install_github("jlivsey/sigex")
+    install_github("tuckermcelroy/sigex")
 
-### Utility of SigEx 
+### Utility of Ecce Signum (i.e., SigEx)
 
 - High frequency applications
 - Refined models (canonical models)
