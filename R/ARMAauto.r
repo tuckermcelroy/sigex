@@ -1,4 +1,4 @@
-ARMAauto <- function(ar,ma,lag.max)
+ARMAauto <- function(ar = NULL, ma = NULL, lag.max)
 {
 
 	##########################################################################
@@ -28,11 +28,11 @@ ARMAauto <- function(ar,ma,lag.max)
 	#		to lag.max, with inputs ar and ma.  Format:
 	#		(1 - ar[1]z ... - ar[p]z^p) X_t = (1 + ma[1]z ...+ ma[q]z^q) WN
 	#           For absent AR or MA portions, pass in NULL
-	#	Inputs:	
-	#		ar: numeric vector of AR coefficients 
-	#		ma: numeric vector of MA coefficients 
+	#	Inputs:
+	#		ar: numeric vector of AR coefficients
+	#		ma: numeric vector of MA coefficients
 	#		lag.max: Largest autocovariance lag required
-	#	Outputs: 
+	#	Outputs:
 	#		autocovariances at lags 0 through lag.max
 	#	Requires: polymult
 	#
@@ -43,14 +43,14 @@ ARMAauto <- function(ar,ma,lag.max)
 	gamMA <- polymult(c(1,ma),rev(c(1,ma)))
 	gamMA <- gamMA[(q+1):(2*q+1)]
 
-	if (p > 0) 
+	if (p > 0)
 	{
 		Amat <- matrix(0,nrow=(p+1),ncol=(2*p+1))
 		for(i in 1:(p+1))
 		{
 			Amat[i,i:(i+p)] <- c(-1*rev(ar),1)
 		}
-		Amat <- cbind(Amat[,(p+1)],as.matrix(Amat[,(p+2):(2*p+1)]) + 
+		Amat <- cbind(Amat[,(p+1)],as.matrix(Amat[,(p+2):(2*p+1)]) +
 				t(matrix(apply(t(matrix(Amat[,1:p],p+1,p)),2,rev),p,p+1)))
 		Bmat <- matrix(0,nrow=(q+1),ncol=(p+q+1))
 		for(i in 1:(q+1))
@@ -63,9 +63,9 @@ ARMAauto <- function(ar,ma,lag.max)
 		Binv <- solve(Bmat)
 
 		gamMix <- Binv %*% gamMA
-		if (p <= q) gamMix <- matrix(gamMix[1:(p+1),],p+1,1) else 
+		if (p <= q) gamMix <- matrix(gamMix[1:(p+1),],p+1,1) else
 		{ gamMix <- matrix(c(gamMix,rep(0,(p-q))),p+1,1) }
-		gamARMA <- solve(Amat) %*% gamMix 
+		gamARMA <- solve(Amat) %*% gamMix
 	} else gamARMA <- gamMA[1]
 
 	gamMA <- as.vector(gamMA)
