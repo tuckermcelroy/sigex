@@ -17,16 +17,14 @@ class(starts)
 start.date <- c(1964,1)
 period <- 12
 x <- ts(starts[, c(1, 3)], start = start.date, frequency = period)
-
+class(x)
 
 # ---- 3. Envoke sigex ----
 
-fit <- sigex.fit(x = x, model_components = c("trend", "seasonal"))
-fit2 <- sigex.fit(x = x, model_components = c("trend"))
+fit <- sigex.fit(x = x,
+                 model_components = c("trend", "seasonal"))
 
-
-
-# ---- 4. Diagnostics
+# ---- 4. Diagnostics ----
 
 
 # get signal filters from output
