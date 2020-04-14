@@ -34,7 +34,7 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
   #			must be encoded with NA in that entry.  The NA is for missing value,
   #     or an enforced imputation (e.g. extreme-value adjustment).
   #   castspan: an non-negative integer horizon giving number of fore- and aft-casts
-	#	Outputs:
+  #	Outputs:
 	#		list containing casts.x and casts.var 
 	#		casts.x: N x H matrix of forecasts, midcasts, aftcasts, where H
 	#			is the total number of time indices with missing values,
@@ -137,7 +137,7 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 	}
 
 	delta <- sigex.delta(mdl,0)
-	attempt <- try(mvar.midcast(x.acf,z,delta))
+	attempt <- try(mvar.midcast(x.acf,z,delta,debug=FALSE))
 	if(!inherits(attempt, "try-error")) {
 		casts.x <- attempt[[1]]
 		casts.var <- attempt[[2]] }

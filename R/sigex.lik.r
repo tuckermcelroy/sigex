@@ -1,4 +1,4 @@
-sigex.lik <- function(psi,mdl,data.ts)
+sigex.lik <- function(psi,mdl,data.ts,debug=TRUE)
 {
 
 	##########################################################################
@@ -40,6 +40,7 @@ sigex.lik <- function(psi,mdl,data.ts)
   #		data.ts: a T x N matrix ts object; any  values to be imputed
   #			must be encoded with NA in that entry.  The NA is for missing value,
   #     or an enforced imputation (e.g. extreme-value adjustment).
+  #   debug: set to TRUE if lik values should be printed to screen
   #	Outputs:
 	#		sum of quadratic form and log determinant terms in the 
 	#			Gaussian likelihood (see McElroy (2018, JTSA))
@@ -121,7 +122,7 @@ sigex.lik <- function(psi,mdl,data.ts)
 	}
 
 	delta <- sigex.delta(mdl,0)
-	attempt <- try(mvar.midcast(x.acf,z,delta),TRUE)
+	attempt <- try(mvar.midcast(x.acf,z,delta,debug),TRUE)
 	if(!inherits(attempt, "try-error")) {
 		lik.output <- attempt[[3]] } else lik.output <- Inf
 	

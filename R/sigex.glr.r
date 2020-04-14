@@ -51,8 +51,9 @@ sigex.glr <- function(data.ts,psi.nested,psi.nesting,mdl.nested,mdl.nesting)
 	#
 	####################################################################
  
-	glr <- sigex.lik(psi.nested,mdl.nested,data.ts) - 
-		sigex.lik(psi.nesting,mdl.nesting,data.ts)
+  debug <- FALSE
+	glr <- sigex.lik(psi.nested,mdl.nested,data.ts,debug) - 
+		sigex.lik(psi.nesting,mdl.nesting,data.ts,debug)
 	dof <- length(psi.nesting) - length(psi.nested)
 
 	return(c(glr,dof))

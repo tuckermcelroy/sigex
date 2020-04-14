@@ -1,4 +1,4 @@
-mvar.midcast <- function(x.acf,z,delta)
+mvar.midcast <- function(x.acf,z,delta,debug=FALSE)
 {
 
 	##########################################################################
@@ -48,6 +48,7 @@ mvar.midcast <- function(x.acf,z,delta)
 	#			Im(z[,t]) = rep(1i,N) or subset thereof encodes missing values.
 	#		delta: differencing polynomial (corresponds to delta(B) in Background)
 	#			written in format c(delta0,delta1,...,deltad)
+  #   debug: set to TRUE if lik values should be printed to screen
 	#	Notes: to get H forecasts, append matrix(1i,N,H) to input x.  To get aftcasts,
 	#		prepend the same.  T will be the second dimension of z, and includes
 	#		the spots taken by aftcasts and forecasts.  (So the T for the original
@@ -1032,7 +1033,7 @@ mvar.midcast <- function(x.acf,z,delta)
 	if(length(cast.index.t) > 0) { preds.x[,cast.index.t] <- casts.x }
 	lik <- Qseq + logdet
 
-	print(lik)
+	if(debug) { print(lik) }
 
 	return(list(casts.x,casts.var,c(Qseq,logdet),eps)) 
 }

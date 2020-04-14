@@ -1,4 +1,4 @@
-sigex.resid <- function(psi,mdl,data.ts)
+sigex.resid <- function(psi,mdl,data.ts,debug=FALSE)
 {
 
 	##########################################################################
@@ -40,6 +40,7 @@ sigex.resid <- function(psi,mdl,data.ts)
   #		data.ts: a T x N matrix ts object; any  values to be imputed
   #			must be encoded with NA in that entry.  The NA is for missing value,
   #     or an enforced imputation (e.g. extreme-value adjustment).
+  #   debug: set to TRUE if lik values should be printed to screen
   #	Outputs:
 	#		resids: a N x (T-d) matrix of residuals, where d is
 	#			the order of the full differencing polynomial.
@@ -120,7 +121,7 @@ sigex.resid <- function(psi,mdl,data.ts)
 	}
 
 	delta <- sigex.delta(mdl,0)
-	attempt <- try(mvar.midcast(x.acf,z,delta))
+	attempt <- try(mvar.midcast(x.acf,z,delta,debug))
 	if(!inherits(attempt, "try-error")) {
 		lik.output <- attempt[[4]] } else lik.output <- Inf
 

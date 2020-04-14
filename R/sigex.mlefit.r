@@ -49,7 +49,7 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	#		whittle: a Boolean flag; if true, uses Whittle likelihood instead of
 	#			default Gaussian likelihood	
 	#		debug: a Boolean flag; if true, sets the DEBUGGING mode, which prints
-	#			psi.last and psi.now to the global field.  
+	#			psi.last and psi.now to the global field.  Also lik will be printed.
 	#			psi.now gives the parameter that crashed the likelihood (if it crashed),
 	#			psi.last gives the last good parameter that did not crash the lik.
 	#	Outputs:
@@ -70,7 +70,7 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
       out <- sigex.whittle(psi,mdl,data.ts)
     } else
     {
-      out <- sigex.lik(psi,mdl,data.ts)
+      out <- sigex.lik(psi,mdl,data.ts,debug)
     }
     if(debug) psi.last <<- psi
     return(out)
@@ -83,11 +83,11 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	par.est <- NULL
 	psi <- sigex.par2psi(param,mdl)
 	# check: should be zero if constraint holds for initial value
-	if(length(constraint)>0)
-	{
-	  check <- sum((constraint[,-1] %*% psi - constraint[,1])^2)
-	  print(check)
-	}
+#	if(length(constraint)>0)
+#	{
+#	  check <- sum((constraint[,-1] %*% psi - constraint[,1])^2)
+#	  print(check)
+#	}
   nueta <- sigex.psi2eta(psi,constraint)
   nu <- nueta[[1]]
   eta <- nueta[[2]]
