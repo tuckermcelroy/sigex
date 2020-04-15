@@ -49,6 +49,7 @@ sigex.hi2low <- function(filter.hi,hi.freq,low.freq,shift.hi)
   new.len <- length(c(left.pad,filter.hi))
   if(new.len %% s.embed == 0) { right.pad <- NULL } else {
     right.pad <- rep(0,s.embed - (new.len %% s.embed)) }
+  right.pad <- c(right.pad,rep(0,s.embed))
   next.column <- c(left.pad,filter.hi,right.pad)
   filter.embed <- next.column
   len.low <- length(next.column)/s.embed
