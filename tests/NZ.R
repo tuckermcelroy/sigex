@@ -7,9 +7,19 @@ rm(list=ls())
 
 library(devtools)
 
-setwd("C:\\Users\\Tucker\\Documents\\GitHub\\sigex")
+setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
  
+library(Rcpp)
+setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex\\R")
+sourceCpp('mvar_midcast.cpp')
+
+# testing of rcpp
+x.acf <- array(0,c(2,3,2))
+z <- matrix(1i,2,3)
+delta <- c(1,-2,1)
+debug <- TRUE
+mvar_midcast(x.acf,z,delta,debug)
 
 ######################
 ### Part I: load data
