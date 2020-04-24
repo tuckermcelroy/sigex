@@ -101,6 +101,7 @@ List mvar_midcast(List x_acf, ComplexMatrix z, NumericVector delta, bool debug)
   for(int i = 0; i < N; i++) { all_series [i] = i+1; } 
   IntegerVector all_indices (T,1);
   LogicalVector full_count (T,1);
+  LogicalVector cast_count (T,1);
   ComplexVector zval;
   arma::vec imPart;
   bool is_na;
@@ -112,18 +113,28 @@ List mvar_midcast(List x_acf, ComplexMatrix z, NumericVector delta, bool debug)
     imPart = getIm(zval);
     is_na = FALSE;
     full_count(t) = FALSE;
+    cast_count(t) = TRUE;
     for(int k = 0; k < N; k++)
     {
       if(imPart(k) == 1) { is_na = TRUE; }
     }
-    if(is_na == FALSE) { full_count(t) = TRUE; }
+    if(is_na == FALSE) 
+    { 
+      full_count(t) = TRUE; 
+      cast_count(t) = FALSE;
+    }
   }
   
-  //IntegerVector full_indices 
-    
-    
-//  full.indices <- all.indices[colSums(Im(z)==1)==0]
-//  cast.indices <- setdiff(all.indices,full.indices)
+  Rcout << full_count << "\n";
+  IntegerVector full_indices;
+  
+  // if(any(full_count) == TRUE) 
+  // { 
+  //   full_indices = ifelse(full_count,all_indices,0); 
+  // } 
+  // 
+  // Rcout << full_indices << "\n";
+  
 //  ragged <- list()
 //  leads.rag <- NULL
 //  for(t in 1:length(cast.indices))
