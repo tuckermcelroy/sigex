@@ -134,13 +134,29 @@ psi <- analysis.mle[[4]]
 param <- sigex.psi2par(psi,mdl,data.ts)
 
 ## define SA weekly filter
-sa.filter <- array(c(1,rep(2,7),1)/(2*7),c(1,1,9))
-len <- 4
+sa.filter <- array(c(1,rep(2,51),1)/(2*52),c(1,1,53))
+len <- 26
 shift <- len
+sa.comp <- sigex.adhocextract(psi,mdl,data.ts,sa.filter,shift,0,TRUE)
 
-td.low <- sigex.adhocextract(psi,mdl,data.ts,sa.filter,shift,0,TRUE)
-td.low.daily <- list()
-td.low.daily[[1]] <- sigex.weekly2daily(ts(td.low[[1]],start=start(data.ts),frequency=frequency(data.ts)),first.day)
-td.low.daily[[2]] <- sigex.weekly2daily(ts(td.low[[2]],start=start(data.ts),frequency=frequency(data.ts)),first.day)
-td.low.daily[[3]] <- sigex.weekly2daily(ts(td.low[[3]],start=start(data.ts),frequency=frequency(data.ts)),first.day)
+## get fixed effects
+reg.trend <- NULL
+reg.trend <- cbind(reg.trend,param[[4]]*rep(1,T))
 
+## plotting
+trendcol <- "tomato"
+cyccol <- "orchid"
+seascol <- "seagreen"
+sacol <- "navyblue"
+fade <- 60
+
+#pdf(file="  .pdf",height=8,width=10)
+plot(data.ts)
+sigex.graph(sa.comp,reg.trend,start(data.ts),
+            period,1,0,sacol,fade)
+#dev.off()
+ 
+
+## spectral diagnostics: seasonal adjustment
+sigex.specar(sa.comp[[1]],FALSE,1,period)
+#dev.off()
