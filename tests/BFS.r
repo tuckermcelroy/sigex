@@ -10,10 +10,41 @@ library(devtools)
 setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
 
-######################
-### Part I: load data
+###########################################
+### Part I: load data and special functions
 
 load("C:\\Users\\neide\\OneDrive\\Documents\\Research\\bfs.RData")
+
+ubgenerator <- function(period,trunc.len,m)
+{
+  
+  ceps2wold <- function(ceps,q)
+  {
+    m <- length(ceps)
+    if(q > m) {	ceps <- c(ceps,rep(0,q-m)) }
+    wold <- 1
+    wolds <- wold
+    for(j in 1:q)
+    {
+      wold <- sum(seq(1,j)*ceps[1:j]*wolds[j:1])/j
+      wolds <- c(wolds,wold)
+    }
+    return(wolds)
+  }
+  
+  half.len <- floor(period/2)
+  if(length(trunc.len)==0) { trunc.len <- half.len }
+  ceps <- rep(0,m)
+  
+  for(ell in 1:m)
+  {
+    ceps[ell] <- -2*sum(cos(2*pi*ell*seq(1,trunc.len)/period))/ell
+  }
+  wolds <- ceps2wold(ceps,2*trunc.len)
+  
+  return(wolds)
+}
+
 
 
 #############################################################
@@ -133,12 +164,40 @@ mdl <- analysis.mle[[3]]
 psi <- analysis.mle[[4]]
 param <- sigex.psi2par(psi,mdl,data.ts)
 
-## define SA weekly filter
-sa.filter <- array(c(1,rep(2,51),1)/(2*52),c(1,1,53))
-len <- 26
-shift <- len
+## define trend and SA weekly filters
+week.period <- 365.25/7
+half.len <- floor(week.period/2)
+p.seas <- 3
+trend.filter <- ubgenerator(week.period,NULL,1000)
+trend.filter <- trend.filter/sum(trend.filter)
+#plot.ts(trend.filter)
+detrend.filter <- c(rep(0,half.len),1,rep(0,half.len)) - trend.filter
+seas.filter <- 0
+for(j in 1:p.seas)
+{
+  week.periodj <- j*week.period
+  half.lenj <- floor(week.periodj/2)
+  seas.filterj <- ubgenerator(week.periodj,half.lenj-1,1000)
+  seas.filterj <- polymult(seas.filterj,c(1,0,-1))
+  seas.filter <- c(seas.filter,rep(0,length(seas.filterj)-length(seas.filter)))
+  seas.filter <- seas.filter + seas.filterj
+}
+seas.filter <- c(rep(0,length(seas.filter)-1),seas.filter)
+seas.filter <- seas.filter + rev(seas.filter)
+seas.filter <- c(rep(0,(length(seas.filter)-1)/2),1,rep(0,(length(seas.filter)-1)/2)) - seas.filter/(2*p.seas+1)
+#plot.ts(seas.filter)
+sa.filter <- polymult(detrend.filter,seas.filter)
+shift <- (length(sa.filter)-1)/2
+sa.filter <- c(1,rep(0,shift)) - rev(sa.filter[1:(shift+1)])
+sa.filter <- c(rev(sa.filter),sa.filter[-1])
+#plot.ts(sa.filter)
+
+trend.filter <- array(trend.filter,c(1,1,length(trend.filter)))
+sa.filter <- array(sa.filter,c(1,1,length(sa.filter)))
+trend.comp <- sigex.adhocextract(psi,mdl,data.ts,trend.filter,half.len,0,TRUE)
 sa.comp <- sigex.adhocextract(psi,mdl,data.ts,sa.filter,shift,0,TRUE)
 
+ 
 ## get fixed effects
 reg.trend <- NULL
 reg.trend <- cbind(reg.trend,param[[4]]*rep(1,T))
@@ -152,6 +211,8 @@ fade <- 60
 
 #pdf(file="  .pdf",height=8,width=10)
 plot(data.ts)
+sigex.graph(trend.comp,reg.trend,start(data.ts),
+            period,1,0,trendcol,fade)
 sigex.graph(sa.comp,reg.trend,start(data.ts),
             period,1,0,sacol,fade)
 #dev.off()
