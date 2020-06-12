@@ -1,4 +1,4 @@
-#######################################
+#########################################
 ###  Script for Daily Immigration Data
 #########################################
 
@@ -7,17 +7,58 @@ rm(list=ls())
 
 library(devtools)
 
-setwd("C:\\Users\\Tucker\\Documents\\GitHub\\sigex")
+setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
- 
+
+###############################
+#### Test code for rcpp stuff
+
+library(Rcpp)
+
+#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex\\src")
+#sourceCpp('test.cpp')
+#getRe(rep(1i,3))
+
+#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex\\R")
+#sourceCpp('test.cpp')
+#getRe(rep(1i,3))
+
+setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\SigExNew")
+#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex\\cpp")
+sourceCpp('mvar_midcast.cpp')
+
+# testing of mvar_midcast.cpp
+x.acf <- array(0,c(2,2,3))
+x.acf[,,1] <- 6*diag(2)
+x.acf[,,2] <- -2*diag(2)
+x.acf[,,3] <- 1*diag(2)
+z <- array(0,c(2,3))
+z[,1] <- c(2,2+1i)
+z[,2] <- c(1,-1)
+z[,3] <- c(3+1i,4+1i)
+delta <- c(1,-1)
+debug <- TRUE
+mvar_midcast(x.acf,z,delta,debug)
+
+x.acf <- array(0,c(2,2,3))
+x.acf[,,1] <- 6*diag(2)
+x.acf[,,2] <- -2*diag(2)
+x.acf[,,3] <- 1*diag(2)
+z <- array(0,c(2,3))
+z[,1] <- c(2,5)
+z[,2] <- c(1,-1)
+z[,3] <- c(3,4)
+delta <- c(1,-2,1)
+debug <- TRUE
+mvar_midcast(x.acf,z,delta,debug)
 
 ######################
 ### Part I: load data
- 
-# automatic: raw data 
+
+# automatic: raw data
 
 # processing
- 
+
 n.months <- dim(imm)[1]/32
 imm <- imm[-seq(1,n.months)*32,]	# strip out every 32nd row (totals)
 imm <- matrix(imm[imm != 0],ncol=6) # strip out 31st False days
@@ -35,16 +76,16 @@ period <- 365
 # calendar calculations
 start.day <- date2day(start.date[1],start.date[2],start.date[3])
 end.day <- date2day(end.date[1],end.date[2],end.date[3])
-begin <- c(start.date[3],start.day) 
+begin <- c(start.date[3],start.day)
 end <- c(end.date[3],end.day)
 
 ## create ts object and plot
 dataALL.ts <- sigex.load(imm,begin,period,
 	c("NZArr","NZDep","VisArr","VisDep","PLTArr","PLTDep"),TRUE)
- 
-   
+
+
 #############################
-## select span and transforms 
+## select span and transforms
 
 ## all data with no transform
 transform <- "log"
@@ -117,7 +158,7 @@ delta.trend <- c(1,-1)
 #delta.ann <- c(1,-2*cos(2*pi/365),1)
 
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend-cycle",delta.trend)		
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend-cycle",delta.trend)
 mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"first weekly seasonal",c(1,-2*cos(2*pi/7),1))
 mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"second weekly seasonal",c(1,-2*cos(4*pi/7),1))
 mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"third weekly seasonal",c(1,-2*cos(6*pi/7),1))
@@ -314,7 +355,7 @@ horizon <- 2000
 #leads <- c(-rev(seq(0,window-1)),seq(1,T),seq(T+1,T+window))
 #data.ext <- t(sigex.cast(psi,mdl,data,leads,TRUE))
 target <- array(diag(N),c(N,N,1))
- 
+
 extract.trendann <- sigex.wkextract2(psi,mdl,data,1,target,grid,window,horizon,FALSE)
 extract.seas.week <- sigex.wkextract2(psi,mdl,data,c(2,3,4),target,grid,window,horizon,FALSE)
 extract.seas.week1 <- sigex.wkextract2(psi,mdl,data,2,target,grid,window,horizon,NULL,FALSE)
@@ -333,7 +374,7 @@ trunc <- 50000	# appropriate for mu = pi/(365)
 extract.trend <- sigex.lpfiltering(mdl,data,1,NULL,psi,cutoff,grid,window,trunc,TRUE)
 extract.seas.ann <- sigex.lpfiltering(mdl,data,1,NULL,psi,cutoff,grid,window,trunc,FALSE)
 extract.trendirreg <- sigex.lpfiltering(mdl,data,1,5,psi,cutoff,grid,window,trunc,TRUE)
- 
+
 
 
 #########################################

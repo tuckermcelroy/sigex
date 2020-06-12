@@ -1,6 +1,6 @@
 sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
 {
-  
+
   ##########################################################################
   #
   #	sigex.adhocextract
@@ -20,12 +20,12 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation ############################################
   #
   #	Purpose: computes signal extractions and MSE from an ad hoc filter
-  #	Background:	
-  #		A sigex model consists of process x = sum y, for 
+  #	Background:
+  #		A sigex model consists of process x = sum y, for
   #		stochastic components y.  Each component process y_t
   #		is either stationary or is reduced to stationarity by
   #		application of a differencing polynomial delta(B), i.e.
@@ -35,24 +35,24 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
   #		generating function (acgf) via gamma_w (B).
   #		The signal extraction filter for y_t is determined from
   #		this acgf and delta.
-  #		param is the name for the model parameters entered into 
+  #		param is the name for the model parameters entered into
   #		a list object with a more intuitive structure, whereas
   #		psi refers to a vector of real numbers containing all
   #		hyper-parameters (i.e., reals mapped bijectively to the parameter
-  #		manifold) together with imaginary component flagging 
+  #		manifold) together with imaginary component flagging
   #		whether the hyper-parameter is fixed for purposes of estimation.
   #	Notes:
-  #		method does midcasts for specified time indices, 
+  #		method does midcasts for specified time indices,
   #		applies ad hoc filter for signal (given by adhoc),
   #		of length L and offset "shift".
   #		generates signal at all time points t in seq(L-shift-horizon,T-shift+horizon).
   #	Inputs:
-  #		psi: see background.  
+  #		psi: see background.
   #		mdl: the specified sigex model, a list object
   #		data.ts: a T x N matrix ts object; any  values to be imputed
   #			must be encoded with NA in that entry.  The NA is for missing value,
   #     or an enforced imputation (e.g. extreme-value adjustment).
-  #   adhoc:  an array N x N x L, where L is length 
+  #   adhoc:  an array N x N x L, where L is length
   #   shift: gives the integer offset for the adhoc filter:
   #     filter coefficients have indices -shift,...,0,...,L-1-shift
   #     set shift = 0 for a causal filter
@@ -64,22 +64,22 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
   #	Outputs:
   #		list object of extract.sig, upp, and low
   #		extract.sig: (T+H) x N matrix of the signal estimates, where H is
-  #			twice the length of horizon 
+  #			twice the length of horizon
   #		upp: as extract.sig, plus twice the standard error
   #		low: as extract.sig, minus twice the standard error
   #	Requires: sigex.psi2par, sigex.midcast, sigex.cast
   #
   #####################################################################
-  
+
   x <- t(data.ts)
   N <- dim(x)[1]
   T <- dim(x)[2]
   param <- sigex.psi2par(psi,mdl,data.ts)
   L <- dim(adhoc)[3]
-  
+
   # The filter output is sum_{j=-shift}^{L-1-shift} psi_j x_{t-j}.
   # In order to generate output for times t = (1-horizon):(T+horizon),
-  # we must forecast times (T+1):(T+horizon+shift) 
+  # we must forecast times (T+1):(T+horizon+shift)
   # and aftcast times (2-horizon-L+shift):0
   leads.mid <- NULL
   for(k in 1:N) { leads.mid <- union(leads.mid,seq(1,T)[is.na(data.ts)[,k]]) }
@@ -90,7 +90,7 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
   len.fore <- length(leads.fore)
   len.mid <- length(leads.mid)
   len.all <- length(leads.all)
-  
+
   # remove regression effects from raw data
   beta.par <- param[[4]]
   ind <- 0
@@ -103,7 +103,7 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
     data.demean[,k] <- data.demean[,k] - reg.mat %*% beta.par[(ind+1):(ind+len)]
     ind <- ind+len
   }
-  
+
   cast.mse <- array(0,c(N,N,T+2*horizon))
   if(needMSE)
   {
@@ -127,7 +127,7 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
       len.t <- length(range.t)
       if(len.t==0) { cast.mse[,,t+horizon] <- 0*diag(N) } else {
         adhoc.coefs <- adhoc[,,shift+1+t-range.t,drop=FALSE]
-        cast.mse[,,t+horizon] <- matrix(adhoc.coefs,c(N,N*len.t)) %*% 
+        cast.mse[,,t+horizon] <- matrix(adhoc.coefs,c(N,N*len.t)) %*%
           matrix(casts.var[,seq(0,len.t-1)+t.start,,seq(0,len.t-1)+t.start,drop=FALSE],c(len.t*N,len.t*N)) %*%
           t(matrix(adhoc.coefs,c(N,N*len.t))) }
       if(is.element(t-(L-1-shift),leads.all)) { t.start <- t.start + 1 }
@@ -136,11 +136,11 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
   {
     data.ext <- t(sigex.cast(psi,mdl,data.ts,leads.all))
   }
-  
-  extract.sig <- NULL 
+
+  extract.sig <- NULL
   upp <- NULL
   low <- NULL
-  for(j in 1:N) 
+  for(j in 1:N)
   {
     output.j <- rep(0,T+2*horizon)
     for(k in 1:N)
@@ -150,12 +150,12 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
       output.k <- output.k[-seq(1,L-1)]
       output.j <- output.j + output.k
     }
-    mse <- max(0,cast.mse[j,j,])
+    mse <- pmax(0,cast.mse[j,j,])
     extract.sig <- cbind(extract.sig,output.j)
     upp <- cbind(upp,output.j + 2*sqrt(mse))
     low <- cbind(low,output.j - 2*sqrt(mse))
-  }	
-  
+  }
+
   return(list(extract.sig,upp,low))
 }
 
