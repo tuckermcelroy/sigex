@@ -24,11 +24,11 @@ sigex.par2zeta <- function(mdlPar,mdlType)
 	################# Documentation #####################################
 	#
 	#	Purpose: transform param to zeta
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Notes: this is a functional inverse to sigex.zeta2par
 	#		bounds: gives bounds for rho and omega, cycle parameters in zeta
 	#			rho lies in (bounds[1],bounds[2])
@@ -70,11 +70,11 @@ phi2psi <- function(phi)
 	mdlClass <- mdlType[[1]]
 	mdlOrder <- mdlType[[2]]
 	mdlBounds <- mdlType[[3]]
-		
+
 	#############################
 	## get zeta for the component
 
-	# ARMA  
+	# ARMA
 	if(mdlClass %in% c("arma","arma.stab"))
 	{
 		p.order <- mdlOrder[1]
@@ -83,12 +83,12 @@ phi2psi <- function(phi)
 		ma.coef <- NULL
 		zeta.ar <- NULL
 		zeta.ma <- NULL
-		if(p.order > 0) 
+		if(p.order > 0)
 		{
 			ar.coef <- mdlPar[1:p.order]
 			zeta.ar <- phi2psi(ar.coef)
 		}
-		if(q.order > 0) 
+		if(q.order > 0)
 		{
 			ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
 			zeta.ma <- phi2psi(-1*ma.coef)
@@ -112,17 +112,17 @@ phi2psi <- function(phi)
 		zeta.ma <- NULL
 		zeta.ars <- NULL
 		zeta.mas <- NULL
-		if(p.order > 0) 
+		if(p.order > 0)
 		{
 			ar.coef <- mdlPar[1:p.order]
 			zeta.ar <- phi2psi(ar.coef)
 		}
-		if(q.order > 0) 
+		if(q.order > 0)
 		{
 			ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
 			zeta.ma <- phi2psi(ma.coef)
 		}
-		if(ps.order > 0) 
+		if(ps.order > 0)
 		{
 			ars.coef <- mdlPar[(p.order+q.order+1):(p.order+q.order+ps.order)]
 			zeta.ars <- phi2psi(ars.coef)
@@ -135,7 +135,7 @@ phi2psi <- function(phi)
 		zeta <- c(zeta.ar,zeta.ma,zeta.ars,zeta.mas)
 	}
 
-	# VARMA  
+	# VARMA
 	if(mdlClass %in% c("varma"))
 	{
 		p.order <- mdlOrder[1]
@@ -144,12 +144,12 @@ phi2psi <- function(phi)
 		ma.coef <- NULL
 		zeta.ar <- NULL
 		zeta.ma <- NULL
-		if(p.order > 0) 
+		if(p.order > 0)
 		{
 			ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
 			zeta.ar <- sigex.ivarpar(ar.coef)[[1]]
 		}
-		if(q.order > 0) 
+		if(q.order > 0)
 		{
 			ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
 			zeta.ma <- sigex.ivarpar(-1*ma.coef)[[1]]
@@ -173,17 +173,17 @@ phi2psi <- function(phi)
 		zeta.ma <- NULL
 		zeta.ars <- NULL
 		zeta.mas <- NULL
-		if(p.order > 0) 
+		if(p.order > 0)
 		{
 			ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
 			zeta.ar <- sigex.ivarpar(ar.coef)[[1]]
 		}
-		if(q.order > 0) 
+		if(q.order > 0)
 		{
 			ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
 			zeta.ma <- sigex.ivarpar(ma.coef)[[1]]
 		}
-		if(ps.order > 0) 
+		if(ps.order > 0)
 		{
 			ars.coef <- mdlPar[,,(p.order+q.order+1):(p.order+q.order+ps.order),drop=FALSE]
 			zeta.ars <- sigex.ivarpar(ars.coef)[[1]]
@@ -210,8 +210,8 @@ phi2psi <- function(phi)
 		omega <- log(x.omega) - log(1 - x.omega)
 		zeta <- c(rho,omega)
 	}
-	
-	# Damped trend  
+
+	# Damped trend
 	if(mdlClass %in% c("damped"))
 	{
 		low <- mdlBounds[1]
@@ -219,7 +219,7 @@ phi2psi <- function(phi)
 		phi <- (mdlPar[1] - low)/(upp - low)
 		ar.coef <- log(phi) - log(1 - phi)
 		zeta <- ar.coef
-	}	
+	}
 
 	return(zeta)
 }
