@@ -79,7 +79,7 @@ if (q == 0) { gamMA <- array(sigma,c(m,m,1)) } else
 	flip <- aperm(theta,c(2,1,3))[,,q:1,drop=FALSE]
 	gamMA <- polymulMat(temp,array(cbind(matrix(flip,m,m*q),diag(m)),c(m,m,q+1)))
 }
-gamMA <- gamMA[,,(q+1):(2*q+1)]
+gamMA <- gamMA[,,(q+1):(2*q+1),drop=FALSE]
 gamMAvec <- matrix(gamMA,m^2*(q+1),1)
 
 if (p > 0)
