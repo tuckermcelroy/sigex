@@ -10,47 +10,6 @@ library(devtools)
 setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
 
-###############################
-#### Test code for rcpp stuff
-
-library(Rcpp)
-
-#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex\\src")
-#sourceCpp('test.cpp')
-#getRe(rep(1i,3))
-
-#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex\\R")
-#sourceCpp('test.cpp')
-#getRe(rep(1i,3))
-
-setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\SigExNew")
-#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex\\cpp")
-sourceCpp('mvar_midcast.cpp')
-
-# testing of mvar_midcast.cpp
-x.acf <- array(0,c(2,2,3))
-x.acf[,,1] <- 6*diag(2)
-x.acf[,,2] <- -2*diag(2)
-x.acf[,,3] <- 1*diag(2)
-z <- array(0,c(2,3))
-z[,1] <- c(2,2+1i)
-z[,2] <- c(1,-1)
-z[,3] <- c(3+1i,4+1i)
-delta <- c(1,-1)
-debug <- TRUE
-mvar_midcast(x.acf,z,delta,debug)
-
-x.acf <- array(0,c(2,2,3))
-x.acf[,,1] <- 6*diag(2)
-x.acf[,,2] <- -2*diag(2)
-x.acf[,,3] <- 1*diag(2)
-z <- array(0,c(2,3))
-z[,1] <- c(2,5)
-z[,2] <- c(1,-1)
-z[,3] <- c(3,4)
-delta <- c(1,-2,1)
-debug <- TRUE
-mvar_midcast(x.acf,z,delta,debug)
 
 ######################
 ### Part I: load data
@@ -62,6 +21,9 @@ mvar_midcast(x.acf,z,delta,debug)
 n.months <- dim(imm)[1]/32
 imm <- imm[-seq(1,n.months)*32,]	# strip out every 32nd row (totals)
 imm <- matrix(imm[imm != 0],ncol=6) # strip out 31st False days
+
+# enter regressors
+NZregs <- read.table("C:\\Users\\neide\\Documents\\GitHub\\sigex\\data\\NZregressors.dat")
 
 
 
@@ -80,19 +42,19 @@ begin <- c(start.date[3],start.day)
 end <- c(end.date[3],end.day)
 
 ## create ts object and plot
-dataALL.ts <- sigex.load(imm,begin,period,
-	c("NZArr","NZDep","VisArr","VisDep","PLTArr","PLTDep"),TRUE)
+dataALL.ts <- sigex.load(imm,begin,period,c("NZArr","NZDep","VisArr","VisDep","PLTArr","PLTDep"),TRUE)
 
 
 #############################
 ## select span and transforms
 
-## all data with no transform
+## all data with log transform
 transform <- "log"
 aggregate <- FALSE
-subseries <- 5
+subseries <- 1
 range <- NULL
-data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
+dataONE.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
+
 
 #######################
 ## spectral exploratory
@@ -101,7 +63,7 @@ data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 par(mfrow=c(1,1))
 for(i in 1:length(subseries))
 {
-	sigex.specar(data.ts,FALSE,i,7)
+  sigex.specar(dataONE.ts,FALSE,i,7)
 }
 dev.off()
 
@@ -109,223 +71,145 @@ dev.off()
 par(mfrow=c(1,1))
 for(i in 1:length(subseries))
 {
-	sigex.specar(data.ts,TRUE,i,7)
+  sigex.specar(dataONE.ts,TRUE,i,7)
 }
 dev.off()
 
 
+###########################
+## embed as a weekly series
 
-#########################################
-########  Modeling
-
-transform = "log"
-agg <- FALSE	# set TRUE to aggregate
-series <- 1:6
-#series <- 5
-
-range <- seq(1,dim(imm)[1])
-#range <- 1:500
-data <- ts(as.matrix(sigex.transform(imm[range,series],transform,agg)),
-	start=begin,frequency=period,names=colnames(imm)[series])
-plot(data,xlab="Year")
-x <- t(data)
-N <- dim(x)[1]
-T <- dim(x)[2]
-
-## setup holiday regressors
-
-# Easter Day
-easter.reg1 <- gethol(easter.dates,0,0,start.date,end.date)
-# pre-Easter
-easter.reg2 <- gethol(easter.dates,8,-1,start.date,end.date)
-# Cyber Monday
-#cyber.reg <- gethol(cyber.dates,0,0,start.date,end.date)
-# Black Friday
-#black.reg <- gethol(black.dates,0,0,start.date,end.date)
-# Superbowl Sunday
-#super.reg <- gethol(super.dates,0,0,start.date,end.date)
-# Labor Day
-#labor.reg <- gethol(labor.dates,0,0,start.date,end.date)
-# Chinese New Year
-#cny.reg <- gethol(cny.dates,0,0,start.date,end.date)
+first.day <- 1
+data.ts <- sigex.daily2weekly(dataONE.ts,first.day,start.date)
+plot(data.ts)
 
 
-#######################
-# Default Model
 
-# stochastic effects
-delta.trend <- c(1,-1)
-#delta.ann <- c(1,-2*cos(2*pi/365),1)
+###############################
+### Part III: Model Declaration
 
+N <- dim(data.ts)[2]
+T <- dim(data.ts)[1]
+
+##########################
+## Load holiday regressors
+##
+## NOTES: easter is based on Easter day and day before Easter
+##        school1 is beginning of first school holiday,
+##          with window for day of and day after.
+##        School2 and school3 are analogous for 2nd and 3rd holidays
+##        school1e is end of first school holiday,
+##          with window for day of and day before.
+##        School2e and school3e are analogous for 2nd and 3rd holidays
+
+easter.reg <- NZregs[,1]
+school1.reg <- NZregs[,2]
+school1e.reg <- NZregs[,3]
+school2.reg <- NZregs[,4]
+school2e.reg <- NZregs[,5]
+school3.reg <- NZregs[,6]
+school3e.reg <- NZregs[,7]
+
+###########################
+## Embed holiday regressors
+
+easter.reg <- sigex.daily2weekly(easter.reg,first.day,start.date)
+school1.reg <- sigex.daily2weekly(school1.reg,first.day,start.date)
+school1e.reg <- sigex.daily2weekly(school1e.reg,first.day,start.date)
+school2.reg <- sigex.daily2weekly(school2.reg,first.day,start.date)
+school2e.reg <- sigex.daily2weekly(school2e.reg,first.day,start.date)
+school3.reg <- sigex.daily2weekly(school3.reg,first.day,start.date)
+school3e.reg <- sigex.daily2weekly(school3e.reg,first.day,start.date)
+
+# replace ragged NA with zero
+easter.reg[is.na(easter.reg)] <- 0
+school1.reg[is.na(school1.reg)] <- 0
+school1e.reg[is.na(school1e.reg)] <- 0
+school2.reg[is.na(school2.reg)] <- 0
+school2e.reg[is.na(school2e.reg)] <- 0
+school3.reg[is.na(school3.reg)] <- 0
+school3e.reg[is.na(school3e.reg)] <- 0
+
+
+##############
+## Basic Model
+
+# model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend-cycle",delta.trend)
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"first weekly seasonal",c(1,-2*cos(2*pi/7),1))
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"second weekly seasonal",c(1,-2*cos(4*pi/7),1))
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"third weekly seasonal",c(1,-2*cos(6*pi/7),1))
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)
+mdl <- sigex.add(mdl,seq(1,N),"svarma",c(1,0,1,0,52),list(1,1,1,1),"process",c(1,-1))
+mdl <- sigex.meaninit(mdl,data.ts,0)
 
-# fixed effects
-
-mdl <- sigex.meaninit(mdl,data,0)
 for(i in 1:N) {
-mdl <- sigex.reg(mdl,i,ts(as.matrix(easter.reg1[range]),
-	start=begin,frequency=period,names="Easter Day"))
-mdl <- sigex.reg(mdl,i,ts(as.matrix(easter.reg2[range]),
-	start=begin,frequency=period,names="pre-Easter"))
-#mdl <- sigex.reg(mdl,i,ts(as.matrix(cyber.reg[range]),
-#	start=begin,frequency=period,names="Cyber"))
-#mdl <- sigex.reg(mdl,i,ts(as.matrix(black.reg[range]),
-#	start=begin,frequency=period,names="Black"))
-#mdl <- sigex.reg(mdl,i,ts(as.matrix(super.reg[range]),
-#	start=begin,frequency=period,names="Super"))
-#mdl <- sigex.reg(mdl,i,ts(as.matrix(labor.reg[range]),
-#	start=begin,frequency=period,names="Labor"))
-#mdl <- sigex.reg(mdl,i,ts(as.matrix(cny.reg[range]),
-#	start=begin,frequency=period,names="CNY"))
-#mdl <- sigex.reg(mdl,i,ts(as.matrix(ao.reg[,1]),
-#	start=begin,frequency=period,names="AO1"))
-#mdl <- sigex.reg(mdl,i,ts(as.matrix(ao.reg[,2]),
-#	start=begin,frequency=period,names="AO2"))
-#mdl <- sigex.reg(mdl,i,ts(as.matrix(ao.reg[,3]),
-#	start=begin,frequency=period,names="AO3"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(easter.reg[,i]),
+                            start=start(easter.reg),
+                            frequency=frequency(easter.reg),
+                            names="Easter-day"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(school1.reg[,i]),
+                            start=start(school1.reg),
+                            frequency=frequency(school1.reg),
+                            names="School1-Start"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(school1e.reg[,i]),
+                            start=start(school1e.reg),
+                            frequency=frequency(school1e.reg),
+                            names="School1-End"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(school2.reg[,i]),
+                            start=start(school2.reg),
+                            frequency=frequency(school2.reg),
+                            names="School2-Start"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(school2e.reg[,i]),
+                            start=start(school2e.reg),
+                            frequency=frequency(school2e.reg),
+                            names="School2-End"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(school3.reg[,i]),
+                            start=start(school3.reg),
+                            frequency=frequency(school3.reg),
+                            names="School3-Start"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(school3e.reg[,i]),
+                            start=start(school3e.reg),
+                            frequency=frequency(school3e.reg),
+                            names="School3-End"))
 }
 
 
-par.default <- sigex.default(mdl,data)[[1]]
-flag.default <- sigex.default(mdl,data)[[2]]
-psi.default <- sigex.par2psi(par.default,flag.default,mdl)
-#sigex.psi2par(psi.default,mdl,data)	# check
-#sigex.lik(psi.default,mdl,data)
-#resid.init <- sigex.resid(psi.default,mdl,data)[[1]]
-#acf(t(resid.init),lag.max=40)
+##################################
+### PART IV: Model Fitting
+
+#constraint <- cbind(rep(0,132), diag(133)[-1,])
+constraint <- NULL
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(2,2,2,2,2,2,2),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(3,3,3,3,3,3,3),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(4,4,4,4,4,4,4),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(5,5,5,5,5,5,5),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(6,6,6,6,6,6,6),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(7,7,7,7,7,7,7),NULL))
+
+par.mle <- sigex.default(mdl,data.ts,constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl)
+
+## run fitting: commented out, this took 3 weeks!
+fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+
+
+# HERE
+
+
+## manage output
+#psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+#hess <- fit.mle[[1]]$hessian
+#par.mle <- fit.mle[[2]]
 
 
 
-######################################
-# MOM estimation and reduced specification
-
-# fitting
-
-mdl.mom <- mdl
-par.mom <- sigex.momfit(data,par.default,mdl.mom)
-psi.mom <- sigex.par2psi(par.mom,flag.default,mdl.mom)
-resid.mom <- sigex.resid(psi.mom,mdl.mom,data)[[1]]
-
-#thresh <- -6.22
-#thresh <- -3.92
-thresh <- -1.66
-
-if(N > 1) {
-reduced.mom <- sigex.reduce(data,par.mom,flag.default,mdl.mom,thresh,FALSE)
-mdl.mom <- reduced.mom[[1]]
-par.mom <- reduced.mom[[2]]
-flag.mom <- sigex.default(mdl.mom,data)[[2]]
-psi.mom <- sigex.par2psi(par.mom,flag.mom,mdl.mom)
-#resid.mom <- sigex.resid(psi.mom,mdl.mom,data)[[1]]
-}
-
-log(sigex.conditions(data,psi.mom,mdl.mom))
 
 
-# model checking
-
-sigex.portmanteau(t(resid.mom),48,length(psi.mom))
-sigex.gausscheck(t(resid.mom[,1:4000]))
-#acf(t(resid.mom),lag.max=40)
-
-# bundle for default span
-analysis.mom <- sigex.bundle(data,transform,mdl.mom,psi.mom)
-
-##########################################################################
-################ MLE Routines (not recommended for these series) ##############
-#########################################################
-
-# MLE estimation of full model
-
-# setup, and fix parameters as desired
-mdl.mle <- mdl
-psi.mle <- psi.default
-flag.mle <- Im(psi.mle)
-par.mle <- sigex.psi2par(psi.mle,mdl.mle,data)
-
-# run fitting
-fit.mle <- sigex.mlefit(data,par.mle,flag.mle,mdl.mle,"bfgs")
-
-psi.mle[flag.mle==1] <- fit.mle[[1]]$par
-psi.mle <- psi.mle + 1i*flag.mle
-hess <- fit.mle[[1]]$hessian
-par.mle <- fit.mle[[2]]
-resid.mle <- sigex.resid(psi.mle,mdl.mle,data)[[1]]
-acf(t(resid.mle),lag.max=40)
-
-print(eigen(hess)$values)
-taus <- log(sigex.conditions(data,psi.mle,mdl.mle))
-print(taus)
-
-tstats <- sigex.tstats(mdl.mle,psi.mle,hess)
-stderrs <- sigex.psi2par(tstats,mdl,data)
-print(tstats)
-
-# bundle for default span
-analysis.mle <- sigex.bundle(data,transform,mdl.mle,psi.mle)
 
 
-##############################
-# MLE estimation of reduced model
-
-thresh <- -6.22
-#thresh <- -3.92
-mdl.mle2 <- mdl.mle
-par.mle2 <- par.mle
-psi.mle2 <- psi.mle
-
-if((N > 1) && (min(taus) < thresh)) {
-
-mdl.mle2 <- sigex.reduce(data,par.mle,flag.mle,mdl.mle,thresh)[[1]]
-par.mle2 <- sigex.reduce(data,par.mle,flag.mle,mdl.mle,thresh)[[2]]
-flag.mle2 <- sigex.default(mdl.mle2,data)[[2]]
-psi.mle2 <- sigex.par2psi(par.mle2,flag.mle2,mdl.mle2)
-
-# run fitting
-fit.mle2 <- sigex.mlefit(data,par.mle2,flag.mle2,mdl.mle2,"bfgs")
-
-psi.mle2[flag.mle2==1] <- fit.mle2[[1]]$par
-psi.mle2 <- psi.mle2 + 1i*flag.mle2
-hess2 <- fit.mle2[[1]]$hessian
-par.mle2 <- fit.mle2[[2]]
-resid.mle2 <- sigex.resid(psi.mle2,mdl.mle2,data)[[1]]
-acf(t(resid.mle2),lag.max=40)
-
-print(eigen(hess)$values)
-test.glr <- sigex.glr(data,psi.mle2,psi.mle,mdl.mle2,mdl.mle)
-pchisq(test.glr[1],df=test.glr[2])
-
-tstats <- sigex.tstats(mdl.mle2,psi.mle2,hess2)
-stderrs <- sigex.psi2par(tstats,mdl.mle2,data)
-print(tstats)
-
-# bundle for default span
-analysis.mle <- sigex.bundle(data,transform,mdl.mle2,psi.mle2)
-
-}
 
 
-####################################################
-######################## Begin Signal Extraction
 
-### MLE (skip)
-#data <- analysis.mle[[1]]
-#mdl <- analysis.mle[[3]]
-#psi <- analysis.mle[[4]]
-#param <- sigex.psi2par(psi,mdl,data)
 
-## Rough: reduced MOM model
-data <- analysis.mom[[1]]
-mdl <- analysis.mom[[3]]
-psi <- analysis.mom[[4]]
-param <- sigex.psi2par(psi,mdl,data)
 
-#######################################################################
+#################################
 ########################## METHOD 1: DIRECT MATRIX APPROACH ############
 ############################### SKIP ###############################
 

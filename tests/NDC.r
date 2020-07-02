@@ -1,6 +1,6 @@
-###########################
-#### Script for Petrol Data
-###########################
+########################
+#### Script for NDC Data
+########################
 
 ## wipe
 rm(list=ls())
@@ -15,6 +15,7 @@ load_all(".")
 
 # automatic
 
+# HERE
 
 #############################################################
 ### Part II: Metadata Specifications and Exploratory Analysis
@@ -68,7 +69,6 @@ mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)
 # regressors:
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
-# HERE
 
 ## parameter initialization and checks
 par.default <- sigex.default(mdl,data.ts)[[1]]
@@ -180,7 +180,17 @@ extract.irr <- sigex.extract(data.ts,signal.irr,mdl,param)
 ## get fixed effects
 reg.trend <- NULL
 for(i in 1:N) {
-reg.trend <- cbind(reg.trend,sigex.fixed(data.ts,mdl,i,param,"Trend")) }
+  reg.trend <- cbind(reg.trend,sigex.fixed(data.ts,mdl,i,param,"Trend")) }
+
+#grid <- 70000	# high accuracy, close to method 1
+grid <- 700		# low accuracy, but pretty fast
+window <- 200
+horizon <- 0
+#leads <- c(-rev(seq(0,window-1)),seq(1,T),seq(T+1,T+window))
+#data.ext <- t(sigex.cast(psi,mdl,data,leads,TRUE))
+
+
+
 
 ## plotting
 trendcol <- "tomato"
@@ -189,11 +199,11 @@ fade <- 40
 par(mfrow=c(2,1),mar=c(5,4,4,5)+.1)
 for(i in 1:N)
 {
-	plot(data.ts[,i],xlab="Year",ylab="Trend",ylim=c(min(data.ts[,i]),max(data.ts[,i])),
-		lwd=2,yaxt="n",xaxt="n")
-	sigex.graph(extract.trend,reg.trend,begin.date,period,i,0,trendcol,fade)
-	axis(1,cex.axis=1)
-	axis(2,cex.axis=1)
+  plot(data.ts[,i],xlab="Year",ylab="Trend",ylim=c(min(data.ts[,i]),max(data.ts[,i])),
+       lwd=2,yaxt="n",xaxt="n")
+  sigex.graph(extract.trend,reg.trend,begin.date,period,i,0,trendcol,fade)
+  axis(1,cex.axis=1)
+  axis(2,cex.axis=1)
 }
 dev.off()
 

@@ -42,18 +42,12 @@ data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 
 ## levels
 par(mfrow=c(2,2))
-for(i in subseries)
-{
-	sigex.specar(data.ts,FALSE,i,period)
-}
+for(i in subseries) {	sigex.specar(data.ts,FALSE,i,period) }
 dev.off()
 
 ## growth rates
 par(mfrow=c(2,2))
-for(i in subseries)
-{
-	sigex.specar(data.ts,TRUE,i,period)
-}
+for(i in subseries) {	sigex.specar(data.ts,TRUE,i,period) }
 dev.off()
 
 
@@ -198,8 +192,7 @@ extract.sa <- sigex.extract(data.ts,signal.sa,mdl,param)
 
 ## get fixed effects
 reg.trend <- NULL
-for(i in 1:N) {
-  reg.trend <- cbind(reg.trend,param[[4]][i]*mdl[[4]][[i]]) }
+for(i in 1:N) { reg.trend <- cbind(reg.trend,param[[4]][i]*mdl[[4]][[i]]) }
 
 ## plotting
 trendcol <- "tomato"
