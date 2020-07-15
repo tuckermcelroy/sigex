@@ -13,11 +13,11 @@ load_all(".")
 ###########################################
 ### Part I: load data and special functions
 
-load("C:\\Users\\neide\\OneDrive\\Documents\\Research\\bfs.RData")
+load("C:\\Users\\neide\\OneDrive\\Documents\\Research\\Casting\\bfs.RData")
 
 ubgenerator <- function(period,trunc.len,m)
 {
-  
+
   ceps2wold <- function(ceps,q)
   {
     m <- length(ceps)
@@ -31,17 +31,17 @@ ubgenerator <- function(period,trunc.len,m)
     }
     return(wolds)
   }
-  
+
   half.len <- floor(period/2)
   if(length(trunc.len)==0) { trunc.len <- half.len }
   ceps <- rep(0,m)
-  
+
   for(ell in 1:m)
   {
     ceps[ell] <- -2*sum(cos(2*pi*ell*seq(1,trunc.len)/period))/ell
   }
   wolds <- ceps2wold(ceps,2*trunc.len)
-  
+
   return(wolds)
 }
 
@@ -50,22 +50,22 @@ ubgenerator <- function(period,trunc.len,m)
 #############################################################
 ### Part II: Metadata Specifications and Exploratory Analysis
 
-begin <- c(2006,1) 
-end <- c(2020,18)
+begin <- c(2006,1)
+end <- c(2020,27)
 period <- 52
 #first.day <- 1
 
 ## create ts object and plot
-dataALL.ts <- sigex.load(bfs,begin,period,"bfs",TRUE)
+dataALL.ts <- sigex.load(bfs,begin,period,"bfs",FALSE)
 
 #############################
-## select span and transforms 
+## select span and transforms
 
 transform <- "log"
 aggregate <- FALSE
 subseries <- 1
 range <- NULL
-data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
+data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,FALSE)
 
 
 #######################
@@ -94,12 +94,11 @@ dev.off()
 N <- dim(data.ts)[2]
 T <- dim(data.ts)[1]
 
-############################## 
+##############################
 ## Generate holiday regressors
 
-#easter.dates <- read.table("data\\easter500.txt")
-#easter.reg1 <- gethol(easter.dates,0,0,start.date,end.date)
-#easter.reg2 <- gethol(easter.dates,8,-1,start.date,end.date)
+easter.dates <- read.table("data\\easter500.txt")
+easter.reg <- gethol(easter.dates,7,0,start.date,end.date)
 
 
 ##############
@@ -108,7 +107,7 @@ T <- dim(data.ts)[1]
 # model construction
 mdl <- NULL
 mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),list(1,1,1,1),"process",1)
-mdl <- sigex.meaninit(mdl,data.ts,0)	
+mdl <- sigex.meaninit(mdl,data.ts,0)
 
 ##################################
 ### PART IV: Model Fitting
@@ -117,21 +116,21 @@ constraint <- NULL
 par.mle <- sigex.default(mdl,data.ts,constraint)
 psi.mle <- sigex.par2psi(par.mle,mdl)
 
-## run fitting:  
+## run fitting:
 fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
 ## manage output
-psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint) 
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
 hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
 ## input parameter from previous fit (MLE on entire span)
-#  divergence:    -2084.366 lik
-#psi.mle <- c(-3.86830013490459, 6.08187233213583, 3.6806305674002, 3.98416618713543, 
-#             1.65616209571557, 10.9517270937398)
+#  divergence:    -2076.881 lik
+#psi.mle <- c(-3.82130660051201, 6.55294873414615, 3.80965936769506, 3.88542473367833,
+#     1.62833607331469, 11.0528714439272)
 #par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
-##  model checking 
+##  model checking
 resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
 resid.mle <- sigex.load(t(Re(resid.mle)),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 resid.acf <- acf(resid.mle,lag.max=4*53,plot=FALSE)$acf
@@ -149,12 +148,12 @@ for(j in 1:N)
 }
 #dev.off()
 
-# bundle 
+# bundle
 analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
 
 
 ##########################################
-### Part V: Signal Extraction  
+### Part V: Signal Extraction
 
 setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\Casting\\Figures")
 
@@ -197,7 +196,7 @@ sa.filter <- array(sa.filter,c(1,1,length(sa.filter)))
 trend.comp <- sigex.adhocextract(psi,mdl,data.ts,trend.filter,half.len,0,TRUE)
 sa.comp <- sigex.adhocextract(psi,mdl,data.ts,sa.filter,shift,0,TRUE)
 
- 
+
 ## get fixed effects
 reg.trend <- NULL
 reg.trend <- cbind(reg.trend,param[[4]]*rep(1,T))
@@ -216,7 +215,7 @@ sigex.graph(trend.comp,reg.trend,start(data.ts),
 sigex.graph(sa.comp,reg.trend,start(data.ts),
             period,1,0,sacol,fade)
 #dev.off()
- 
+
 
 ## spectral diagnostics: seasonal adjustment
 sigex.specar(sa.comp[[1]],FALSE,1,period)
