@@ -107,7 +107,7 @@ if(day.index <= 0)
   year.index <- year.index-1
 }
 start.date <- day2date(day.index-1,c(1,1,year.index))
-end.date <- day2date(day.index-1 + 7*T,c(1,1,year.index))
+end.date <- day2date(day.index-2 + 7*T,c(1,1,year.index))
 
 ##############################
 ## Generate holiday regressors
@@ -148,6 +148,44 @@ xmas.reg <- gethol(xmas.dates,7,0,start.date,end.date)
 black.dates <- read.table("data\\black400.txt")
 black.reg <- gethol(black.dates,7,0,start.date,end.date)
 
+####################################
+## Convert to weekly flow regressors
+
+easter.reg <- sigex.daily2weekly(easter.reg,first.day,start.date)
+easter.reg <- rowSums(easter.reg)/7
+
+nyd.reg <- sigex.daily2weekly(nyd.reg,first.day,start.date)
+nyd.reg <- rowSums(nyd.reg)/7
+
+mlk.reg <- sigex.daily2weekly(mlk.reg,first.day,start.date)
+mlk.reg <- rowSums(mlk.reg)/7
+
+gw.reg <- sigex.daily2weekly(gw.reg,first.day,start.date)
+gw.reg <- rowSums(gw.reg)/7
+
+mem.reg <- sigex.daily2weekly(mem.reg,first.day,start.date)
+mem.reg <- rowSums(mem.reg)/7
+
+ind.reg <- sigex.daily2weekly(ind.reg,first.day,start.date)
+ind.reg <- rowSums(ind.reg)/7
+
+labor.reg <- sigex.daily2weekly(labor.reg,first.day,start.date)
+labor.reg <- rowSums(labor.reg)/7
+
+col.reg <- sigex.daily2weekly(col.reg,first.day,start.date)
+col.reg <- rowSums(col.reg)/7
+
+vet.reg <- sigex.daily2weekly(vet.reg,first.day,start.date)
+vet.reg <- rowSums(vet.reg)/7
+
+tg.reg <- sigex.daily2weekly(tg.reg,first.day,start.date)
+tg.reg <- rowSums(tg.reg)/7
+
+xmas.reg <- sigex.daily2weekly(xmas.reg,first.day,start.date)
+xmas.reg <- rowSums(xmas.reg)/7
+
+black.reg <- sigex.daily2weekly(black.reg,first.day,start.date)
+black.reg <- rowSums(black.reg)/7
 
 
 ##############
@@ -157,6 +195,63 @@ black.reg <- gethol(black.dates,7,0,start.date,end.date)
 mdl <- NULL
 mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),list(1,1,1,1),"process",1)
 mdl <- sigex.meaninit(mdl,data.ts,0)
+
+reg <- ts(as.matrix(easter.reg),start=start(easter.reg),
+          frequency=period,
+          names="Easter")
+
+mdl <- sigex.reg(mdl,1,reg)
+
+
+mdl <- sigex.reg(mdl,1,ts(as.matrix(easter.reg),
+                            start=start(easter.reg),
+                            frequency=period,
+                            names="Easter"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(nyd.reg),
+                          start=start(nyd.reg),
+                          frequency=period,
+                          names="NewYearDay"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(mlk.reg),
+                          start=start(mlk.reg),
+                          frequency=period,
+                          names="MLK"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(gw.reg),
+                          start=start(gw.reg),
+                          frequency=period,
+                          names="GeorgeWashington"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(mem.reg),
+                          start=start(mem.reg),
+                          frequency=period,
+                          names="MemorialDay"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(ind.reg),
+                          start=start(ind.reg),
+                          frequency=period,
+                          names="IndependenceDay"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(labor.reg),
+                          start=start(labor.reg),
+                          frequency=period,
+                          names="LaborDay"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(col.reg),
+                          start=start(col.reg),
+                          frequency=period,
+                          names="ColumbusDay"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(vet.reg),
+                          start=start(vet.reg),
+                          frequency=period,
+                          names="VeteransDay"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(tg.reg),
+                          start=start(tg.reg),
+                          frequency=period,
+                          names="Thanksgiving"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(xmas.reg),
+                          start=start(xmas.reg),
+                          frequency=period,
+                          names="Xmas"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(black.reg),
+                          start=start(black.reg),
+                          frequency=period,
+                          names="BlackFriday"))
+
 
 ##################################
 ### PART IV: Model Fitting
