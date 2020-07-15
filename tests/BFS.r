@@ -53,7 +53,6 @@ ubgenerator <- function(period,trunc.len,m)
 begin <- c(2006,1)
 end <- c(2020,27)
 period <- 52
-#first.day <- 1
 
 ## create ts object and plot
 dataALL.ts <- sigex.load(bfs,begin,period,"bfs",FALSE)
@@ -94,11 +93,61 @@ dev.off()
 N <- dim(data.ts)[2]
 T <- dim(data.ts)[1]
 
+# code to get calendar date for Sunday of the first week
+first.day <- 1
+start.year <- begin[1]
+start.week <- begin[2]
+day.lead <- day2week(c(1,1,start.year)) - first.day
+if(day.lead < 0) { day.lead <- day.lead + 7 }
+day.index <- 7*(start.week-1) - day.lead + 1
+year.index <- start.year
+if(day.index <= 0)
+{
+  day.index <- date2day(12,31,start.year-1) + day.index
+  year.index <- year.index-1
+}
+start.date <- day2date(day.index-1,c(1,1,year.index))
+end.date <- day2date(day.index-1 + 7*T,c(1,1,year.index))
+
 ##############################
 ## Generate holiday regressors
 
 easter.dates <- read.table("data\\easter500.txt")
 easter.reg <- gethol(easter.dates,7,0,start.date,end.date)
+
+nyd.dates <- read.table("data\\newyear500.txt")
+nyd.reg <- gethol(nyd.dates,7,0,start.date,end.date)
+
+mlk.dates <- read.table("data\\mlk500.txt")
+mlk.reg <- gethol(mlk.dates,7,0,start.date,end.date)
+
+gw.dates <- read.table("data\\gw500.txt")
+gw.reg <- gethol(gw.dates,7,0,start.date,end.date)
+
+mem.dates <- read.table("data\\mem500.txt")
+mem.reg <- gethol(mem.dates,7,0,start.date,end.date)
+
+ind.dates <- read.table("data\\ind500.txt")
+ind.reg <- gethol(ind.dates,7,0,start.date,end.date)
+
+labor.dates <- read.table("data\\labor500.txt")
+labor.reg <- gethol(labor.dates,7,0,start.date,end.date)
+
+col.dates <- read.table("data\\columbus500.txt")
+col.reg <- gethol(col.dates,7,0,start.date,end.date)
+
+vet.dates <- read.table("data\\vet500.txt")
+vet.reg <- gethol(vet.dates,7,0,start.date,end.date)
+
+tg.dates <- read.table("data\\thanksgiving500.txt")
+tg.reg <- gethol(tg.dates,7,0,start.date,end.date)
+
+xmas.dates <- read.table("data\\xmas500.txt")
+xmas.reg <- gethol(xmas.dates,7,0,start.date,end.date)
+
+black.dates <- read.table("data\\black400.txt")
+black.reg <- gethol(black.dates,7,0,start.date,end.date)
+
 
 
 ##############

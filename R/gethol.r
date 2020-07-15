@@ -86,7 +86,8 @@ gethol <- function(hol.dates,hol.fore,hol.aft,start.date,end.date)
 	for(i in 1:length(hol.index))
 	{
 		year.len <- date2day(12,31,hol.dates[i,3])
-		hol.reg[(hol.index[i]-hol.fore):(hol.index[i]+hol.aft)] <- 1.0
+		if((hol.index[i]-hol.fore > 0) && (hol.index[i]+hol.aft <= length(hol.reg)))
+		{ hol.reg[(hol.index[i]-hol.fore):(hol.index[i]+hol.aft)] <- 1.0 }
 		hol.year.reg <- hol.reg[(ny+1):(ny+year.len)]
 		if(year.len==365) {
 			hol.means[-leap.index] <- hol.means[-leap.index] + hol.year.reg } else
