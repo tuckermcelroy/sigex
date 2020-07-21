@@ -10,40 +10,11 @@ library(devtools)
 setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
 
-###########################################
-### Part I: load data and special functions
+#####################
+### Part I: load data
 
 #load("C:\\Users\\neide\\OneDrive\\Documents\\Research\\Casting\\bfs.RData")
 
-ubgenerator <- function(period,trunc.len,m)
-{
-
-  ceps2wold <- function(ceps,q)
-  {
-    m <- length(ceps)
-    if(q > m) {	ceps <- c(ceps,rep(0,q-m)) }
-    wold <- 1
-    wolds <- wold
-    for(j in 1:q)
-    {
-      wold <- sum(seq(1,j)*ceps[1:j]*wolds[j:1])/j
-      wolds <- c(wolds,wold)
-    }
-    return(wolds)
-  }
-
-  half.len <- floor(period/2)
-  if(length(trunc.len)==0) { trunc.len <- half.len }
-  ceps <- rep(0,m)
-
-  for(ell in 1:m)
-  {
-    ceps[ell] <- -2*sum(cos(2*pi*ell*seq(1,trunc.len)/period))/ell
-  }
-  wolds <- ceps2wold(ceps,2*trunc.len)
-
-  return(wolds)
-}
 
 
 
@@ -55,7 +26,7 @@ end <- c(2020,27)
 period <- 52
 
 ## create ts object and plot
-dataALL.ts <- sigex.load(bfs,begin,period,"bfs",FALSE)
+dataALL.ts <- sigex.load(bfs,begin,period,c("bfs-ba","bfs-hba","bfs-wba","bfs-cba"),FALSE)
 
 #############################
 ## select span and transforms
@@ -64,7 +35,7 @@ transform <- "log"
 aggregate <- FALSE
 subseries <- 1
 range <- NULL
-data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,FALSE)
+data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 
 
 #######################
@@ -214,9 +185,9 @@ par.mle <- fit.mle[[2]]
 
 ## MLE fitting results, no holidays
 #  divergence:    -2076.881 lik
-#psi.mle <- c(-3.82130660051201, 6.55294873414615, 3.80965936769506, 3.88542473367833,
-#     1.62833607331469, 11.0528714439272)
-#par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
+psi.mle <- c(-3.82130660051201, 6.55294873414615, 3.80965936769506, 3.88542473367833,
+     1.62833607331469, 11.0528714439272)
+par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 
 ## (b) Improved Model: add holidays
@@ -262,7 +233,11 @@ par.mle <- fit.mle[[2]]
 #par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 
-## (c) Final Model: retain holidays NewYears, MLK, and Labor Day
+## (c) Final Model: retain holidays NewYears, MLK, and Labor Day,
+#       and AO at time 314.
+
+dataNA.ts <- data.ts
+dataNA.ts[314] <- NA
 
 # model construction
 mdl <- NULL
@@ -275,7 +250,7 @@ mdl <- sigex.reg(mdl,1,ts(as.matrix(mlk.reg),start=start(mlk.reg),frequency=peri
 mdl <- sigex.reg(mdl,1,ts(as.matrix(labor.reg),start=start(labor.reg),frequency=period,names="LaborDay"))
 
 constraint <- NULL
-par.mle <- sigex.default(mdl,data.ts,constraint)
+par.mle <- sigex.default(mdl,dataNA.ts,constraint)
 psi.mle <- sigex.par2psi(par.mle,mdl)
 
 ## run fitting:
@@ -288,10 +263,10 @@ par.mle <- fit.mle[[2]]
 
 ## MLE fitting results, three holidays
 #  divergence:     -2092.519 lik
-#psi.mle <- c(-3.83868060830267, 6.60451435584053, 3.78702853040117, 3.9054120202896,
-#             1.70841911697561, 11.0570844069621, -0.221752009526172, -0.252743759088049,
-#             0.137169882397081)
-#par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
+psi.mle <- c(-3.83868060830267, 6.60451435584053, 3.78702853040117, 3.9054120202896,
+             1.70841911697561, 11.0570844069621, -0.221752009526172, -0.252743759088049,
+             0.137169882397081)
+par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 
 
