@@ -15,16 +15,16 @@ load_all(".")
 
 # automatic
 
-# HERE
-
 #############################################################
 ### Part II: Metadata Specifications and Exploratory Analysis
 
-start.date <- c(1973,1)
+start.date <- c(1992,1)
+end.date <- c(2020,5)
 period <- 12
 
 ## create ts object and plot
-dataALL.ts <- sigex.load(petrol[,c(1,2)],start.date,period,c("Consumption","Imports"),TRUE)
+dataALL.ts <- sigex.load(ndc,start.date,period,c("Shipments","NewOrders"),TRUE)
+
 
 #############################
 ## select span and transforms
@@ -58,110 +58,52 @@ dev.off()
 N <- dim(data.ts)[2]
 T <- dim(data.ts)[1]
 
-
-################################
-## Default Model: Related Trends
+#######################################
+## Default Model: Trend-Cycle-Irregular
 
 ## model construction
 mdl <- NULL
 mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend",c(1,-1))
+mdl <- sigex.add(mdl,seq(1,N),"cycleBAL",1,0,"cycle",1)
 mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)
 # regressors:
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
 
-## parameter initialization and checks
-par.default <- sigex.default(mdl,data.ts)[[1]]
-flag.default <- sigex.default(mdl,data.ts)[[2]]
-psi.default <- sigex.par2psi(par.default,flag.default,mdl)
-resid.init <- sigex.resid(psi.default,mdl,data.ts)[[1]]
-resid.init <- sigex.load(t(resid.init),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-acf(resid.init,lag.max=40)
+#############################
+### Part IV: Model Estimation
 
+constraint <- NULL
+par.mle <- sigex.default(mdl,data.ts,constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl)
 
-###################################################
-### Part IV: MLE Estimation of Related Trends Model
-
-## setup, and fix parameters as desired
-mdl.mle <- mdl
-psi.mle <- psi.default
-flag.mle <- Im(psi.mle)
-par.mle <- sigex.psi2par(psi.mle,mdl.mle,data.ts)
-
-## run fitting
-fit.mle <- sigex.mlefit(data.ts,par.mle,flag.mle,mdl.mle,"bfgs")
+## run fitting:
+fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
 ## manage output
-psi.mle[flag.mle==1] <- fit.mle[[1]]$par
-psi.mle <- psi.mle + 1i*flag.mle
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
 hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
-
-##  model checking
-resid.mle <- sigex.resid(psi.mle,mdl.mle,data.ts)[[1]]
+resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
 resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-sigex.portmanteau(resid.mle,4*period,length(psi.mle))
-sigex.gausscheck(resid.mle)
 acf(resid.mle,lag.max=40)
 
-## check on standard errors and condition numbers
-print(eigen(hess)$values)
-taus <- log(sigex.conditions(data.ts,psi.mle,mdl.mle))
-print(taus)
-tstats <- sigex.tstats(mdl.mle,psi.mle,hess)
-stderrs <- sigex.psi2par(tstats,mdl,data.ts)
-print(tstats)
+## examine condition numbers
+log(sigex.conditions(data.ts,psi.mle,mdl))
+
+## model checking
+sigex.portmanteau(resid.mle,4*period,length(psi.mle))
+sigex.gausscheck(resid.mle)
 
 ## bundle
 analysis.mle <- sigex.bundle(data.ts,transform,mdl.mle,psi.mle)
 
-
-
-#################################################
-### Part V: MLE Estimation of Common Trends Model
-
-mdl.mle2 <- mdl.mle
-mdl.mle2[[1]][[1]] <- 1
-
-par.mle2 <- sigex.default(mdl.mle2,data.ts)[[1]]
-flag.ml2 <- sigex.default(mdl.mle2,data.ts)[[2]]
-psi.mle2 <- sigex.par2psi(par.mle2,flag.mle2,mdl.mle2)
-
-# run fitting
-fit.mle2 <- sigex.mlefit(data.ts,par.mle2,flag.mle2,mdl.mle2,"bfgs")
-
-## manage output
-psi.mle2[flag.mle2==1] <- fit.mle2[[1]]$par
-psi.mle2 <- psi.mle2 + 1i*flag.mle2
-hess2 <- fit.mle2[[1]]$hessian
-par.mle2 <- fit.mle2[[2]]
-
-##  model checking
-resid.mle2 <- sigex.resid(psi.mle2,mdl.mle2,data.ts)[[1]]
-resid.mle2 <- sigex.load(t(resid.mle2),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-sigex.portmanteau(resid.mle2,4*period,length(psi.mle2))
-sigex.gausscheck(resid.mle2)
-acf(resid.mle2,lag.max=40)
-
-## check on standard errors and condition numbers
-print(eigen(hess2)$values)
-taus2 <- log(sigex.conditions(data.ts,psi.mle2,mdl.mle2))
-print(taus2)
-tstats <- sigex.tstats(mdl.mle2,psi.mle2,hess2)
-stderrs <- sigex.psi2par(tstats,mdl.mle2,data.ts)
-print(tstats)
-
-# model comparison
-test.glr <- sigex.glr(data.ts,psi.mle2,psi.mle,mdl.mle2,mdl.mle)
-1-pchisq(test.glr[1],df=test.glr[2])
-
-# bundle
-analysis.mle2 <- sigex.bundle(data.ts,transform,mdl.mle2,psi.mle2)
+# HERE
 
 
 
 ###########################################
-### Part VI: Signal Extraction based on MLE
+### Part V: Signal Extraction based on MLE
 
 ## load up the MLE fit for signal extraction
 data.ts <- analysis.mle[[1]]
@@ -169,50 +111,90 @@ mdl <- analysis.mle[[3]]
 psi <- analysis.mle[[4]]
 param <- sigex.psi2par(psi,mdl,data.ts)
 
-## get signal filters
-signal.trend <- sigex.signal(data.ts,param,mdl,1)
-signal.irr <- sigex.signal(data.ts,param,mdl,2)
 
-## get extractions
-extract.trend <- sigex.extract(data.ts,signal.trend,mdl,param)
-extract.irr <- sigex.extract(data.ts,signal.irr,mdl,param)
-
-## get fixed effects
-reg.trend <- NULL
-for(i in 1:N) {
-  reg.trend <- cbind(reg.trend,sigex.fixed(data.ts,mdl,i,param,"Trend")) }
+####################################################################
+############################# METHOD 2: FORECASTING and WK SIGEX
 
 #grid <- 70000	# high accuracy, close to method 1
-grid <- 700		# low accuracy, but pretty fast
-window <- 200
+#grid <- 700	# low accuracy, but pretty fast
+grid <- 7000	# need grid > filter length
+window <- 100
 horizon <- 0
-#leads <- c(-rev(seq(0,window-1)),seq(1,T),seq(T+1,T+window))
-#data.ext <- t(sigex.cast(psi,mdl,data,leads,TRUE))
+target <- array(diag(N),c(N,N,1))
+
+extract.trend <- sigex.wkextract(psi,mdl,data.ts,1,target,grid,window,horizon,TRUE)
+extract.cycle <- sigex.wkextract(psi,mdl,data.ts,2,target,grid,window,horizon,TRUE)
+extract.irr <- sigex.wkextract(psi,mdl,data.ts,3,target,grid,window,horizon,TRUE)
+extract.noncyc <- sigex.wkextract(psi,mdl,data.ts,c(1,3),target,grid,window,horizon,TRUE)
+extract.hp <- sigex.wkextract(psi,mdl,data.ts,c(2,3),target,grid,window,horizon,TRUE)
+extract.lp <- sigex.wkextract(psi,mdl,data.ts,c(1,2),target,grid,window,horizon,TRUE)
 
 
+#########################################
+### get fixed effects
 
+reg.trend <- NULL
+for(i in 1:N) {
+  reg.trend <- cbind(reg.trend,sigex.fixed(data,mdl,i,param,"Trend"))
+}
 
 ## plotting
 trendcol <- "tomato"
-cyccol <- "navyblue"
-fade <- 40
-par(mfrow=c(2,1),mar=c(5,4,4,5)+.1)
+cyccol <- "orchid"
+seascol <- "seagreen"
+sacol <- "navyblue"
+fade <- 60
+#pdf(file="NdcSignals.pdf")
+par(mfrow=c(2,2))
 for(i in 1:N)
 {
-  plot(data.ts[,i],xlab="Year",ylab="Trend",ylim=c(min(data.ts[,i]),max(data.ts[,i])),
-       lwd=2,yaxt="n",xaxt="n")
-  sigex.graph(extract.trend,reg.trend,begin.date,period,i,0,trendcol,fade)
-  axis(1,cex.axis=1)
-  axis(2,cex.axis=1)
+  plot(data.ts[,i],xlab="Year",ylab="",ylim=c(min(data.ts[,i])-25,max(data.ts[,i])),lwd=1)
+  sigex.graph(extract.trend,reg.trend,begin.date,period,i,0,sacol,fade)
+  sigex.graph(extract.lp,reg.trend,begin.date,period,i,0,trendcol,fade)
+  sigex.graph(extract.cycle,NULL,begin.date,period,i,min(data.ts[,i])-10,seascol,fade)
 }
-dev.off()
+#dev.off()
+
+
+## spectral diagnostics: trend
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+  sigex.specar(ts(extract.trend[[1]],frequency=period,names=colnames(data.ts)),FALSE,i,period)
+}
+#dev.off()
+
+## spectral diagnostics: sa
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+  sigex.specar(ts(extract.sa[[1]],frequency=period,names=colnames(data.ts)),FALSE,i,period)
+}
+#dev.off()
 
 ## transfer function analysis
 grid <- 200
+#pdf(file="StartsTrendfrf.pdf")
 frf.trend <- sigex.getfrf(data.ts,param,mdl,1,TRUE,grid)
+#dev.off()
+#pdf(file="StartsSeasfrf.pdf")
+frf.seas <- sigex.getfrf(data.ts,param,mdl,seq(2,7),TRUE,grid)
+#dev.off()
+#pdf(file="StartsSAfrf.pdf")
+frf.sa <- sigex.getfrf(data.ts,param,mdl,c(1,8),TRUE,grid)
+#dev.off()
 
 ## filter analysis
 len <- 50
-wk.trend <- sigex.wk(data.ts,param,mdl,1,TRUE,grid,len)
+target <- array(diag(N),c(N,N,1))
+#pdf(file="StartsTrendwk.pdf")
+wk.trend <- sigex.wk(data.ts,param,mdl,1,target,TRUE,grid,len)
+#dev.off()
+#pdf(file="StartsSeaswk.pdf")
+wk.seas <- sigex.wk(data.ts,param,mdl,seq(2,7),target,TRUE,grid,len)
+#dev.off()
+#pdf(file="StartsSAwk.pdf")
+wk.sa <- sigex.wk(data.ts,param,mdl,c(1,8),target,TRUE,grid,len)
+#dev.off()
 
 

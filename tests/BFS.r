@@ -31,6 +31,7 @@ dataALL.ts <- sigex.load(bfs,begin,period,c("bfs-ba","bfs-hba","bfs-wba","bfs-cb
 #############################
 ## select span and transforms
 
+# we focus on "bfs-ba", business applications of bfs
 transform <- "log"
 aggregate <- FALSE
 subseries <- 1
@@ -184,10 +185,10 @@ hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
 ## MLE fitting results, no holidays
-#  divergence:    -2076.881 lik
-psi.mle <- c(-3.82130660051201, 6.55294873414615, 3.80965936769506, 3.88542473367833,
-     1.62833607331469, 11.0528714439272)
-par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
+#  divergence:    -2084.366 lik
+#psi.mle <- c(-3.86830013490459, 6.08187233213583, 3.6806305674002, 3.98416618713543,
+#             1.65616209571557, 10.9517270937398)
+#par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 
 ## (b) Improved Model: add holidays
@@ -225,16 +226,16 @@ hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
 ## MLE fitting results, all holidays
-#  divergence:    -2089.925 lik
-#psi.mle <- c(-3.85211236205511, 10.5732757025848, 3.89562694233651, 4.08558530244727,
-#  1.80869692181588, 13.1014026340267, -0.000293736512980122, -0.222659717911844,
-#  -0.250177133568453, 0.0988001854155316, 0.0859847200965163, 0.139098491514792,
-#  -0.0819199138033471, -0.166531078048871, 0.0762222534500927)
+#  divergence:    -2103.4 lik
+#psi.mle <- c(-3.895857364407, 6.26245279980034, 3.67958193253905, 4.10627094233825,
+#1.78483739260471, 10.9684488747207, -0.00360963369959194, -0.214866996734432,
+#-0.250155217787393, 0.0850364492677804, 0.105441772823659, 0.13384379803163,
+#-0.0815683136196976, -0.185303694782982, 0.0963338582928288)
 #par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 
 ## (c) Final Model: retain holidays NewYears, MLK, and Labor Day,
-#       and AO at time 314.
+#       and AO at time 314.  ??? at time 365
 
 dataNA.ts <- data.ts
 dataNA.ts[314] <- NA
@@ -242,7 +243,7 @@ dataNA.ts[314] <- NA
 # model construction
 mdl <- NULL
 mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),list(1,1,1,1),"process",1)
-mdl <- sigex.meaninit(mdl,data.ts,0)
+mdl <- sigex.meaninit(mdl,dataNA.ts,0)
 
 # add regressors
 mdl <- sigex.reg(mdl,1,ts(as.matrix(nyd.reg),start=start(nyd.reg),frequency=period,names="NewYearDay"))
@@ -254,7 +255,7 @@ par.mle <- sigex.default(mdl,dataNA.ts,constraint)
 psi.mle <- sigex.par2psi(par.mle,mdl)
 
 ## run fitting:
-fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+fit.mle <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
 ## manage output
 psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
