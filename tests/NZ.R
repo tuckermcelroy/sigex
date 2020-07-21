@@ -7,7 +7,8 @@ rm(list=ls())
 
 library(devtools)
 
-setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
+#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
+setwd("/home/tucker/Documents/GitHub/sigex")
 load_all(".")
 
 
