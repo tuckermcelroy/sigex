@@ -235,10 +235,11 @@ par.mle <- fit.mle[[2]]
 
 
 ## (c) Final Model: retain holidays NewYears, MLK, and Labor Day,
-#       and AO at time 314.  ??? at time 365
+#       and AO at time 314.
 
+AO.times <- 314
 dataNA.ts <- data.ts
-dataNA.ts[314] <- NA
+dataNA.ts[AO.times] <- NA
 
 # model construction
 mdl <- NULL
@@ -263,19 +264,27 @@ hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
 ## MLE fitting results, three holidays
-#  divergence:     -2092.519 lik
-psi.mle <- c(-3.83868060830267, 6.60451435584053, 3.78702853040117, 3.9054120202896,
-             1.70841911697561, 11.0570844069621, -0.221752009526172, -0.252743759088049,
-             0.137169882397081)
-par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
+#  divergence:     -22352.565 lik
+#psi.mle <- c(-4.2172882182669, 5.57674429648121, 3.40898364772876, 3.15499052371806,
+#             1.0722723838464, 10.9310705588039, -0.405574584987, -0.230573115487113,
+#             0.127008620952714)
+#par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 
 
 ## (d) Model checking
 
+# t statistics for parameters
 sigex.tstats(mdl,psi.mle,hess,constraint)
+#c(-80.1982272544983, 8.77130698395869, 11.8384768942071, 10.3717137333452,
+#5.72147253489335, 76.6054586574405, -4.93403242525173, -2.86138888156494,
+#1.42997308493168)
 
-resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
+# outlier calculations
+data.casts <- sigex.midcast(psi.mle,mdl,dataNA.ts,0)
+
+# residual analysis
+resid.mle <- sigex.resid(psi.mle,mdl,dataNA.ts)[[1]]
 resid.mle <- sigex.load(t(Re(resid.mle)),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 resid.acf <- acf(resid.mle,lag.max=4*53,plot=FALSE)$acf
 
@@ -307,6 +316,13 @@ mdl <- analysis.mle[[3]]
 psi <- analysis.mle[[4]]
 param <- sigex.psi2par(psi,mdl,data.ts)
 
+## get fixed effects
+reg.trend <- as.matrix(param[[4]][1]*mdl[[4]][[1]][,1])
+reg.nyd <- as.matrix(param[[4]][2]*mdl[[4]][[1]][,2])
+reg.mlk <- as.matrix(param[[4]][3]*mdl[[4]][[1]][,3])
+reg.labor <- as.matrix(param[[4]][4]*mdl[[4]][[1]][,4])
+dataLIN.ts <- data.ts - (reg.trend + reg.nyd + reg.mlk + reg.labor)
+
 ## define trend and SA weekly filters
 week.period <- 365.25/7
 half.len <- floor(week.period/2)
@@ -327,8 +343,8 @@ for(j in 1:p.seas)
 }
 seas.filter <- c(rep(0,length(seas.filter)-1),seas.filter)
 seas.filter <- seas.filter + rev(seas.filter)
-seas.filter <- seas.filter/factor
 factor <- 2*p.seas + 1
+seas.filter <- seas.filter/factor
 seas.filter <- c(rep(0,(length(seas.filter)-1)/2),1,rep(0,(length(seas.filter)-1)/2)) - seas.filter
 #plot.ts(seas.filter)
 sa.filter <- polymult(detrend.filter,seas.filter)
@@ -336,18 +352,14 @@ shift <- (length(sa.filter)-1)/2
 sa.filter <- c(1,rep(0,shift)) - rev(sa.filter[1:(shift+1)])
 sa.filter <- c(rev(sa.filter),sa.filter[-1])
 #plot.ts(sa.filter)
-
 trend.filter <- array(trend.filter,c(1,1,length(trend.filter)))
 sa.filter <- array(sa.filter,c(1,1,length(sa.filter)))
-trend.comp <- sigex.adhocextract(psi,mdl,data.ts,trend.filter,half.len,0,TRUE)
-sa.comp <- sigex.adhocextract(psi,mdl,data.ts,sa.filter,shift,0,TRUE)
 
-
-## get fixed effects
-reg.trend <- as.matrix(param[[4]][1]*mdl[[4]][[1]][,1])
-reg.nyd <- as.matrix(param[[4]][2]*mdl[[4]][[1]][,2])
-reg.mlk <- as.matrix(param[[4]][3]*mdl[[4]][[1]][,3])
-reg.labor <- as.matrix(param[[4]][4]*mdl[[4]][[1]][,4])
+## compute extractions
+trend.comp <- sigex.adhocextract(psi,mdl,dataNA.ts,trend.filter,half.len,0,TRUE)
+sa.comp <- sigex.adhocextract(psi,mdl,dataNA.ts,sa.filter,shift,0,TRUE)
+AO.errs <- dataLIN.ts[AO.times] - data.casts[[1]]
+sa.comp[[1]][AO.times] <- sa.comp[[1]][AO.times] + AO.errs
 
 ## plotting
 trendcol <- "tomato"
@@ -361,32 +373,15 @@ plot(data.ts)
 #lines(data.ts-as.matrix(reg.nyd+reg.mlk+reg.labor),col=cyccol)
 sigex.graph(trend.comp,reg.trend,start(data.ts),
             period,1,0,trendcol,fade)
-sigex.graph(sa.comp,reg.trend+reg.nyd+reg.mlk+reg.labor,start(data.ts),
+sigex.graph(sa.comp,reg.trend,start(data.ts),
             period,1,0,sacol,fade)
 #dev.off()
 
 write(t(cbind(trend.comp[[1]][,1]+reg.trend,
-              sa.comp[[1]][,1]+reg.trend+reg.nyd+reg.mlk+reg.labor)),
+              sa.comp[[1]][,1]+reg.trend)),
               file="signals.dat",ncol=2)
 
 ## spectral diagnostics: seasonal adjustment
 sigex.specar(sa.comp[[1]],FALSE,1,period)
 #dev.off()
 
-
-### SCRAP
-
-grid <- 1000
-lambda <- pi*seq(0,grid)/grid
-myfrf <- 0*lambda
-myfilter <- trend.filter
-myfilter <- detrend.filter
-myfilter <- seas.filter
-halflen <- (length(myfilter)-1)/2
-for(k in 1:length(myfilter))
-{
-  myfrf <- myfrf + myfilter[k]*exp(-1*1i*lambda*(k-halflen-1))
-}
-plot.ts(Re(myfrf))
-plot.ts(Im(myfrf))
-plot.ts(Mod(myfrf)^2)
