@@ -13,10 +13,7 @@ load_all(".")
 #####################
 ### Part I: load data
 
-#load("C:\\Users\\neide\\OneDrive\\Documents\\Research\\Casting\\bfs.RData")
-
-
-
+# automatic
 
 #############################################################
 ### Part II: Metadata Specifications and Exploratory Analysis
@@ -24,9 +21,10 @@ load_all(".")
 begin <- c(2006,1)
 end <- c(2020,27)
 period <- 52
+bfs.dates <- bfs[,1:2]
 
 ## create ts object and plot
-dataALL.ts <- sigex.load(bfs,begin,period,c("bfs-ba","bfs-hba","bfs-wba","bfs-cba"),FALSE)
+dataALL.ts <- sigex.load(bfs[,3:6],begin,period,c("bfs-ba","bfs-hba","bfs-wba","bfs-cba"),FALSE)
 
 #############################
 ## select span and transforms
@@ -185,9 +183,9 @@ hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
 ## MLE fitting results, no holidays
-#  divergence:    -2084.366 lik
-#psi.mle <- c(-3.86830013490459, 6.08187233213583, 3.6806305674002, 3.98416618713543,
-#             1.65616209571557, 10.9517270937398)
+#  divergence:    -2076.881 lik
+#psi.mle <- c(-3.82130660051201, 6.55294873414615, 3.80965936769506, 3.88542473367833,
+#1.62833607331469, 11.0528714439272)
 #par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 
@@ -226,11 +224,11 @@ hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
 ## MLE fitting results, all holidays
-#  divergence:    -2103.4 lik
-#psi.mle <- c(-3.895857364407, 6.26245279980034, 3.67958193253905, 4.10627094233825,
-#1.78483739260471, 10.9684488747207, -0.00360963369959194, -0.214866996734432,
-#-0.250155217787393, 0.0850364492677804, 0.105441772823659, 0.13384379803163,
-#-0.0815683136196976, -0.185303694782982, 0.0963338582928288)
+#  divergence:    -2089.925 lik
+#c(-3.85211236205511, 10.5732757025848, 3.89562694233651, 4.08558530244727,
+#1.80869692181588, 13.1014026340267, -0.000293736512980122, -0.222659717911844,
+#-0.250177133568453, 0.0988001854155316, 0.0859847200965163, 0.139098491514792,
+#-0.0819199138033471, -0.166531078048871, 0.0762222534500927)
 #par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 
@@ -264,10 +262,10 @@ hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
 ## MLE fitting results, three holidays
-#  divergence:     -22352.565 lik
-#psi.mle <- c(-4.2172882182669, 5.57674429648121, 3.40898364772876, 3.15499052371806,
-#             1.0722723838464, 10.9310705588039, -0.405574584987, -0.230573115487113,
-#             0.127008620952714)
+#  divergence:     -2331.178 lik
+#c(-4.14582235347973, 5.68312818296934, 3.32001033852795, 3.03830040237583,
+#1.05421882755007, 10.9953892306492, -0.419201207247771, -0.232180383605472,
+#0.1267872310395)
 #par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 
@@ -276,9 +274,9 @@ par.mle <- fit.mle[[2]]
 
 # t statistics for parameters
 sigex.tstats(mdl,psi.mle,hess,constraint)
-#c(-80.1982272544983, 8.77130698395869, 11.8384768942071, 10.3717137333452,
-#5.72147253489335, 76.6054586574405, -4.93403242525173, -2.86138888156494,
-#1.42997308493168)
+#c(-79.2742683431225, 6.2483970476832, 7.11364294700982, 9.72902490405569,
+#5.47281717698996, 63.7788853761768, -4.91944353936497, -2.78142108144931,
+#1.37750462582758)
 
 # outlier calculations
 data.casts <- sigex.midcast(psi.mle,mdl,dataNA.ts,0)
@@ -308,7 +306,7 @@ analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
 ##########################################
 ### Part V: Signal Extraction
 
-setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\Casting\\Figures")
+setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\Casting\\BFS")
 
 ## load up the fitted model for signal extraction
 data.ts <- analysis.mle[[1]]
@@ -368,7 +366,7 @@ seascol <- "seagreen"
 sacol <- "navyblue"
 fade <- 60
 
-#pdf(file="bfs-signal.pdf",height=8,width=10)
+#pdf(file="bfs-signal-ba.pdf",height=8,width=10)
 plot(data.ts)
 #lines(data.ts-as.matrix(reg.nyd+reg.mlk+reg.labor),col=cyccol)
 sigex.graph(trend.comp,reg.trend,start(data.ts),
@@ -377,9 +375,9 @@ sigex.graph(sa.comp,reg.trend,start(data.ts),
             period,1,0,sacol,fade)
 #dev.off()
 
-write(t(cbind(trend.comp[[1]][,1]+reg.trend,
-              sa.comp[[1]][,1]+reg.trend)),
-              file="signals.dat",ncol=2)
+#write(t(cbind(trend.comp[[1]][,1]+reg.trend,
+#              sa.comp[[1]][,1]+reg.trend)),
+#              file="signals-ba.dat",ncol=2)
 
 ## spectral diagnostics: seasonal adjustment
 sigex.specar(sa.comp[[1]],FALSE,1,period)

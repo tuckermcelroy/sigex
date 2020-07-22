@@ -64,21 +64,22 @@ sigex.prep <- function(data.ts,transform,aggregate,subseries,range=NULL,plot=FAL
 	#	Outputs:
 	#		data.ts: a T x N0 matrix ts object, where N0=1 if
 	#			aggregate=TRUE, otherwise N0=N
+  # Requires: sigex.transform
 	#
 	####################################################################
 
 	start.date <- start(data.ts)
 	period <- frequency(data.ts)
-	if(length(range)==0) 
-	{ 
-		times <- seq(1,dim(data.ts)[1]) 
+	if(length(range)==0)
+	{
+		times <- seq(1,dim(data.ts)[1])
 		begin.date <- start.date
 		end.date <- end(data.ts)
 	} else {
 		begin.date <- range[[1]]
 		end.date <- range[[2]]
 		times <- seq((begin.date[1]-start.date[1])*period+(begin.date[2]-start.date[2])+1,
-				(end.date[1]-start.date[1])*period+(end.date[2]-start.date[2])+1,1)	
+				(end.date[1]-start.date[1])*period+(end.date[2]-start.date[2])+1,1)
 	}
 	data.ts <- sigex.transform(ts(data.ts[times,subseries,drop=FALSE],
 				start=begin.date,frequency=period),transform,aggregate)
