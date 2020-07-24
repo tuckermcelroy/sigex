@@ -163,15 +163,14 @@ sigex.gausscheck(resid.mle)
 analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
 
 
-# HERE
 
 ##########################################
 ### Part V: Signal Extraction based on fit
 
 ## load up the MOM fit for signal extraction
-data.ts <- analysis.mom[[1]]
-mdl <- analysis.mom[[3]]
-psi <- analysis.mom[[4]]
+data.ts <- analysis.mle[[1]]
+mdl <- analysis.mle[[3]]
+psi <- analysis.mle[[4]]
 param <- sigex.psi2par(psi,mdl,data.ts)
 
 

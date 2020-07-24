@@ -7,7 +7,8 @@ rm(list=ls())
 
 library(devtools)
 
-setwd("C:\\Users\\Tucker\\Documents\\GitHub\\sigex")
+#setwd("C:\\Users\\Tucker\\Documents\\GitHub\\sigex")
+setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
 
 ######################
@@ -29,7 +30,7 @@ dataALL.ts <- sigex.load(ndc,start.date,period,c("Shipments","NewOrders"),TRUE)
 #############################
 ## select span and transforms
 
-## all data for NE-MW with log transform
+## all data with log transform
 transform <- "log"
 aggregate <- FALSE
 subseries <- c(1,2)
@@ -37,19 +38,6 @@ begin.date <- start(dataALL.ts)
 end.date <- end(dataALL.ts)
 range <- NULL
 data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
-
-#######################
-## spectral exploratory
-
-## levels
-par(mfrow=c(2,1))
-for(i in subseries) { sigex.specar(data.ts,FALSE,i,period) }
-dev.off()
-
-## growth rates
-par(mfrow=c(2,1))
-for(i in subseries) {	sigex.specar(data.ts,TRUE,i,period) }
-dev.off()
 
 
 ###############################
@@ -63,9 +51,17 @@ T <- dim(data.ts)[1]
 
 ## model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend",c(1,-1))
-mdl <- sigex.add(mdl,seq(1,N),"cycleBAL",1,0,"cycle",1)
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(1,1),0,"trend",c(1,-1))
+mdl <- sigex.add(mdl,seq(1,N),"bal",1,c(0,1,0,1),"cycle",1)
 mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)
+# regressors:
+mdl <- sigex.meaninit(mdl,data.ts,0)
+
+# HERE  debug VARMA ???
+
+## model construction
+mdl <- NULL
+mdl <- sigex.add(mdl,seq(1,N),"varma",c(2,1),list(c(1,1),1),"process",c(1,-1))
 # regressors:
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
@@ -80,13 +76,23 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
+## MLE fitting results
+#  divergence:    -3734.032
+#psi.mle <- c(1.49058304904929, -8.32792347054058, -7.90797764406646, 0.0499570161046461,
+#    -10.0917624787578, -9.56466665775856, 0.324064725662732, -9.25526788166362,
+#    -5.8707556709411, -6.16202241709588, -3.3411108685506, 0.00154937934174211,
+#    0.00107578875176897)
+#par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
+
 ## manage output
 psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
 hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
+
+## residual analysis
 resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
 resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-acf(resid.mle,lag.max=40)
+resid.acf <- acf(resid.mle,lag.max=4*period,plot=TRUE)$acf
 
 ## examine condition numbers
 log(sigex.conditions(data.ts,psi.mle,mdl))
@@ -95,8 +101,13 @@ log(sigex.conditions(data.ts,psi.mle,mdl))
 sigex.portmanteau(resid.mle,4*period,length(psi.mle))
 sigex.gausscheck(resid.mle)
 
+## check on standard errors and get t statistics
+print(eigen(hess)$values)
+tstats <- sigex.tstats(mdl,psi.mle,hess,constraint)
+print(tstats)
+
 ## bundle
-analysis.mle <- sigex.bundle(data.ts,transform,mdl.mle,psi.mle)
+analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
 
 
 
@@ -150,47 +161,4 @@ for(i in 1:N)
   sigex.graph(extract.cycle,NULL,begin.date,period,i,min(data.ts[,i])-10,seascol,fade)
 }
 #dev.off()
-
-
-## spectral diagnostics: trend
-par(mfrow=c(2,2))
-for(i in 1:N)
-{
-  sigex.specar(ts(extract.trend[[1]],frequency=period,names=colnames(data.ts)),FALSE,i,period)
-}
-#dev.off()
-
-## spectral diagnostics: sa
-par(mfrow=c(2,2))
-for(i in 1:N)
-{
-  sigex.specar(ts(extract.sa[[1]],frequency=period,names=colnames(data.ts)),FALSE,i,period)
-}
-#dev.off()
-
-## transfer function analysis
-grid <- 200
-#pdf(file="StartsTrendfrf.pdf")
-frf.trend <- sigex.getfrf(data.ts,param,mdl,1,TRUE,grid)
-#dev.off()
-#pdf(file="StartsSeasfrf.pdf")
-frf.seas <- sigex.getfrf(data.ts,param,mdl,seq(2,7),TRUE,grid)
-#dev.off()
-#pdf(file="StartsSAfrf.pdf")
-frf.sa <- sigex.getfrf(data.ts,param,mdl,c(1,8),TRUE,grid)
-#dev.off()
-
-## filter analysis
-len <- 50
-target <- array(diag(N),c(N,N,1))
-#pdf(file="StartsTrendwk.pdf")
-wk.trend <- sigex.wk(data.ts,param,mdl,1,target,TRUE,grid,len)
-#dev.off()
-#pdf(file="StartsSeaswk.pdf")
-wk.seas <- sigex.wk(data.ts,param,mdl,seq(2,7),target,TRUE,grid,len)
-#dev.off()
-#pdf(file="StartsSAwk.pdf")
-wk.sa <- sigex.wk(data.ts,param,mdl,c(1,8),target,TRUE,grid,len)
-#dev.off()
-
 

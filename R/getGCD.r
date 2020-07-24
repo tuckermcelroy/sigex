@@ -39,7 +39,7 @@ getGCD <- function(Sigma,Rank)
 	#
 	#	Inputs:
 	#		Sigma: symmetric, non-negative definite matrix
-	#		Rank: presumed rank of Sigmma, less than or equal
+	#		Rank: presumed rank of Sigma, less than or equal
 	#	  		to the dimension of the matrix
 	#	Outputs:
 	#		L.mat: rectangular, lower Cholesky factor
