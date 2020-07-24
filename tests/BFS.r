@@ -183,7 +183,7 @@ hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
 ## MLE fitting results, no holidays
-#  divergence:    -2076.881 lik
+#  divergence:    -2076.881
 #psi.mle <- c(-3.82130660051201, 6.55294873414615, 3.80965936769506, 3.88542473367833,
 #1.62833607331469, 11.0528714439272)
 #par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
@@ -224,8 +224,8 @@ hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
 ## MLE fitting results, all holidays
-#  divergence:    -2089.925 lik
-#c(-3.85211236205511, 10.5732757025848, 3.89562694233651, 4.08558530244727,
+#  divergence:    -2089.925
+#psi.mle <- c(-3.85211236205511, 10.5732757025848, 3.89562694233651, 4.08558530244727,
 #1.80869692181588, 13.1014026340267, -0.000293736512980122, -0.222659717911844,
 #-0.250177133568453, 0.0988001854155316, 0.0859847200965163, 0.139098491514792,
 #-0.0819199138033471, -0.166531078048871, 0.0762222534500927)
@@ -262,8 +262,8 @@ hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
 ## MLE fitting results, three holidays
-#  divergence:     -2331.178 lik
-#c(-4.14582235347973, 5.68312818296934, 3.32001033852795, 3.03830040237583,
+#  divergence:     -2331.178
+#psi.mle <- c(-4.14582235347973, 5.68312818296934, 3.32001033852795, 3.03830040237583,
 #1.05421882755007, 10.9953892306492, -0.419201207247771, -0.232180383605472,
 #0.1267872310395)
 #par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
@@ -283,7 +283,7 @@ data.casts <- sigex.midcast(psi.mle,mdl,dataNA.ts,0)
 
 # residual analysis
 resid.mle <- sigex.resid(psi.mle,mdl,dataNA.ts)[[1]]
-resid.mle <- sigex.load(t(Re(resid.mle)),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 resid.acf <- acf(resid.mle,lag.max=4*53,plot=FALSE)$acf
 
 #pdf(file="retResidAcf.pdf",height=10,width=10)

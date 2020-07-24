@@ -7,7 +7,8 @@ rm(list=ls())
 
 library(devtools)
 
-setwd("C:\\Users\\Tucker\\Documents\\GitHub\\sigex")
+#setwd("C:\\Users\\Tucker\\Documents\\GitHub\\sigex")
+setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
 
 ######################
@@ -68,95 +69,115 @@ mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)
 # regressors:
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
-# HERE
+#################################
+## Alternate Model: Common Trends
 
-## parameter initialization and checks
-par.default <- sigex.default(mdl,data.ts)[[1]]
-flag.default <- sigex.default(mdl,data.ts)[[2]]
-psi.default <- sigex.par2psi(par.default,flag.default,mdl)
-resid.init <- sigex.resid(psi.default,mdl,data.ts)[[1]]
-resid.init <- sigex.load(t(resid.init),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-acf(resid.init,lag.max=40)
+## model construction
+mdl2 <- NULL
+mdl2 <- sigex.add(mdl2,1,"arma",c(0,0),0,"trend",c(1,-1))
+mdl2 <- sigex.add(mdl2,seq(1,N),"arma",c(0,0),0,"irregular",1)
+# regressors:
+mdl2 <- sigex.meaninit(mdl2,data.ts,0)
+
 
 
 ###################################################
 ### Part IV: MLE Estimation of Related Trends Model
 
-## setup, and fix parameters as desired
-mdl.mle <- mdl
-psi.mle <- psi.default
-flag.mle <- Im(psi.mle)
-par.mle <- sigex.psi2par(psi.mle,mdl.mle,data.ts)
+## parameter initialization
+constraint <- NULL
+par.mle <- sigex.default(mdl,data.ts,constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl)
 
-## run fitting
-fit.mle <- sigex.mlefit(data.ts,par.mle,flag.mle,mdl.mle,"bfgs")
+## run fitting:
+fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+
+## MLE fitting results
+#  divergence:    -5043.938
+#psi.mle <- c(1.1893661498523, -8.51181967077802, -5.78741462564482, 0.211097637688758,
+#             -6.79777756698125, -6.77733857261275, -0.000182396168600933,
+#             0.000440082914531049)
+#par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 ## manage output
-psi.mle[flag.mle==1] <- fit.mle[[1]]$par
-psi.mle <- psi.mle + 1i*flag.mle
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
 hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
 ##  model checking
-resid.mle <- sigex.resid(psi.mle,mdl.mle,data.ts)[[1]]
+
+# residual analysis
+resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
 resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*period,plot=FALSE)$acf
 sigex.portmanteau(resid.mle,4*period,length(psi.mle))
 sigex.gausscheck(resid.mle)
-acf(resid.mle,lag.max=40)
+acf(resid.mle,lag.max=4*period)
 
 ## check on standard errors and condition numbers
 print(eigen(hess)$values)
-taus <- log(sigex.conditions(data.ts,psi.mle,mdl.mle))
-print(taus)
-tstats <- sigex.tstats(mdl.mle,psi.mle,hess)
-stderrs <- sigex.psi2par(tstats,mdl,data.ts)
+tstats <- sigex.tstats(mdl,psi.mle,hess,constraint)
 print(tstats)
+taus <- log(sigex.conditions(data.ts,psi.mle,mdl))
+print(taus)
 
 ## bundle
-analysis.mle <- sigex.bundle(data.ts,transform,mdl.mle,psi.mle)
+analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
 
 
 
 #################################################
 ### Part V: MLE Estimation of Common Trends Model
 
-mdl.mle2 <- mdl.mle
-mdl.mle2[[1]][[1]] <- 1
+## parameter initialization
+constraint <- NULL
+par.mle2 <- sigex.default(mdl2,data.ts,constraint)
+psi.mle2 <- sigex.par2psi(par.mle2,mdl2)
 
-par.mle2 <- sigex.default(mdl.mle2,data.ts)[[1]]
-flag.ml2 <- sigex.default(mdl.mle2,data.ts)[[2]]
-psi.mle2 <- sigex.par2psi(par.mle2,flag.mle2,mdl.mle2)
+## run fitting:
+fit.mle2 <- sigex.mlefit(data.ts,par.mle2,constraint,mdl2,"bfgs",debug=TRUE)
 
-# run fitting
-fit.mle2 <- sigex.mlefit(data.ts,par.mle2,flag.mle2,mdl.mle2,"bfgs")
+## MLE fitting results
+#  divergence:    -5043.938
+#psi.mle <- c(1.1893661498523, -8.51181967077802, -5.78741462564482, 0.211097637688758,
+#             -6.79777756698125, -6.77733857261275, -0.000182396168600933,
+#             0.000440082914531049)
+#par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 ## manage output
-psi.mle2[flag.mle2==1] <- fit.mle2[[1]]$par
-psi.mle2 <- psi.mle2 + 1i*flag.mle2
+psi.mle2 <- sigex.eta2psi(fit.mle2[[1]]$par,constraint)
 hess2 <- fit.mle2[[1]]$hessian
 par.mle2 <- fit.mle2[[2]]
 
 ##  model checking
-resid.mle2 <- sigex.resid(psi.mle2,mdl.mle2,data.ts)[[1]]
+
+# residual analysis
+resid.mle2 <- sigex.resid(psi.mle2,mdl2,data.ts)[[1]]
 resid.mle2 <- sigex.load(t(resid.mle2),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+resid.acf2 <- acf(resid.mle2,lag.max=4*period,plot=FALSE)$acf
 sigex.portmanteau(resid.mle2,4*period,length(psi.mle2))
 sigex.gausscheck(resid.mle2)
-acf(resid.mle2,lag.max=40)
+acf(resid.mle2,lag.max=4*period)
 
 ## check on standard errors and condition numbers
 print(eigen(hess2)$values)
-taus2 <- log(sigex.conditions(data.ts,psi.mle2,mdl.mle2))
+tstats2 <- sigex.tstats(mdl2,psi.mle2,hess2,constraint)
+print(tstats2)
+taus2 <- log(sigex.conditions(data.ts,psi.mle2,mdl2))
 print(taus2)
-tstats <- sigex.tstats(mdl.mle2,psi.mle2,hess2)
-stderrs <- sigex.psi2par(tstats,mdl.mle2,data.ts)
-print(tstats)
 
-# model comparison
-test.glr <- sigex.glr(data.ts,psi.mle2,psi.mle,mdl.mle2,mdl.mle)
+## bundle
+analysis.mle2 <- sigex.bundle(data.ts,transform,mdl2,psi.mle2)
+
+
+## model comparison
+
+test.glr <- sigex.glr(data.ts,psi.mle2,psi.mle,mdl2,mdl)
 1-pchisq(test.glr[1],df=test.glr[2])
 
-# bundle
-analysis.mle2 <- sigex.bundle(data.ts,transform,mdl.mle2,psi.mle2)
+#HERE
+
+
 
 
 

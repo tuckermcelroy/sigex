@@ -116,23 +116,7 @@ constraint <- NULL
 psi.mle <- sigex.par2psi(par.mom,mdl)
 
 ## run fitting: can be commented out, this takes a while
-fit.mle <- sigex.mlefit(data.ts,par.mom,constraint,mdl,"bfgs",debug=TRUE)
-
-## manage output
-psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
-hess <- fit.mle[[1]]$hessian
-par.mle <- fit.mle[[2]]
-resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
-resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-acf(resid.mle,lag.max=40)
-
-## examine condition numbers
-log(sigex.conditions(data.ts,psi.mle,mdl))
-
-## model checking
-sigex.portmanteau(resid.mle,4*period,length(psi.mle))
-sigex.gausscheck(resid.mle)
-
+#fit.mle <- sigex.mlefit(data.ts,par.mom,constraint,mdl,"bfgs",debug=TRUE)
 
 ## input parameter from previous fit (MLE on entire span)
 #  divergence:  6185.784
@@ -157,8 +141,23 @@ psi.mle <- c(0.423542257365999, 0.134501458946877, 0.225735894562736, 0.12550080
              0.0266707764314609, 0.0281723045059473, 0.000994959872918981,
              0.0659040290710181, 0.021912146700469, 0.280000953632169, 2.6066131275945,
              1.06766682710889, -0.0913293751220125, 0.0660748780411686, 0.00387853583107558,
-             0.00175337864601441, 0.000505786944522091, 0.00104654719895988
-)
+             0.00175337864601441, 0.000505786944522091, 0.00104654719895988)
+par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
+
+## manage output
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+acf(resid.mle,lag.max=40)
+
+## examine condition numbers
+log(sigex.conditions(data.ts,psi.mle,mdl))
+
+## model checking
+sigex.portmanteau(resid.mle,4*period,length(psi.mle))
+sigex.gausscheck(resid.mle)
 
 # bundle for default span
 analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)

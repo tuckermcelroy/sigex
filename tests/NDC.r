@@ -98,8 +98,6 @@ sigex.gausscheck(resid.mle)
 ## bundle
 analysis.mle <- sigex.bundle(data.ts,transform,mdl.mle,psi.mle)
 
-# HERE
-
 
 
 ###########################################
@@ -134,9 +132,7 @@ extract.lp <- sigex.wkextract(psi,mdl,data.ts,c(1,2),target,grid,window,horizon,
 ### get fixed effects
 
 reg.trend <- NULL
-for(i in 1:N) {
-  reg.trend <- cbind(reg.trend,sigex.fixed(data,mdl,i,param,"Trend"))
-}
+for(i in 1:N) { reg.trend <- cbind(reg.trend,sigex.fixed(data,mdl,i,param,"Trend")) }
 
 ## plotting
 trendcol <- "tomato"
