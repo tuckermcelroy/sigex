@@ -7,6 +7,8 @@ rm(list=ls())
 
 library(devtools)
 
+# suppose directory is set to where sigex is located, e.g.
+#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
 root.dir <- getwd()
 setwd(paste(root.dir,"/tests/NDC",sep=""))
@@ -62,7 +64,8 @@ delta.vec <- var.out[[2]]
 
 ## model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"varma",c(p.order,0),list(delta.vec,NULL),"process",c(1,-1))
+mdl <- sigex.add(mdl,seq(1,N),"varma",c(p.order,0),
+                 list(delta.vec,NULL),"process",c(1,-1))
 # regressors:
 mdl <- sigex.meaninit(mdl,data.ts,0)
 

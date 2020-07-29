@@ -7,8 +7,12 @@ rm(list=ls())
 
 library(devtools)
 
-setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
+# suppose directory is set to where sigex is located, e.g.
+#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
+root.dir <- getwd()
+setwd(paste(root.dir,"/tests/NDC",sep=""))
+
 
 #####################
 ### Part I: load data

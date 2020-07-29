@@ -7,9 +7,11 @@ rm(list=ls())
 
 library(devtools)
 
-#setwd("C:\\Users\\Tucker\\Documents\\GitHub\\sigex")
-setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
+# suppose directory is set to where sigex is located, e.g.
+#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
+root.dir <- getwd()
+setwd(paste(root.dir,"/tests/Starts",sep=""))
 
 ######################
 ### Part I: load data
@@ -23,7 +25,8 @@ start.date = c(1964,1)
 period <- 12
 
 ## create ts object and plot
-dataALL.ts <- sigex.load(starts,start.date,period,c("South","West","NE","MW"),TRUE)
+dataALL.ts <- sigex.load(starts,start.date,period,
+                         c("South","West","NE","MW"),TRUE)
 
 #############################
 ## select span and transforms

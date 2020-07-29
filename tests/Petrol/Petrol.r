@@ -7,9 +7,11 @@ rm(list=ls())
 
 library(devtools)
 
-#setwd("C:\\Users\\Tucker\\Documents\\GitHub\\sigex")
-setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
+# suppose directory is set to where sigex is located, e.g.
+#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
+root.dir <- getwd()
+setwd(paste(root.dir,"/tests/Petrol",sep=""))
 
 ######################
 ### Part I: load data
@@ -24,7 +26,8 @@ start.date <- c(1973,1)
 period <- 12
 
 ## create ts object and plot
-dataALL.ts <- sigex.load(petrol[,c(1,2)],start.date,period,c("Consumption","Imports"),TRUE)
+dataALL.ts <- sigex.load(petrol[,c(1,2)],start.date,period,
+                         c("Consumption","Imports"),TRUE)
 
 #############################
 ## select span and transforms
@@ -42,12 +45,12 @@ data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 ## spectral exploratory
 
 ## levels
-par(mfrow=c(2,1))
+par(mfrow=c(1,2))
 for(i in subseries) { sigex.specar(data.ts,FALSE,i,period) }
 dev.off()
 
 ## growth rates
-par(mfrow=c(2,1))
+par(mfrow=c(1,2))
 for(i in subseries) {	sigex.specar(data.ts,TRUE,i,period) }
 dev.off()
 
@@ -106,7 +109,8 @@ par.mle <- fit.mle[[2]]
 
 ## residual analysis
 resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
-resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
+                        colnames(data.ts),TRUE)
 resid.acf <- acf(resid.mle,lag.max=4*period,plot=TRUE)$acf
 
 ## examine condition numbers
@@ -130,7 +134,8 @@ analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
 ### Part V: MLE Estimation of Common Trends Model
 
 ## compute reduced rank trend covariance matrix
-cov.mat <- par.mle[[1]][[1]] %*% diag(exp(par.mle[[2]][[1]])) %*% t(par.mle[[1]][[1]])
+cov.mat <- par.mle[[1]][[1]] %*% diag(exp(par.mle[[2]][[1]])) %*%
+  t(par.mle[[1]][[1]])
 l.trend <- sqrt(cov.mat[2,2]/cov.mat[1,1])
 d.trend <- cov.mat[1,1]
 
@@ -144,8 +149,8 @@ fit.mle2 <- sigex.mlefit(data.ts,par.mle2,constraint,mdl2,"bfgs",debug=TRUE)
 
 ## MLE fitting results
 #  divergence:    -4600.644
-#psi.mle2 <- c(4.34516593276996, -8.5347156830287, -0.236724373041252, -5.66208479890944,
-# -6.64664263316395, -5.54073413425503e-05, 0.000492180069770763)
+#psi.mle2 <- c(4.34362922788737, -8.53410578845345, -0.238263382657661, -5.66349566434886,
+#-6.64697203328094, -5.47151097450779e-05, 0.000495214767103762)
 #par.mle2 <- sigex.psi2par(psi.mle2,mdl2,data.ts)
 
 ## manage output
@@ -157,7 +162,8 @@ par.mle2 <- fit.mle2[[2]]
 
 # residual analysis
 resid.mle2 <- sigex.resid(psi.mle2,mdl2,data.ts)[[1]]
-resid.mle2 <- sigex.load(t(resid.mle2),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+resid.mle2 <- sigex.load(t(resid.mle2),start(data.ts),frequency(data.ts),
+                         colnames(data.ts),TRUE)
 resid.acf2 <- acf(resid.mle2,lag.max=4*period,plot=TRUE)$acf
 
 ## examine condition numbers
@@ -185,30 +191,23 @@ print(c(test.glr[1],1-pchisq(test.glr[1],df=test.glr[2])))
 ###########################################
 ### Part VI: Signal Extraction based on MLE
 
+############################################
 ## load up the MLE fit for signal extraction
 # A: related trends
-
 data.ts <- analysis.mle[[1]]
 mdl <- analysis.mle[[3]]
 psi <- analysis.mle[[4]]
 param <- sigex.psi2par(psi,mdl,data.ts)
 
-## get signal filters
-signal.trend <- sigex.signal(data.ts,param,mdl,1)
-signal.irr <- sigex.signal(data.ts,param,mdl,2)
-
-## get extractions
-extract.trend <- sigex.extract(data.ts,signal.trend,mdl,param)
-extract.irr <- sigex.extract(data.ts,signal.irr,mdl,param)
-
-## load up the MLE fit for signal extraction
 # B: common trends
-
 data.ts <- analysis.mle2[[1]]
 mdl <- analysis.mle2[[3]]
 psi <- analysis.mle2[[4]]
 param <- sigex.psi2par(psi,mdl,data.ts)
 
+################################################
+# For either A or B, generate and display output
+
 ## get signal filters
 signal.trend <- sigex.signal(data.ts,param,mdl,1)
 signal.irr <- sigex.signal(data.ts,param,mdl,2)
@@ -216,10 +215,6 @@ signal.irr <- sigex.signal(data.ts,param,mdl,2)
 ## get extractions
 extract.trend <- sigex.extract(data.ts,signal.trend,mdl,param)
 extract.irr <- sigex.extract(data.ts,signal.irr,mdl,param)
-
-########################################
-# For either A or B, display output
-
 
 ## get fixed effects
 reg.trend <- NULL
@@ -228,8 +223,9 @@ reg.trend <- cbind(reg.trend,sigex.fixed(data.ts,mdl,i,param,"Trend")) }
 
 ## plotting
 trendcol <- "tomato"
-cyccol <- "navyblue"
 fade <- 40
+#pdf(file="PetrolRelatedTrends.pdf",height=8,width=10)
+#pdf(file="PetrolCommonTrends.pdf",height=8,width=10)
 par(mfrow=c(2,1),mar=c(5,4,4,5)+.1)
 for(i in 1:N)
 {
