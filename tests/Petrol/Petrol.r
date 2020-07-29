@@ -242,12 +242,15 @@ for(i in 1:N)
 dev.off()
 
 ## transfer function analysis
-grid <- 200
+grid <- 1000
 frf.trend <- sigex.getfrf(data.ts,param,mdl,1,TRUE,grid)
 
 ## filter analysis
 len <- 50
 target <- array(diag(N),c(N,N,1))
 wk.trend <- sigex.wk(data.ts,param,mdl,1,target,TRUE,grid,len)
+
+
+
 
 
