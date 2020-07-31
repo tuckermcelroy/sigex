@@ -387,3 +387,9 @@ sigex.graph(sa.comp,reg.trend,start(data.ts),
 sigex.specar(sa.comp[[1]],FALSE,1,period)
 #dev.off()
 
+
+
+## Use this???
+#leads <- c(-rev(seq(0,window-1)),seq(1,T),seq(T+1,T+window))
+#data.casts <- sigex.cast(psi,mdl,data.ts,leads)
+

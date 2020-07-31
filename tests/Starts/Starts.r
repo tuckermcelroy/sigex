@@ -82,13 +82,18 @@ mdl <- sigex.meaninit(mdl,data.ts,0)
 
 ##############
 ## MOM fitting
+
 mdl.mom <- mdl
 constraint <- NULL
 par.default <- sigex.default(mdl.mom,data.ts,constraint)
 par.mom <- sigex.momfit(data.ts,par.default,mdl.mom)
 psi.mom <- sigex.par2psi(par.mom,mdl.mom)
+
+## residual analysis
 resid.mom <- sigex.resid(psi.mom,mdl.mom,data.ts)[[1]]
-resid.mom <- sigex.load(t(resid.mom),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+resid.mom <- sigex.load(t(resid.mom),start(data.ts),
+                        frequency(data.ts),colnames(data.ts),TRUE)
+resid.acf <- acf(resid.mom,lag.max=4*period,plot=TRUE)$acf
 
 ## compute a reduced rank model
 thresh <- -6.22
@@ -96,9 +101,12 @@ reduced.mom <- sigex.reduce(data.ts,par.mom,mdl.mom,thresh,FALSE)
 mdl.mom <- reduced.mom[[1]]
 par.mom <- reduced.mom[[2]]
 psi.mom <- sigex.par2psi(par.mom,mdl.mom)
+
+## residual analysis
 resid.mom <- sigex.resid(psi.mom,mdl.mom,data.ts)[[1]]
-resid.mom <- sigex.load(t(resid.mom),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-acf(resid.mom,lag.max=40)
+resid.mom <- sigex.load(t(resid.mom),start(data.ts),
+                        frequency(data.ts),colnames(data.ts),TRUE)
+resid.acf <- acf(resid.mom,lag.max=4*period,plot=TRUE)$acf
 
 ## examine condition numbers
 log(sigex.conditions(data.ts,psi.mom,mdl.mom))
@@ -147,13 +155,11 @@ psi.mle <- c(0.423542257365999, 0.134501458946877, 0.225735894562736, 0.12550080
              0.00175337864601441, 0.000505786944522091, 0.00104654719895988)
 par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
-## manage output
-psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
-hess <- fit.mle[[1]]$hessian
-par.mle <- fit.mle[[2]]
+## residual analysis
 resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
-resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-acf(resid.mle,lag.max=40)
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),
+                        frequency(data.ts),colnames(data.ts),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*period,plot=TRUE)$acf
 
 ## examine condition numbers
 log(sigex.conditions(data.ts,psi.mle,mdl))
@@ -170,7 +176,7 @@ analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
 ##########################################
 ### Part V: Signal Extraction based on fit
 
-## load up the MOM fit for signal extraction
+## load up the MLE fit for signal extraction
 data.ts <- analysis.mle[[1]]
 mdl <- analysis.mle[[3]]
 psi <- analysis.mle[[4]]
@@ -178,7 +184,7 @@ param <- sigex.psi2par(psi,mdl,data.ts)
 
 
 #######################################################################
-########################## METHOD 1: DIRECT MATRIX APPROACH ############
+######################### METHOD 1: DIRECT MATRIX APPROACH ############
 
 ## get signal filters
 signal.trend <- sigex.signal(data.ts,param,mdl,1)
@@ -190,10 +196,10 @@ extract.trend <- sigex.extract(data.ts,signal.trend,mdl,param)
 extract.seas <- sigex.extract(data.ts,signal.seas,mdl,param)
 extract.sa <- sigex.extract(data.ts,signal.sa,mdl,param)
 
-
 ## get fixed effects
 reg.trend <- NULL
-for(i in 1:N) { reg.trend <- cbind(reg.trend,param[[4]][i]*mdl[[4]][[i]]) }
+for(i in 1:N) {
+  reg.trend <- cbind(reg.trend,sigex.fixed(data.ts,mdl,i,param,"Trend")) }
 
 ## plotting
 trendcol <- "tomato"
@@ -210,7 +216,7 @@ for(i in 1:N)
   sigex.graph(extract.trend,reg.trend,begin.date,period,i,0,trendcol,fade)
   sigex.graph(extract.seas,NULL,begin.date,period,i,min(data.ts[,i])-10,seascol,fade)
 }
-#dev.off()
+dev.off()
 
 ## spectral diagnostics: trend
 par(mfrow=c(2,2))
@@ -232,36 +238,33 @@ for(i in 1:N)
 grid <- 200
 #pdf(file="StartsTrendfrf.pdf")
 frf.trend <- sigex.getfrf(data.ts,param,mdl,1,TRUE,grid)
-#dev.off()
+dev.off()
 #pdf(file="StartsSeasfrf.pdf")
 frf.seas <- sigex.getfrf(data.ts,param,mdl,seq(2,7),TRUE,grid)
-#dev.off()
+dev.off()
 #pdf(file="StartsSAfrf.pdf")
 frf.sa <- sigex.getfrf(data.ts,param,mdl,c(1,8),TRUE,grid)
-#dev.off()
+dev.off()
 
 ## filter analysis
 len <- 50
 target <- array(diag(N),c(N,N,1))
 #pdf(file="StartsTrendwk.pdf")
 wk.trend <- sigex.wk(data.ts,param,mdl,1,target,TRUE,grid,len)
-#dev.off()
+dev.off()
 #pdf(file="StartsSeaswk.pdf")
 wk.seas <- sigex.wk(data.ts,param,mdl,seq(2,7),target,TRUE,grid,len)
-#dev.off()
+dev.off()
 #pdf(file="StartsSAwk.pdf")
 wk.sa <- sigex.wk(data.ts,param,mdl,c(1,8),target,TRUE,grid,len)
-#dev.off()
+dev.off()
 
 
 ####################################################################
 ############################# METHOD 2: FORECASTING and WK SIGEX
 
-#grid <- 70000	# high accuracy, close to method 1
-#grid <- 700	# low accuracy, but pretty fast
 grid <- 7000	# need grid > filter length
-window <- 10
-#window <- 50
+window <- 50
 horizon <- 0
 target <- array(diag(N),c(N,N,1))
 
@@ -269,10 +272,8 @@ extract.trend2 <- sigex.wkextract(psi,mdl,data.ts,1,target,grid,window,horizon,T
 extract.seas2 <- sigex.wkextract(psi,mdl,data.ts,seq(2,7),target,grid,window,horizon,TRUE)
 extract.sa2 <- sigex.wkextract(psi,mdl,data.ts,c(1,8),target,grid,window,horizon,TRUE)
 
-
 ## root mse plots: trend
-#pdf(file="StartsTrendMSE50.pdf")
-#pdf(file="StartsTrendMSE10.pdf")
+pdf(file="StartsTrendMSE50.pdf")
 par(mfrow=c(2,2))
 for(subseries in 1:N)
 {
@@ -281,11 +282,10 @@ for(subseries in 1:N)
   plot(ts(ex.true,start=begin.date,frequency=period),ylab="Root MSE",xlab="Year",ylim=c(0,max(ex.true)))
   lines(ts(ex.approx,start=begin.date,frequency=period),col=trendcol)
 }
-#dev.off()
+dev.off()
 
 ## root mse plots: sa
-#pdf(file="StartsSAMSE50.pdf")
-#pdf(file="StartsSAMSE10.pdf")
+pdf(file="StartsSAMSE50.pdf")
 par(mfrow=c(2,2))
 for(subseries in 1:N)
 {
@@ -294,7 +294,8 @@ for(subseries in 1:N)
   plot(ts(ex.true,start=begin.date,frequency=period),ylab="Root MSE",xlab="Year",ylim=c(0,max(ex.true)))
   lines(ts(ex.approx,start=begin.date,frequency=period),col=sacol)
 }
-#dev.off()
+dev.off()
+
 
 ##########################################
 ### Part VI: Trend Growth Rate
@@ -348,7 +349,7 @@ for(k in 1:N)
 ## Trend case
 extract.trendgr2 <- sigex.wkextract(psi,mdl,data.ts,1,gr.array,grid,window,horizon,TRUE)
 ## plot
-#pdf(file="StartsTrendGR.pdf")
+pdf(file="StartsTrendGR.pdf")
 par(mfrow=c(2,2))
 for(i in 1:N)
 {
@@ -356,12 +357,12 @@ for(i in 1:N)
                                               max(extract.trendgr2[[2]][,i]+reg.gr[,i],na.rm=TRUE)),lwd=1,col=0)
   sigex.graph(extract.trendgr2,reg.gr,begin.date,period,i,0,trendcol,fade)
 }
-#dev.off()
+dev.off()
 
 # SA case
 extract.sagr2 <- sigex.wkextract(psi,mdl,data.ts,c(1,8),gr.array,grid,window,horizon,TRUE)
 ## plot
-#pdf(file="StartsSAGR.pdf")
+pdf(file="StartsSAGR.pdf")
 par(mfrow=c(2,2))
 for(i in 1:N)
 {
@@ -369,8 +370,7 @@ for(i in 1:N)
                                               max(extract.sagr2[[2]][,i]+reg.gr[,i],na.rm=TRUE)),lwd=1,col=0)
   sigex.graph(extract.sagr2,reg.gr,begin.date,period,i,0,sacol,fade)
 }
-#dev.off()
-
+dev.off()
 
 
 

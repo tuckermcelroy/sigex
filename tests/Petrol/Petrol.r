@@ -158,9 +158,7 @@ psi.mle2 <- sigex.eta2psi(fit.mle2[[1]]$par,constraint)
 hess2 <- fit.mle2[[1]]$hessian
 par.mle2 <- fit.mle2[[2]]
 
-##  model checking
-
-# residual analysis
+## residual analysis
 resid.mle2 <- sigex.resid(psi.mle2,mdl2,data.ts)[[1]]
 resid.mle2 <- sigex.load(t(resid.mle2),start(data.ts),frequency(data.ts),
                          colnames(data.ts),TRUE)
@@ -181,9 +179,7 @@ print(tstats2)
 ## bundle
 analysis.mle2 <- sigex.bundle(data.ts,transform,mdl2,psi.mle2)
 
-
 ## model comparison
-
 test.glr <- sigex.glr(data.ts,psi.mle2,psi.mle,mdl2,mdl)
 print(c(test.glr[1],1-pchisq(test.glr[1],df=test.glr[2])))
 

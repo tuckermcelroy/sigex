@@ -133,27 +133,21 @@ param <- sigex.psi2par(psi,mdl,data.ts)
 
 ## Generate aftcasts and forecasts with uncertainty
 window <- 50
-#leads <- c(-rev(seq(0,window-1)),seq(1,T),seq(T+1,T+window))
-#data.casts <- sigex.cast(psi,mdl,data.ts,leads)
 data.casts <- sigex.midcast(psi,mdl,data.ts,window)
 extract.casts <- sigex.castextract(data.ts,data.casts,mdl,window,param)
 
-
+## display
 castcol <- "black"
 fade <- 60
-plot(data.ts)
-sigex.graph(extract.casts,NULL,start(data.ts),
-            period,1,0,castcol,fade)
-
-
-
-par(mfrow=c(N,1))
-for(k in 1:N)
+dataPad.ts <- rbind(matrix(NA,nrow=window,ncol=N),data.ts,matrix(NA,nrow=window,ncol=N))
+#pdf(file="NdcCasts.pdf",height=8,width=10)
+par(mfrow=c(2,1))
+for(i in 1:N)
 {
-  plot(data.casts[[1]][,k],ylab=colnames(data.ts)[k],col=grey(.3))
-  lines(data.casts[[2]][,k],col=grey(.7),lty=2)
-  lines(data.casts[[3]][,k],col=grey(.7),lty=2)
-  lines(data.ts[,k])
+  plot(ts(dataPad.ts[,i],start=start.date,frequency=period),
+       xlab="Year",ylab="",lwd=1,col=1)
+  sigex.graph(extract.casts,NULL,start.date,period,i,0,castcol,fade)
 }
-#dev.off()
+dev.off()
+
 
