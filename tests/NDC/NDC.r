@@ -122,3 +122,21 @@ print(tstats)
 analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
 
 
+##########################################
+### Part V: Casting
+
+## load up the fitted model for casting
+data.ts <- analysis.mle[[1]]
+mdl <- analysis.mle[[3]]
+psi <- analysis.mle[[4]]
+param <- sigex.psi2par(psi,mdl,data.ts)
+
+## Generate aftcasts and forecasts with uncertainty
+window <- 50
+#leads <- c(-rev(seq(0,window-1)),seq(1,T),seq(T+1,T+window))
+#data.casts <- sigex.cast(psi,mdl,data.ts,leads)
+data.casts <- sigex.midcast(psi,mdl,data.ts,window)
+
+
+
+
