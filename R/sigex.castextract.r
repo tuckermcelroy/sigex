@@ -69,6 +69,7 @@ sigex.castextract <- function(data.ts,data.casts,mdl,castspan,param)
   times.na <- NULL
   for(k in 1:N)
   { times.na <- union(times.na,seq(1,TH)[is.na(x)[k,]]) }
+  times.na <- sort(times.na)
   
   reg.trend <- ts(mdl[[4]][[1]][,1])
   d <- 0
@@ -85,10 +86,13 @@ sigex.castextract <- function(data.ts,data.casts,mdl,castspan,param)
   extract.casts <- list()
   extract.casts[[1]] <- t(x) - reg.trend
   extract.casts[[1]][times.na,] <- t(x.casts)
+  extract.casts[[1]] <- extact.casts[[1]] + reg.trend
   extract.casts[[2]] <- t(x) - reg.trend
   extract.casts[[2]][times.na,] <- t(x.casts) + 2*t(se.casts)
+  extract.casts[[2]] <- extact.casts[[2]] + reg.trend
   extract.casts[[3]] <- t(x) - reg.trend
   extract.casts[[3]][times.na,] <- t(x.casts) - 2*t(se.casts)
+  extract.casts[[3]] <- extact.casts[[3]] + reg.trend
   
   return(extract.casts)
 }
