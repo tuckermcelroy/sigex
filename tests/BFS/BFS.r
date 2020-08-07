@@ -325,35 +325,10 @@ dataLIN.ts <- data.ts - ts(reg.trend + reg.nyd + reg.mlk,
 
 ## define trend and SA weekly filters
 week.period <- 365.25/7
-half.len <- floor(week.period/2)
-p.seas <- 1
-trend.filter <- ubgenerator(week.period,NULL,1000)
-trend.filter <- trend.filter/sum(trend.filter)
-#plot.ts(trend.filter)
-detrend.filter <- c(rep(0,half.len),1,rep(0,half.len)) - trend.filter
-seas.filter <- 0
-for(j in 1:p.seas)
-{
-  week.periodj <- j*week.period
-  half.lenj <- floor(week.periodj/2)
-  seas.filterj <- ubgenerator(week.periodj,half.lenj-1,1000)
-  seas.filterj <- polymult(seas.filterj,c(1,0,-1))
-  seas.filter <- c(seas.filter,rep(0,length(seas.filterj)-length(seas.filter)))
-  seas.filter <- seas.filter + seas.filterj
-}
-seas.filter <- c(rep(0,length(seas.filter)-1),seas.filter)
-seas.filter <- seas.filter + rev(seas.filter)
-factor <- 2*p.seas + 1
-seas.filter <- seas.filter/factor
-seas.filter <- c(rep(0,(length(seas.filter)-1)/2),1,rep(0,(length(seas.filter)-1)/2)) - seas.filter
-#plot.ts(seas.filter)
-sa.filter <- polymult(detrend.filter,seas.filter)
-shift <- (length(sa.filter)-1)/2
-sa.filter <- c(1,rep(0,shift)) - rev(sa.filter[1:(shift+1)])
-sa.filter <- c(rev(sa.filter),sa.filter[-1])
-#plot.ts(sa.filter)
-trend.filter <- array(trend.filter,c(1,1,length(trend.filter)))
-sa.filter <- array(sa.filter,c(1,1,length(sa.filter)))
+x11.filters <- x11filters(week.period,1)
+trend.filter <- x11.filters[[1]]
+seas.filter <- x11.filters[[2]]
+sa.filter <- x11.filters[[3]]
 
 ## compute extractions
 trend.comp <- sigex.adhocextract(psi,mdl,dataNA.ts,trend.filter,half.len,0,TRUE)
@@ -385,11 +360,6 @@ sigex.graph(sa.comp,reg.trend,start(data.ts),
 sigex.specar(sa.comp[[1]],FALSE,1,period)
 #dev.off()
 
-
-
-## Use this???
-#leads <- c(-rev(seq(0,window-1)),seq(1,T),seq(T+1,T+window))
-#data.casts <- sigex.cast(psi,mdl,data.ts,leads)
 
 
 ##  SCRAP

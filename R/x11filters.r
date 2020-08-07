@@ -58,6 +58,7 @@ x11filters <- function(period,p.seas)
   sa.filter <- c(1,rep(0,shift)) - rev(sa.filter[1:(shift+1)])
   sa.filter <- c(rev(sa.filter),sa.filter[-1])
   trend.filter <- array(trend.filter,c(1,1,length(trend.filter)))
+  seas.filter <- array(seas.filter,c(1,1,length(seas.filter)))
   sa.filter <- array(sa.filter,c(1,1,length(sa.filter)))
   
   return(list(trend.filter,seas.filter,sa.filter))
