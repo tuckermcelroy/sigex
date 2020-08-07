@@ -349,10 +349,7 @@ window <- 100
 horizon <- 0
 gr.array <- array(t(gr.poly) %x% diag(N),c(N,N,p+1))
 reg.gr <- array(0,c(T,N))
-for(k in 1:N)
-{
-  reg.gr[,k] <- filter(reg.trend[,k],gr.poly,method="convolution",sides=1)
-}
+for(k in 1:N) { reg.gr[,k] <- filter(reg.trend[,k],gr.poly,method="convolution",sides=1) }
 
 ## Trend case
 extract.trendgr2 <- sigex.wkextract(psi,mdl,data.ts,1,gr.array,grid,window,horizon,TRUE)
