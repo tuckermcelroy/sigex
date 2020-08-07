@@ -11,7 +11,7 @@ library(devtools)
 #setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
 root.dir <- getwd()
-setwd(paste(root.dir,"/tests/NDC",sep=""))
+setwd(paste(root.dir,"/tests/BFS",sep=""))
 
 
 #####################
@@ -86,40 +86,40 @@ end.date <- day2date(day.index-2 + 7*T,c(1,1,year.index))
 ##############################
 ## Generate holiday regressors
 
-easter.dates <- read.table("data\\easter500.txt")
+easter.dates <- read.table(paste(root.dir,"/data/easter500.txt",sep=""))
 easter.reg <- gethol(easter.dates,7,0,start.date,end.date)
 
-nyd.dates <- read.table("data\\newyear500.txt")
+nyd.dates <- read.table(paste(root.dir,"/data/newyear500.txt",sep=""))
 nyd.reg <- gethol(nyd.dates,7,0,start.date,end.date)
 
-mlk.dates <- read.table("data\\mlk500.txt")
+mlk.dates <- read.table(paste(root.dir,"/data/mlk500.txt",sep=""))
 mlk.reg <- gethol(mlk.dates,7,0,start.date,end.date)
 
-gw.dates <- read.table("data\\gw500.txt")
+gw.dates <- read.table(paste(root.dir,"/data/gw500.txt",sep=""))
 gw.reg <- gethol(gw.dates,7,0,start.date,end.date)
 
-mem.dates <- read.table("data\\mem500.txt")
+mem.dates <- read.table(paste(root.dir,"/data/mem500.txt",sep=""))
 mem.reg <- gethol(mem.dates,7,0,start.date,end.date)
 
-ind.dates <- read.table("data\\ind500.txt")
+ind.dates <- read.table(paste(root.dir,"/data/ind500.txt",sep=""))
 ind.reg <- gethol(ind.dates,7,0,start.date,end.date)
 
-labor.dates <- read.table("data\\labor500.txt")
+labor.dates <- read.table(paste(root.dir,"/data/labor500.txt",sep=""))
 labor.reg <- gethol(labor.dates,7,0,start.date,end.date)
 
-col.dates <- read.table("data\\columbus500.txt")
+col.dates <- read.table(paste(root.dir,"/data/columbus500.txt",sep=""))
 col.reg <- gethol(col.dates,7,0,start.date,end.date)
 
-vet.dates <- read.table("data\\vet500.txt")
+vet.dates <- read.table(paste(root.dir,"/data/vet500.txt",sep=""))
 vet.reg <- gethol(vet.dates,7,0,start.date,end.date)
 
-tg.dates <- read.table("data\\thanksgiving500.txt")
+tg.dates <- read.table(paste(root.dir,"/data/thanksgiving500.txt",sep=""))
 tg.reg <- gethol(tg.dates,7,0,start.date,end.date)
 
-xmas.dates <- read.table("data\\xmas500.txt")
+xmas.dates <- read.table(paste(root.dir,"/data/xmas500.txt",sep=""))
 xmas.reg <- gethol(xmas.dates,7,0,start.date,end.date)
 
-black.dates <- read.table("data\\black400.txt")
+black.dates <- read.table(paste(root.dir,"/data/black400.txt",sep=""))
 black.reg <- gethol(black.dates,7,0,start.date,end.date)
 
 ####################################
@@ -392,4 +392,27 @@ sigex.specar(sa.comp[[1]],FALSE,1,period)
 ## Use this???
 #leads <- c(-rev(seq(0,window-1)),seq(1,T),seq(T+1,T+window))
 #data.casts <- sigex.cast(psi,mdl,data.ts,leads)
+
+
+##  SCRAP
+
+##  structural modeling
+
+week.period <- 365.25/7
+half.len <- floor(week.period/2)
+delta.seas <- ubgenerator(week.period,half.len-1,1000)
+
+mdl2 <- NULL
+mdl2 <- sigex.add(mdl2,seq(1,N),"arma",c(2,0),list(c(1,1),NULL),"trend",c(1,-1))
+mdl2 <- sigex.add(mdl2,seq(1,N),"sarma",c(0,2,0,1,52),list(NULL,c(1,1),NULL,1),
+                  "seasonal",delta.seas)
+mdl2 <- sigex.add(mdl2,seq(1,N),"arma",c(0,0),0,"irregular",1)
+mdl2 <- sigex.meaninit(mdl2,data.ts,0)
+
+constraint <- NULL
+par.mle <- sigex.default(mdl2,data.ts,constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl2)
+
+## run fitting:
+fit.mle2 <- sigex.mlefit(data.ts,par.mle,constraint,mdl2,"bfgs",debug=TRUE)
 

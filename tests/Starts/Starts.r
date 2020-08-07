@@ -88,6 +88,8 @@ constraint <- NULL
 par.default <- sigex.default(mdl.mom,data.ts,constraint)
 par.mom <- sigex.momfit(data.ts,par.default,mdl.mom)
 psi.mom <- sigex.par2psi(par.mom,mdl.mom)
+sigex.lik(psi.mom,mdl.mom,data.ts,FALSE)
+# divergence  6329.107
 
 ## residual analysis
 resid.mom <- sigex.resid(psi.mom,mdl.mom,data.ts)[[1]]
@@ -95,12 +97,17 @@ resid.mom <- sigex.load(t(resid.mom),start(data.ts),
                         frequency(data.ts),colnames(data.ts),TRUE)
 resid.acf <- acf(resid.mom,lag.max=4*period,plot=TRUE)$acf
 
+## examine condition numbers
+log(sigex.conditions(data.ts,psi.mom,mdl.mom))
+
 ## compute a reduced rank model
 thresh <- -6.22
-reduced.mom <- sigex.reduce(data.ts,par.mom,mdl.mom,thresh,FALSE)
+reduced.mom <- sigex.reduce(data.ts,par.mom,mdl.mom,thresh,TRUE)
 mdl.mom <- reduced.mom[[1]]
 par.mom <- reduced.mom[[2]]
 psi.mom <- sigex.par2psi(par.mom,mdl.mom)
+sigex.lik(psi.mom,mdl.mom,data.ts,FALSE)
+# div  6292.841
 
 ## residual analysis
 resid.mom <- sigex.resid(psi.mom,mdl.mom,data.ts)[[1]]
@@ -122,6 +129,12 @@ analysis.mom <- sigex.bundle(data.ts,transform,mdl.mom,psi.mom)
 #############
 # MLE Fitting
 
+## load up the MOM model
+data.ts <- analysis.mom[[1]]
+mdl <- analysis.mom[[3]]
+psi.mom <- analysis.mom[[4]]
+par.mom <- sigex.psi2par(psi.mom,mdl,data.ts)
+
 #  Initialize with MOM estimates
 constraint <- NULL
 psi.mle <- sigex.par2psi(par.mom,mdl)
@@ -130,29 +143,25 @@ psi.mle <- sigex.par2psi(par.mom,mdl)
 #fit.mle <- sigex.mlefit(data.ts,par.mom,constraint,mdl,"bfgs",debug=TRUE)
 
 ## input parameter from previous fit (MLE on entire span)
-#  divergence:  6185.784
-psi.mle <- c(0.423542257365999, 0.134501458946877, 0.225735894562736, 0.125500806127999,
-             0.277059966369363, 0.840944149182132, -2.20367055605147, -4.85935947712897,
-             -6.69729008511858, -6.11816927571922, 1.04269048770371, 0.250317339091603,
-             0.809753277323495, -0.720313773007307, -0.616754630646598, -0.386827886912457,
-             -2.40614000203074, -4.72919770852222, -6.53509436667913, -9.2861412575583,
-             0.48380855905291, 0.237291064979205, 1.21270650674356, -1.3752518573378,
-             -0.53671889759918, -0.0210044890364326, -3.89972527892544, -5.83039542759658,
-             -11.0486991042118, -9.47623410286397, -0.172067074460752, 0.212808975179007,
-             0.165690017103288, -0.00637244141186747, -0.00214477902773064,
-             0.0933228648769178, -2.73819472549497, -3.6650836810548, -4.49590923175739,
-             -10.0074671892842, -0.114866000887492, -0.210563103438697, -0.182426980405228,
-             -0.678921798038978, 0.244592711560399, 0.000162440817641524,
-             -3.29062077278078, -6.94067047408281, -13.8631958930152, -12.7740076647554,
-             1.01976693974461, -0.176728058418555, 0.381748041673584, 7.76293530769596,
-             -42.5224142483839, 0.000307656113372132, -4.86346606363989, -11.0656550501414,
-             -12.3938515712309, -9.26711017917879, -0.245307834874516, 0.0814078360607122,
-             0.156989749491884, 1.13373834073925, -0.245523810285003, -0.00181549624522899,
-             -3.63022671080751, -6.84081933795189, -12.4239069581581, -11.3221468947418,
-             0.0266707764314609, 0.0281723045059473, 0.000994959872918981,
-             0.0659040290710181, 0.021912146700469, 0.280000953632169, 2.6066131275945,
-             1.06766682710889, -0.0913293751220125, 0.0660748780411686, 0.00387853583107558,
-             0.00175337864601441, 0.000505786944522091, 0.00104654719895988)
+#  divergence:  6152.607
+psi.mle <- c(0.430604758988307, 0.138843971938441, 0.211034753655249, 0.122497565015475,
+             0.273961955347927, 0.83829841362335, -2.19718581249183, -4.85906104866881,
+             -6.69696771334971, -6.13282806492413, 1.12175825784647, 0.289882305425559,
+             0.873677616319397, -0.745293003402034, -0.754732471766407, -0.498376140705462,
+             -2.42443529609759, -4.72941611158525, -6.52941280216317, 0.459400674188665,
+             0.208306224143506, 1.24487637498583, -1.388883213613, -0.526433078980047,
+             -3.90916616951099, -5.82829964996699, -0.169794036259361, 0.22214398081366,
+             0.152889428361731, -0.00908575947899202, -0.00318543112970812,
+             0.0884748269673841, -2.73579660752933, -3.66216778737483, -4.49261642825817,
+             -0.112193904428172, -0.203557855469594, -0.164528907998198, -0.680285482020193,
+             0.244662042202419, -3.28673706196714, -6.93954034182091, 1.05554783833862,
+             -0.16328976555996, 0.311473085983565, -4.85381927837337, -0.244998596862816,
+             0.0508029104468634, 0.194372016161389, 1.14475061810928, -0.253386348374559,
+             -3.61493340437869, -6.83641878016894, 0.0921157226442518, 0.0283709627836627,
+             -0.0389611692363272, 0.0109437749519264, 0.0358792010736619,
+             0.245040148693726, 2.69734505562902, 1.07979552299194, -0.0671443528547337,
+             0.302809384452077, 0.000724801053757517, 0.000779888484070904,
+             -2.68663079304438e-05, 0.000373610017630947)
 par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 ## residual analysis
@@ -203,7 +212,6 @@ for(i in 1:N) {
 
 ## plotting
 trendcol <- "tomato"
-cyccol <- "orchid"
 seascol <- "seagreen"
 sacol <- "navyblue"
 fade <- 60
@@ -263,7 +271,7 @@ dev.off()
 ####################################################################
 ############################# METHOD 2: FORECASTING and WK SIGEX
 
-grid <- 7000	# need grid > filter length
+grid <- 7000
 window <- 50
 horizon <- 0
 target <- array(diag(N),c(N,N,1))
@@ -273,7 +281,7 @@ extract.seas2 <- sigex.wkextract(psi,mdl,data.ts,seq(2,7),target,grid,window,hor
 extract.sa2 <- sigex.wkextract(psi,mdl,data.ts,c(1,8),target,grid,window,horizon,TRUE)
 
 ## root mse plots: trend
-pdf(file="StartsTrendMSE50.pdf")
+#pdf(file="StartsTrendMSE50.pdf")
 par(mfrow=c(2,2))
 for(subseries in 1:N)
 {
@@ -285,7 +293,7 @@ for(subseries in 1:N)
 dev.off()
 
 ## root mse plots: sa
-pdf(file="StartsSAMSE50.pdf")
+#pdf(file="StartsSAMSE50.pdf")
 par(mfrow=c(2,2))
 for(subseries in 1:N)
 {
@@ -349,7 +357,7 @@ for(k in 1:N)
 ## Trend case
 extract.trendgr2 <- sigex.wkextract(psi,mdl,data.ts,1,gr.array,grid,window,horizon,TRUE)
 ## plot
-pdf(file="StartsTrendGR.pdf")
+#pdf(file="StartsTrendGR.pdf")
 par(mfrow=c(2,2))
 for(i in 1:N)
 {
@@ -362,7 +370,7 @@ dev.off()
 # SA case
 extract.sagr2 <- sigex.wkextract(psi,mdl,data.ts,c(1,8),gr.array,grid,window,horizon,TRUE)
 ## plot
-pdf(file="StartsSAGR.pdf")
+#pdf(file="StartsSAGR.pdf")
 par(mfrow=c(2,2))
 for(i in 1:N)
 {
@@ -371,6 +379,7 @@ for(i in 1:N)
   sigex.graph(extract.sagr2,reg.gr,begin.date,period,i,0,sacol,fade)
 }
 dev.off()
+
 
 
 

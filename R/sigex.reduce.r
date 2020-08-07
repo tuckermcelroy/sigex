@@ -24,25 +24,25 @@ sigex.reduce <- function(data.ts,param,mdl,thresh,modelflag)
 	################# Documentation #####################################
 	#
 	#	Purpose: determine a reduced rank model from a given fitted model
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
 	#			w_t = delta(B) y_t   is stationary.
 	#		We have a model for each w_t process, which is specified
 	#		through the ranks (indices of non-zero Schur complements,
-	#		cf. background for sigex.param2gcd) of the white noise 
-	#		covariance matrix; also there is the model type, which 
+	#		cf. background for sigex.param2gcd) of the white noise
+	#		covariance matrix; also there is the model type, which
 	#		denotes the specification of the t.s. model for w_t;
 	#		all the regressors, which are specified by individual time series
 	#		rather than by latent component, and must have length T;
 	#		pre-specified bounds for cyclical parameters, for each component,
 	#		if applicable.
-	#		param is the name for the model parameters entered into 
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object
 	#		param: see background
@@ -55,7 +55,7 @@ sigex.reduce <- function(data.ts,param,mdl,thresh,modelflag)
 	#			mdl[[3]] is mdlDiff, gives delta differencing polynomials
 	#		      mdl[[4]] is list of regressors by individual series
 	#		thresh: lower bound on Schur complements
-	#		modelFlag: when TRUE, small Schur complements imply rand reduction
+	#		modelFlag: when TRUE, small Schur complements imply rank reduction
 	#			in the new model.  When modelFlag is FALSE, small Schur
 	#			complements are replaced by exp(thresh)
 	#	Outputs:
@@ -69,7 +69,7 @@ sigex.reduce <- function(data.ts,param,mdl,thresh,modelflag)
 	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
-	
+
 	psi.red <- sigex.par2psi(param,mdl)
 	log.conds <- log(sigex.conditions(data.ts,psi.red,mdl))
 
@@ -88,7 +88,7 @@ sigex.reduce <- function(data.ts,param,mdl,thresh,modelflag)
 	mdl.red[[4]] <- mdl[[4]] } else {
 	par.red <- param
 	mdl.red <- mdl
-	for(j in 1:length(mdl[[3]])) 
+	for(j in 1:length(mdl[[3]]))
 	{
 		L.mat <- par.red[[1]][[j]]
 		D.psi <- par.red[[2]][[j]]
