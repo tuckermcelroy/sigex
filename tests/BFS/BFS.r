@@ -25,7 +25,7 @@ setwd(paste(root.dir,"/tests/BFS",sep=""))
 begin <- c(2006,1)
 end <- c(2020,27)
 period <- 52
-bfs.dates <- bfs[,1:2]
+#bfs.dates <- bfs[,1:2]
 
 ## create ts object and plot
 dataALL.ts <- sigex.load(bfs[,3:6],begin,period,c("bfs-ba","bfs-hba","bfs-wba","bfs-cba"),FALSE)
@@ -69,19 +69,10 @@ T <- dim(data.ts)[1]
 
 # code to get calendar date for Sunday of the first week
 first.day <- 1
-start.year <- begin[1]
-start.week <- begin[2]
-day.lead <- day2week(c(1,1,start.year)) - first.day
-if(day.lead < 0) { day.lead <- day.lead + 7 }
-day.index <- 7*(start.week-1) - day.lead + 1
-year.index <- start.year
-if(day.index <= 0)
-{
-  day.index <- date2day(12,31,start.year-1) + day.index
-  year.index <- year.index-1
-}
-start.date <- day2date(day.index-1,c(1,1,year.index))
-end.date <- day2date(day.index-2 + 7*T,c(1,1,year.index))
+all.date <- weekly2date(first.day,begin,T)
+start.date <- all.date[[1]]
+end.date <- all.date[[2]]
+
 
 ##############################
 ## Generate holiday regressors
@@ -122,6 +113,11 @@ xmas.reg <- gethol(xmas.dates,7,0,start.date,end.date)
 black.dates <- read.table(paste(root.dir,"/data/black400.txt",sep=""))
 black.reg <- gethol(black.dates,7,0,start.date,end.date)
 
+## Independence Day, Veteran's Day, and Christmas are purely seasonal
+sum(ind.reg^2)
+sum(vet.reg^2)
+sum(xmas.reg^2)
+
 ####################################
 ## Convert to weekly flow regressors
 
@@ -160,8 +156,6 @@ xmas.reg <- rowSums(xmas.reg)/7
 
 black.reg <- sigex.daily2weekly(black.reg,first.day,start.date)
 black.reg <- rowSums(black.reg)/7
-
-
 
 
 ###########################################
@@ -235,6 +229,13 @@ par.mle <- fit.mle[[2]]
 #-0.0819199138033471, -0.166531078048871, 0.0762222534500927)
 #par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
+## check on standard errors and get t statistics
+print(eigen(hess)$values)
+
+# residual analysis
+resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*53,plot=TRUE)$acf
 
 ## (c) Final Model: retain holidays NewYears, MLK, and Labor Day,
 #       and AO at time 314.
@@ -251,7 +252,6 @@ mdl <- sigex.meaninit(mdl,dataNA.ts,0)
 # add regressors
 mdl <- sigex.reg(mdl,1,ts(as.matrix(nyd.reg),start=start(nyd.reg),frequency=period,names="NewYearDay"))
 mdl <- sigex.reg(mdl,1,ts(as.matrix(mlk.reg),start=start(mlk.reg),frequency=period,names="MLK"))
-mdl <- sigex.reg(mdl,1,ts(as.matrix(labor.reg),start=start(labor.reg),frequency=period,names="LaborDay"))
 
 constraint <- NULL
 par.mle <- sigex.default(mdl,dataNA.ts,constraint)
@@ -265,11 +265,10 @@ psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
 hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
-## MLE fitting results, three holidays
-#  divergence:     -2331.178
-#psi.mle <- c(-4.14582235347973, 5.68312818296934, 3.32001033852795, 3.03830040237583,
-#1.05421882755007, 10.9953892306492, -0.419201207247771, -0.232180383605472,
-#0.1267872310395)
+## MLE fitting results, two holidays
+#  divergence:     -2329.284
+#psi.mle <- c(-4.1429305511094, 5.66956218425899, 3.31919328004112, 3.01604771505878,
+#1.03883169244118, 10.9941148479326, -0.42082779363966, -0.231945823550937)
 #par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 
@@ -278,17 +277,15 @@ par.mle <- fit.mle[[2]]
 
 # t statistics for parameters
 sigex.tstats(mdl,psi.mle,hess,constraint)
-#c(-79.2742683431225, 6.2483970476832, 7.11364294700982, 9.72902490405569,
-#5.47281717698996, 63.7788853761768, -4.91944353936497, -2.78142108144931,
-#1.37750462582758)
-
-# outlier calculations
-data.casts <- sigex.midcast(psi.mle,mdl,dataNA.ts,0)
 
 # residual analysis
 resid.mle <- sigex.resid(psi.mle,mdl,dataNA.ts)[[1]]
 resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 resid.acf <- acf(resid.mle,lag.max=4*53,plot=FALSE)$acf
+
+## model checking
+sigex.portmanteau(resid.mle,4*period,length(psi.mle))
+sigex.gausscheck(resid.mle)
 
 #pdf(file="retResidAcf.pdf",height=10,width=10)
 par(mfrow=c(N,N),mar=c(3,2,2,0)+0.1,cex.lab=.8,cex.axis=.5,bty="n")
@@ -301,16 +298,17 @@ for(j in 1:N)
     abline(h=-1.96/sqrt(T),lty=3)
   }
 }
-#dev.off()
+dev.off()
+
+# outlier calculations
+data.casts <- sigex.midcast(psi.mle,mdl,dataNA.ts,0)
 
 # bundle
-analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
+analysis.mle <- sigex.bundle(dataNA.ts,transform,mdl,psi.mle)
 
 
 ##########################################
 ### Part V: Signal Extraction
-
-setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\Casting\\BFS")
 
 ## load up the fitted model for signal extraction
 data.ts <- analysis.mle[[1]]
@@ -319,11 +317,11 @@ psi <- analysis.mle[[4]]
 param <- sigex.psi2par(psi,mdl,data.ts)
 
 ## get fixed effects
-reg.trend <- as.matrix(param[[4]][1]*mdl[[4]][[1]][,1])
-reg.nyd <- as.matrix(param[[4]][2]*mdl[[4]][[1]][,2])
-reg.mlk <- as.matrix(param[[4]][3]*mdl[[4]][[1]][,3])
-reg.labor <- as.matrix(param[[4]][4]*mdl[[4]][[1]][,4])
-dataLIN.ts <- data.ts - (reg.trend + reg.nyd + reg.mlk + reg.labor)
+reg.trend <- sigex.fixed(data.ts,mdl,1,param,"Trend")
+reg.nyd <- sigex.fixed(data.ts,mdl,1,param,"NewYearDay")
+reg.mlk <- sigex.fixed(data.ts,mdl,1,param,"MLK")
+dataLIN.ts <- data.ts - ts(reg.trend + reg.nyd + reg.mlk,
+                           start=start(data.ts),frequency=period)
 
 ## define trend and SA weekly filters
 week.period <- 365.25/7

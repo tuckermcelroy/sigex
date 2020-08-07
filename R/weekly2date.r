@@ -4,14 +4,10 @@
 #'     the week corresponds to the first day in the week, 
 #'     with 1 = Sunday, 2 = Monday, etc.
 #'     e.g. for weekly data beginning with Sunday, set first.day = 1
-#'
 #' @param  begin: two components with year and week index (between 1 and 53)
-#'
 #' @param  T: number of weeks in the time series
 #'
 #' @return list with start.date and end.date, each in format c(month,day,year)
-#'
-#'
 #' @export
 #'
 
