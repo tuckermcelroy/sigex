@@ -311,10 +311,10 @@ analysis.mle <- sigex.bundle(dataNA.ts,transform,mdl,psi.mle)
 ### Part V: Signal Extraction
 
 ## load up the fitted model for signal extraction
-data.ts <- analysis.mle[[1]]
+dataNA.ts <- analysis.mle[[1]]
 mdl <- analysis.mle[[3]]
 psi <- analysis.mle[[4]]
-param <- sigex.psi2par(psi,mdl,data.ts)
+param <- sigex.psi2par(psi,mdl,dataNA.ts)
 
 ## get fixed effects
 reg.trend <- sigex.fixed(data.ts,mdl,1,param,"Trend")
@@ -323,12 +323,17 @@ reg.mlk <- sigex.fixed(data.ts,mdl,1,param,"MLK")
 dataLIN.ts <- data.ts - ts(reg.trend + reg.nyd + reg.mlk,
                            start=start(data.ts),frequency=period)
 
+
+#HERE
+
 ## define trend and SA weekly filters
 week.period <- 365.25/7
+half.len <- floor(week.period/2)
 x11.filters <- x11filters(week.period,1)
 trend.filter <- x11.filters[[1]]
 seas.filter <- x11.filters[[2]]
 sa.filter <- x11.filters[[3]]
+shift <- (dim(sa.filter)[3]-1)/2
 
 ## compute extractions
 trend.comp <- sigex.adhocextract(psi,mdl,dataNA.ts,trend.filter,half.len,0,TRUE)
