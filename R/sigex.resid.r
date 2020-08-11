@@ -23,9 +23,9 @@ sigex.resid <- function(psi,mdl,data.ts,debug=FALSE)
 
 	################# Documentation #####################################
 	#
-	#	Purpose: computes residuals from Gaussian likelihood of model 
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Purpose: computes residuals from Gaussian likelihood of model
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
 	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
@@ -35,21 +35,23 @@ sigex.resid <- function(psi,mdl,data.ts,debug=FALSE)
 	#		beta ~ all regression parameters
 	#	Notes: handles missing values in data.ts, which are indicated by 1i
 	#	Inputs:
-	#		psi: see background. 
+	#		psi: see background.
 	#		mdl: the specified sigex model, a list object
   #		data.ts: a T x N matrix ts object; any  values to be imputed
   #			must be encoded with NA in that entry.  The NA is for missing value,
   #     or an enforced imputation (e.g. extreme-value adjustment).
   #   debug: set to TRUE if lik values should be printed to screen
-  #	Outputs:
+  #	Outputs: a list with two elements
 	#		resids: a N x (T-d) matrix of residuals, where d is
 	#			the order of the full differencing polynomial.
 	#			(A failure returns Inf.)
+  #   x.acf: an array of dimension N x (T+1) x N of the autocovariances
+  #     of the differenced model for lags 0 through T, corresponding to psi.
 	#	Requires: sigex.zetalen, sigex.zeta2par, sigex.param2gcd, sigex.delta,
 	#			mvar.midcast, sigex.acf
 	#
 	####################################################################
- 
+
 	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
@@ -60,7 +62,7 @@ sigex.resid <- function(psi,mdl,data.ts,debug=FALSE)
 	D.par <- mdl[[3]]
 	zeta.par <- vector("list",length(mdl[[3]]))
 	acf.mat <- matrix(0,nrow=N*(T+1),ncol=N)
-	
+
 	# get xi portion
 	ind <- 0
 	A.mat <- matrix(0,N,N)
@@ -82,7 +84,7 @@ sigex.resid <- function(psi,mdl,data.ts,debug=FALSE)
 
 	# get beta portion
 	beta.len <- 0
-	for(i in 1:N) 
+	for(i in 1:N)
 	{
 		beta.len <- beta.len + dim(mdl[[4]][[i]])[2]
 	}
@@ -94,7 +96,7 @@ sigex.resid <- function(psi,mdl,data.ts,debug=FALSE)
 	ind <- 0
 	for(i in 1:length(mdl[[3]]))
 	{
-		mdlType <- mdl[[2]][[i]]	
+		mdlType <- mdl[[2]][[i]]
 		delta <- mdl[[3]][[i]]
 		zetalen <- sigex.zetalen(mdlType)
 		if(zetalen > 0) {
@@ -102,13 +104,13 @@ sigex.resid <- function(psi,mdl,data.ts,debug=FALSE)
 			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType)
 		}
 		ind <- ind + zetalen
-	
+
 		delta <- sigex.delta(mdl,i)
-		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T+1)		
+		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T+1)
 	}
 
 	x.acf <- array(acf.mat,dim=c(N,T+1,N))
-	reg.vec <- beta.par	
+	reg.vec <- beta.par
 
 	# subtract regression effects from available sample only
 	ind <- 0
@@ -127,7 +129,7 @@ sigex.resid <- function(psi,mdl,data.ts,debug=FALSE)
 
 	resids <- lik.output
 
-	return(list(resids,x.acf))
+	return(list(Re(resids),x.acf))
 }
 
 

@@ -3,7 +3,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 
 	##########################################################################
 	#
-	#	sigex.mlefit
+	#	sigex.momfit
 	# 	    Copyright (C) 2017  Tucker McElroy
 	#
 	#    This program is free software: you can redistribute it and/or modify
@@ -24,8 +24,8 @@ sigex.momfit <- function(data.ts,param,mdl)
 	################# Documentation #####################################
 	#
 	#	Purpose: computes initial parameter estimates by method of moments
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
 	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
@@ -41,10 +41,10 @@ sigex.momfit <- function(data.ts,param,mdl)
 	#	Outputs:
 	#		par.new: type param, with the estimated covariance parameters filled in
 	#	Requires: sigex.delta, sigex.getcycle, polymult, polysum, specFact,
-	#		ARMAauto, getGCD, sigex.canonize		
+	#		ARMAauto, getGCD, sigex.canonize
 	#
 	####################################################################
-  
+
 	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
@@ -52,9 +52,9 @@ sigex.momfit <- function(data.ts,param,mdl)
 
 	fulldiff <- sigex.delta(mdl,0)
 	data.diff <- filter(t(x),fulldiff,method="convolution",
-			sides=1)[length(fulldiff):T,,drop=FALSE] 
+			sides=1)[length(fulldiff):T,,drop=FALSE]
 	Tdiff <- dim(data.diff)[1]
- 
+
 	# get OLS estimates of regressors
 	betas.ols <- NULL
 	mu.ols <- NULL
@@ -73,7 +73,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 		betas.ols <- rbind(betas.ols,beta.ols)
 		mu.ols <- cbind(mu.ols,reg.diff%*%beta.ols)
 	}
-	
+
 	mu <- mu.ols
 	data.diff <- data.diff - mu
 	data.acf <- acf(data.diff,plot=FALSE,lag.max=T-1,type="covariance")$acf
@@ -87,7 +87,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 		mdlClass <- mdlType[[1]]
 		mdlOrder <- mdlType[[2]]
 		mdlBounds <- mdlType[[3]]
-		mdlPar <- param[[3]][[i]]	 
+		mdlPar <- param[[3]][[i]]
 
 		# ARMA model
 		if(mdlClass == "arma")
@@ -117,7 +117,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 			ma.poly <- polymult(delta.poly,ma.stab)
 			ar.poly <- c(1,-1*ar.coef)
 		}
- 
+
 		# SARMA model
 		if(mdlClass == "sarma")
 		{
@@ -133,7 +133,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 			mas.coef <- NULL
 			if(p.order > 0) ar.coef <- mdlPar[1:p.order]
 			if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
-			if(ps.order > 0) 
+			if(ps.order > 0)
 			{
 				ars.coef <- mdlPar[(p.order+q.order+1):(p.order+q.order+ps.order)]
 				ars.coef <- ars.coef %x% stretch
@@ -163,7 +163,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 			mas.coef <- NULL
 			if(p.order > 0) ar.coef <- mdlPar[1:p.order]
 			if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
-			if(ps.order > 0) 
+			if(ps.order > 0)
 			{
 				ars.coef <- mdlPar[(p.order+q.order+1):(p.order+q.order+ps.order)]
 				ars.coef <- ars.coef %x% stretch
@@ -186,7 +186,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 		{
 			cycle.order <- mdlOrder[1]
 			rho <- mdlPar[1]
-			omega <- mdlPar[2] 
+			omega <- mdlPar[2]
 			out <- sigex.getcycle(cycle.order,rho,omega)
 			ar.poly <- out[[1]]
 			ma.poly <- out[[2]]
@@ -198,7 +198,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 		{
 			cycle.order <- mdlOrder[1]
 			rho <- mdlPar[1]
-			omega <- mdlPar[2] 
+			omega <- mdlPar[2]
 			out <- sigex.getcycle(cycle.order,rho,omega)
 			ar.poly <- out[[1]]
 			ma.poly <- out[[2]]
@@ -213,7 +213,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 		{
 			cycle.order <- mdlOrder[1]
 			rho <- mdlPar[1]
-			omega <- mdlPar[2] 
+			omega <- mdlPar[2]
 			out <- sigex.getcycle(cycle.order,rho,omega)
 			ar.poly <- out[[1]]
 			r <- seq(0,cycle.order)
@@ -223,9 +223,9 @@ sigex.momfit <- function(data.ts,param,mdl)
 				r <- seq(0,cycle.order-h)
 				new.acf <- cos(h*pi*omega) * sum(choose(cycle.order,r+h)*choose(cycle.order,r)*(-rho)^(2*r+h))
 				ma.acf <- c(ma.acf,new.acf)
-			}		
+			}
 			ma.acf <- c(rev(ma.acf),ma.acf[-1]) + 1e-10
-			ma.poly <- Re(specFact(ma.acf))	
+			ma.poly <- Re(specFact(ma.acf))
 			ma.poly <- polymult(delta.poly,ma.poly)
  		}
 
@@ -234,7 +234,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 		{
 			cycle.order <- mdlOrder[1]
 			rho <- mdlPar[1]
-			omega <- mdlPar[2] 
+			omega <- mdlPar[2]
 			out <- sigex.getcycle(cycle.order,rho,omega)
 			ar.poly <- out[[1]]
 			r <- seq(0,cycle.order)
@@ -244,16 +244,16 @@ sigex.momfit <- function(data.ts,param,mdl)
 				r <- seq(0,cycle.order-h)
 				new.acf <- cos(h*pi*omega) * sum(choose(cycle.order,r+h)*choose(cycle.order,r)*(-rho)^(2*r+h))
 				ma.acf <- c(ma.acf,new.acf)
-			}		
+			}
 			ma.acf <- c(rev(ma.acf),ma.acf[-1]) + 1e-10
 			ma.poly <- Re(specFact(ma.acf))
 			ma.scale <- abs(ma.poly[1])
-			ma.coef <- ma.poly[-1]/ma.poly[1]	
+			ma.coef <- ma.poly[-1]/ma.poly[1]
 			canon.delta <- mdl[[3]][[i]]
 			ardiff.poly <- polymult(ar.poly,canon.delta)
 			ma.stab <- sigex.canonize(ma.coef,-1*ardiff.poly[-1])
 			ma.stab <- ma.scale*ma.stab
-			ma.poly <- polymult(delta,ma.stab)	
+			ma.poly <- polymult(delta,ma.stab)
 		}
 
 		# Damped Trend model
@@ -267,7 +267,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 				ar.poly <- polymult(ar.poly,c(1,-1*ar.coef))
 			}
 			ma.poly <- delta.poly
-		}	
+		}
 
 		ma.null <- NULL
 		if(length(ma.poly)==1) ma.null <- 0
@@ -288,7 +288,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 			ma.prod <- polymult(ma.pols[[i]],ma.pols[[j]])
 			ma.scale <- ma.prod[1]^2
 			ma.prod <- ma.prod/ma.prod[1]
-			ar.prod <- polymult(ar.pols[[i]],ar.pols[[j]])	
+			ar.prod <- polymult(ar.pols[[i]],ar.pols[[j]])
 			G.mat[i,j] <- ARMAauto(ar = -1*ar.prod[-1],
 				ma = ma.prod[-1],lag.max=1)[1]*ma.scale
 		}
@@ -298,17 +298,17 @@ sigex.momfit <- function(data.ts,param,mdl)
 		{
 			new.acf <- new.acf + g.acf[k]*(data.acf[k,,] + t(data.acf[k,,]))
 		}
-		est.acf[,i,] <- new.acf	
-	}	
+		est.acf[,i,] <- new.acf
+	}
 	G.mat.inv <- solve(G.mat)
 	par.est.mat <- G.mat.inv %x% diag(N) %*% matrix(est.acf,c(length(mdl[[3]])*N,N))
-	
+
 	for(i in 1:length(mdl[[3]]))
 	{
 		temp.mat <- par.est.mat[((i-1)*N+1):(i*N),]
 		if(N==1) new.mat <- as.matrix(pmax(0,temp.mat))	else {
 			eig.mat <- eigen(temp.mat)
-			new.mat <- eig.mat$vectors %*% diag(pmax(0,eig.mat$values)) %*% t(eig.mat$vectors)	
+			new.mat <- eig.mat$vectors %*% diag(pmax(0,eig.mat$values)) %*% t(eig.mat$vectors)
 		}
 		gcd.est <- getGCD(new.mat,N)
 		par.new[[1]][[i]] <- gcd.est[[1]]

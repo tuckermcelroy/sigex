@@ -394,7 +394,8 @@ mvar.midcast <- function(x.acf,z,delta,debug=FALSE)
 		} else # at least one cast within t.len time points
 		{
 		  casts.var.array <- array(casts.var,c(N,length(cast.index.t),N,length(cast.index.t)))
-		  range.t <- (length(cast.index.t)-cast.len+1):length(cast.index.t)
+#		  range.t <- (length(cast.index.t)-cast.len+1):length(cast.index.t)
+		  range.t <- 1:cast.len
 		  casts.var.array <- casts.var.array[,,,range.t,drop=FALSE]
 		  l.array <- array(l.derp,c(N,N,T-t))
 		  l.array <- l.array[,,cast.index.tlen-t,drop=FALSE]
@@ -862,7 +863,8 @@ mvar.midcast <- function(x.acf,z,delta,debug=FALSE)
 	  } else # at least one cast within t.len time points
 	  {
 	    casts.var.array <- array(casts.var,c(N,length(cast.index.t),N,length(cast.index.t)))
-	    range.t <- (length(cast.index.t)-cast.len+1):length(cast.index.t)
+#	    range.t <- (length(cast.index.t)-cast.len+1):length(cast.index.t)
+	    range.t <- 1:cast.len
 	    casts.var.array <- casts.var.array[,,,range.t,drop=FALSE]
 	    l.array <- array(l.derp,c(N,N,T-t))
 	    l.array <- l.array[,,cast.index.tlen-t,drop=FALSE]
