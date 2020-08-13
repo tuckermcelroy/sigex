@@ -25,7 +25,6 @@ setwd(paste(root.dir,"/tests/BFS",sep=""))
 begin <- c(2006,1)
 end <- c(2020,27)
 period <- 52
-#bfs.dates <- bfs[,1:2]
 
 ## create ts object and plot
 dataALL.ts <- sigex.load(bfs[,3:6],begin,period,c("bfs-ba","bfs-hba","bfs-wba","bfs-cba"),FALSE)
@@ -183,7 +182,7 @@ par.mle <- fit.mle[[2]]
 ## MLE fitting results, no holidays
 #  divergence:    -2076.881
 #psi.mle <- c(-3.82130660051201, 6.55294873414615, 3.80965936769506, 3.88542473367833,
-#1.62833607331469, 11.0528714439272)
+#   1.62833607331469, 11.0528714439272)
 #par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 
@@ -268,7 +267,7 @@ par.mle <- fit.mle[[2]]
 ## MLE fitting results, two holidays
 #  divergence:     -2329.284
 #psi.mle <- c(-4.1429305511094, 5.66956218425899, 3.31919328004112, 3.01604771505878,
-#1.03883169244118, 10.9941148479326, -0.42082779363966, -0.231945823550937)
+#  1.03883169244118, 10.9941148479326, -0.42082779363966, -0.231945823550937)
 #par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 
@@ -323,9 +322,6 @@ reg.mlk <- sigex.fixed(data.ts,mdl,1,param,"MLK")
 dataLIN.ts <- data.ts - ts(reg.trend + reg.nyd + reg.mlk,
                            start=start(data.ts),frequency=period)
 
-
-#HERE
-
 ## define trend and SA weekly filters
 week.period <- 365.25/7
 half.len <- floor(week.period/2)
@@ -350,42 +346,14 @@ fade <- 60
 
 #pdf(file="bfs-signal-ba.pdf",height=8,width=10)
 plot(data.ts)
-#lines(data.ts-as.matrix(reg.nyd+reg.mlk+reg.labor),col=cyccol)
 sigex.graph(trend.comp,reg.trend,start(data.ts),
             period,1,0,trendcol,fade)
 sigex.graph(sa.comp,reg.trend,start(data.ts),
             period,1,0,sacol,fade)
-#dev.off()
-
-#write(t(cbind(trend.comp[[1]][,1]+reg.trend,
-#              sa.comp[[1]][,1]+reg.trend)),
-#              file="signals-ba.dat",ncol=2)
+dev.off()
 
 ## spectral diagnostics: seasonal adjustment
 sigex.specar(sa.comp[[1]],FALSE,1,period)
-#dev.off()
+dev.off()
 
-
-
-##  SCRAP
-
-##  structural modeling
-
-week.period <- 365.25/7
-half.len <- floor(week.period/2)
-delta.seas <- ubgenerator(week.period,half.len-1,1000)
-
-mdl2 <- NULL
-mdl2 <- sigex.add(mdl2,seq(1,N),"arma",c(2,0),list(c(1,1),NULL),"trend",c(1,-1))
-mdl2 <- sigex.add(mdl2,seq(1,N),"sarma",c(0,2,0,1,52),list(NULL,c(1,1),NULL,1),
-                  "seasonal",delta.seas)
-mdl2 <- sigex.add(mdl2,seq(1,N),"arma",c(0,0),0,"irregular",1)
-mdl2 <- sigex.meaninit(mdl2,data.ts,0)
-
-constraint <- NULL
-par.mle <- sigex.default(mdl2,data.ts,constraint)
-psi.mle <- sigex.par2psi(par.mle,mdl2)
-
-## run fitting:
-fit.mle2 <- sigex.mlefit(data.ts,par.mle,constraint,mdl2,"bfgs",debug=TRUE)
 
