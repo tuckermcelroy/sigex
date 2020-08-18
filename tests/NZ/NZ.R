@@ -167,6 +167,12 @@ psi.init <- c(psi.init,matrix(rbind(colMeans(diff(data.ts[2:(T-1),])),
 delta.vec <- list(var.nonseas[[2]],NULL,var.seas[[2]],NULL)
 
 
+# SARMA
+mdl <- NULL
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,0,52),0,"process",c(1,-1))
+mdl <- sigex.meaninit(mdl,data.ts,0)
+
+
 # model construction
 mdl <- NULL
 #mdl <- sigex.add(mdl,seq(1,N),"svarma",c(1,0,1,0,52),list(-1,1,1,1),"process",c(1,-1))
@@ -221,10 +227,17 @@ par.mle <- sigex.default(mdl,data.ts,constraint)
 psi.mle <- sigex.par2psi(par.mle,mdl)
 
 #psi.mle <- psi.init
-#par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
+par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 ## run fitting: commented out, this took 2 weeks!
 fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+
+## manage output
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+
+
 
 ## fit from first model
 psi.mle <- c(0.51760596525827, 0.439939433340027, 0.341971516664744, 0.388139046943854,
