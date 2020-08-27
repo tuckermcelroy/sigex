@@ -164,7 +164,7 @@ black.reg <- rowSums(black.reg)/7
 
 # model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),list(1,1,1,1),"process",1)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),NULL,"process",1)
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
 constraint <- NULL
@@ -190,7 +190,7 @@ par.mle <- fit.mle[[2]]
 
 # model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),list(1,1,1,1),"process",1)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),NULL,"process",1)
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
 # add regressors
@@ -245,7 +245,7 @@ dataNA.ts[AO.times] <- NA
 
 # model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),list(1,1,1,1),"process",1)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),NULL,"process",1)
 mdl <- sigex.meaninit(mdl,dataNA.ts,0)
 
 # add regressors

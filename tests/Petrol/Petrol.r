@@ -67,8 +67,8 @@ T <- dim(data.ts)[1]
 
 ## model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend",c(1,-1))
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"trend",c(1,-1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"irregular",1)
 # regressors:
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
@@ -77,8 +77,8 @@ mdl <- sigex.meaninit(mdl,data.ts,0)
 
 ## model construction
 mdl2 <- NULL
-mdl2 <- sigex.add(mdl2,1,"arma",c(0,0),0,"trend",c(1,-1))
-mdl2 <- sigex.add(mdl2,seq(1,N),"arma",c(0,0),0,"irregular",1)
+mdl2 <- sigex.add(mdl2,1,"arma",c(0,0),NULL,"trend",c(1,-1))
+mdl2 <- sigex.add(mdl2,seq(1,N),"arma",c(0,0),NULL,"irregular",1)
 # regressors:
 mdl2 <- sigex.meaninit(mdl2,data.ts,0)
 

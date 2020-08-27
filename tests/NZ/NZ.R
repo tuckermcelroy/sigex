@@ -140,10 +140,9 @@ ar.fit <- ar.yw(diff(data.ts[2:(T-1),]))
 p.order <- ar.fit$order
 par.yw <- aperm(ar.fit$ar,c(2,3,1))
 covmat.yw <- getGCD(ar.fit$var.pred,2)
-var.out <- sigex.ivarpar(par.yw)
+var.out <- var.par2pre(par.yw)
 psi.init <- as.vector(c(covmat.yw[[1]][2,1],log(covmat.yw[[2]]),
-                        var.out[[1]],colMeans(diff(ts(ndc[2:T,])))))
-delta.vec <- var.out[[2]]
+                        var.out,colMeans(diff(ts(ndc[2:T,])))))
 
 
 
@@ -157,19 +156,18 @@ immSEAS.acf <- acf(dataSEAS.ts,type="covariance",plot=FALSE)$acf
 phi.nonseas <- immSEAS.acf[2,,] %*% solve(immSEAS.acf[1,,])
 covmat <- immSEAS.acf[1,,] - phi.nonseas %*% immSEAS.acf[1,,] %*% t(phi.nonseas)
 cov.gcd <- getGCD(covmat,N)
-var.seas <- sigex.ivarpar(array(phi.seas,c(N,N,1)))
-var.nonseas <- sigex.ivarpar(array(phi.nonseas,c(N,N,1)))
+var.seas <- var.par2pre(array(phi.seas,c(N,N,1)))
+var.nonseas <- var.par2pre(array(phi.nonseas,c(N,N,1)))
 psi.init <- as.vector(c(cov.gcd[[1]][lower.tri(diag(N))],log(cov.gcd[[2]]),
-              var.nonseas[[1]],var.seas[[1]]))
+              var.nonseas,var.seas))
 # There are seven holiday regressors, so initialize these with zero
 psi.init <- c(psi.init,matrix(rbind(colMeans(diff(data.ts[2:(T-1),])),
                                     matrix(0,nrow=7,ncol=N)),ncol=1))
-delta.vec <- list(var.nonseas[[2]],NULL,var.seas[[2]],NULL)
 
 
 # SARMA
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,0,52),0,"process",c(1,-1))
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,0,52),NULL,"process",c(1,-1))
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
 
@@ -177,7 +175,7 @@ mdl <- sigex.meaninit(mdl,data.ts,0)
 mdl <- NULL
 #mdl <- sigex.add(mdl,seq(1,N),"svarma",c(1,0,1,0,52),list(-1,1,1,1),"process",c(1,-1))
 #mdl <- sigex.add(mdl,seq(1,N),"svarma",c(1,0,1,0,52),delta.vec,"process",c(1,-1))
-mdl <- sigex.add(mdl,seq(1,N),"svarma",c(1,1,1,0,52),list(1,1,1,NULL),"process",c(1,-1))
+mdl <- sigex.add(mdl,seq(1,N),"svarma",c(1,1,1,0,52),NULL,"process",c(1,-1))
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
 for(i in 1:N) {

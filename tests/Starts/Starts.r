@@ -65,14 +65,14 @@ T <- dim(data.ts)[1]
 
 ## model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"trend",c(1,-2,1))
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"first seasonal",c(1,-sqrt(3),1))
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"second seasonal",c(1,-1,1))
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"third seasonal",c(1,0,1))
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"fourth seasonal",c(1,1,1))
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"fifth seasonal",c(1,sqrt(3),1))
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"sixth seasonal",c(1,1))
-mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),0,"irregular",1)
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"trend",c(1,-2,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"first seasonal",c(1,-sqrt(3),1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"second seasonal",c(1,-1,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"third seasonal",c(1,0,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"fourth seasonal",c(1,1,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"fifth seasonal",c(1,sqrt(3),1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"sixth seasonal",c(1,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"irregular",1)
 # regressors:
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
