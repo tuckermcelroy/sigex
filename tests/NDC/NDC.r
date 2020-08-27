@@ -57,10 +57,9 @@ ar.fit <- ar.yw(diff(ts(ndc[2:T,])))
 p.order <- ar.fit$order
 par.yw <- aperm(ar.fit$ar,c(2,3,1))
 covmat.yw <- getGCD(ar.fit$var.pred,2)
-var.out <- sigex.ivarpar(par.yw)
+var.out <- var.par2pre(par.yw)
 psi.init <- as.vector(c(covmat.yw[[1]][2,1],log(covmat.yw[[2]]),
-                        var.out[[1]],colMeans(diff(ts(ndc[2:T,])))))
-delta.vec <- var.out[[2]]
+                        var.out,colMeans(diff(ts(ndc[2:T,])))))
 
 ## model construction
 mdl <- NULL
