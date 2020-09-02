@@ -24,13 +24,13 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	################# Documentation #####################################
 	#
 	#	Purpose: simulate a stochastic process
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
-	#		psi: see background. 
+	#		psi: see background.
 	#		mdl: the specified sigex model, a list object
 	#		simlen: length of the simulation
 	#		burnin: initial stretch of simulation, later discarded
@@ -56,7 +56,7 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	D.par <- mdl[[3]]
 	zeta.par <- vector("list",length(mdl[[3]]))
 	acf.mat <- matrix(0,nrow=N*T,ncol=N)
-	
+
 	# get xi portion
 	ind <- 0
 	A.mat <- matrix(0,N,N)
@@ -78,7 +78,7 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 
 	# get beta portion
 	beta.len <- 0
-	for(i in 1:N) 
+	for(i in 1:N)
 	{
 		beta.len <- beta.len + dim(mdl[[4]][[i]])[2]
 	}
@@ -91,21 +91,21 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	for(i in 1:length(mdl[[3]]))
 	{
 		bounds <- boundlist[[i]]
-		mdlType <- mdl[[2]][i]	
+		mdlType <- mdl[[2]][i]
 		delta <- mdl[[3]][[i]]
 		zetalen <- sigex.zetalen(mdlType)
 		if(zetalen > 0) {
 			subzeta <- zeta[(ind+1):(ind+zetalen)]
-			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,N,bounds)
+			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType)
 		}
 		ind <- ind + zetalen
-	
+
 		delta <- sigex.delta(mdl,i)
-		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T)		
+		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T)
 	}
 
 	x.acf <- array(acf.mat,dim=c(N,T,N))
-	reg.vec <- beta.par	
+	reg.vec <- beta.par
 
 	if(dof == Inf) { eps <- t(matrix(rnorm(N*T),nrow=N)) } else {
 		eps <- t(matrix(rt(N*T,df=dof),nrow=N)) }
@@ -134,7 +134,7 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 		newa <- aseq - bseq %*% afact
 		bseq <- rbind(bfact,newb)
 		aseq <- rbind(newa,afact)
-	} 
+	}
 	gamSeq <- cbind(x.acf[,T,],gamSeq)
 	Lam <- x.acf[,1,] - gamSeq %*% bseq
 	alphat <- t(bseq) %*% matrix(sim,ncol=1)
@@ -143,7 +143,7 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	sim <- matrix(sim,nrow=N)
 	delta <- sigex.delta(mdl,0)
 	delta.recurse <- -delta[-1]/delta[1]
-	
+
 	sims <- as.matrix(filter(t(sim),delta.recurse,method="recursive",init)[-seq(1,d),])
 	sims <- as.matrix(sims[(burnin+1):(burnin+simlen),])
 

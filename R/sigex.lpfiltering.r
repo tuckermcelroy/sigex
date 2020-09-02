@@ -26,8 +26,8 @@ sigex.lpfiltering <- function(mdl,data.ts,trendcyclecomp,sigcomps,psi,cutoff,gri
 	#	Purpose: computes signal extraction estimates with uncertainty
 	#		for trend and cycle, by combining WK filter for trend-cycle
 	#		(specified by trendcyclecomp) with LP filter of cutoff.
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
@@ -37,17 +37,17 @@ sigex.lpfiltering <- function(mdl,data.ts,trendcyclecomp,sigcomps,psi,cutoff,gri
 	#		generating function (acgf) via gamma_w (B).
 	#		The signal extraction filter for y_t is determined from
 	#		this acgf and delta.  The error spectral density calculations
-	#		are found in: 
+	#		are found in:
 	#		"Casting Vector Time Series: Algorithms for Forecasting,
 	#		Imputation, and Signal Extraction," McElroy (2018).
-	#		param is the name for the model parameters entered into 
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Notes:
 	#		Starts with LP an ideal low-pass filter,
 	#		and applies LP*WK filter with cutoff parameter  to
-	#		each component, where the filter has been truncated to 
+	#		each component, where the filter has been truncated to
 	#		length 2*window + 1.  The output will be LP*WK filter applied to data,
 	#	  	which is forecast and aftcast extended by window units, covering time points
  	#	  	1-window ..., T+window.  This gives trend and cycle at times 1,...,T.
@@ -57,10 +57,10 @@ sigex.lpfiltering <- function(mdl,data.ts,trendcyclecomp,sigcomps,psi,cutoff,gri
 	#		data.ts: a T x N matrix ts object
 	#		trendcyclecomp: is the (single) index of the trend-cycle component
 	#		sigcomps: provides indices of a desired component that
-	#			is disjoint from trend-cycle, so that MSEs of 
+	#			is disjoint from trend-cycle, so that MSEs of
 	#			trend+sigcomps and cycle+sigcomps are computed.
 	#		 	(Pass in sigcomps = NULL to just get trend and cycle MSEs.)
-	#		psi: see background. 
+	#		psi: see background.
 	#		cutoff: is a number between 0 and pi, with all frequencies < cutoff preserved
 	#		grid: desired number of frequencies for spectrum calculations
 	#		window: max index of the filter coefficients
@@ -85,29 +85,29 @@ sigex.lpfiltering <- function(mdl,data.ts,trendcyclecomp,sigcomps,psi,cutoff,gri
 	ilpwk.filter <- lpwk.out[[2]]
 
 	lp.mse <- sigex.lpmse(param,mdl,trendcyclecomp,sigcomps,grid,cutoff)
-	if(trendFlag) 
-	{ 
-		lp.mse <- lp.mse[[1]] 
+	if(trendFlag)
+	{
+		lp.mse <- lp.mse[[1]]
 		psi.filter <- lpwk.filter
-	} else 
-	{ 
-		lp.mse <- lp.mse[[2]] 
+	} else
+	{
+		lp.mse <- lp.mse[[2]]
 		psi.filter <- ilpwk.filter
-	}	
+	}
 
 	if(length(sigcomps) > 0)
 	{
 		extract.signal <- sigex.wkextract2(psi,mdl,data.ts,sigcomps,grid,window,0,NULL,FALSE)
 	}
-	if((trunc) > 0) { 
+	if((trunc) > 0) {
 		leads <- c(-rev(seq(0,trunc-1)),seq(1,T),seq(T+1,T+trunc))
 	} else { leads <- seq(1,T) }
-	data.ext <- t(sigex.cast(psi,mdl,data.ts,leads,FALSE))
+	data.ext <- t(sigex.cast(psi,mdl,data.ts,leads))
 
 	lp.signal <- NULL
 	upp <- NULL
 	low <- NULL
-	for(j in 1:N) 
+	for(j in 1:N)
 	{
 		output.j <- rep(0,T)
 		for(k in 1:N)
@@ -122,8 +122,8 @@ sigex.lpfiltering <- function(mdl,data.ts,trendcyclecomp,sigcomps,psi,cutoff,gri
 	 	mse <- lp.mse[j,j]
 	 	upp <- cbind(upp,output.j + 2*sqrt(mse))
 		low <- cbind(low,output.j - 2*sqrt(mse))
-	}	
-	
+	}
+
 	return(list(lp.signal,upp,low))
 }
 
