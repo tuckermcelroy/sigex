@@ -42,3 +42,5 @@ vignettes/*.pdf
 
 
 tests/GL-comparison/GL-comparison.pdf
+*.o
+*.so
