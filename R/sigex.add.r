@@ -24,16 +24,16 @@ sigex.add <- function(mdl,vrank,class,order,bounds,name,delta)
 	################# Documentation #####################################
 	#
 	#	Purpose: build the model by adding on another latent component
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
 	#			w_t = delta(B) y_t   is stationary.
 	#		We have a model for each w_t process, which is specified
 	#		through the ranks (indices of non-zero Schur complements,
-	#		cf. background for sigex.param2gcd) of the white noise 
-	#		covariance matrix; also there is the model type, which 
+	#		cf. background for sigex.param2gcd) of the white noise
+	#		covariance matrix; also there is the model type, which
 	#		denotes the specification of the t.s. model for w_t;
 	#		all the regressors, which are specified by individual time series
 	#		rather than by latent component, and must have length T;
@@ -53,7 +53,7 @@ sigex.add <- function(mdl,vrank,class,order,bounds,name,delta)
 	#			of the innovations' covariance matrix for the new latent component
 	#		class: character string of t.s. model type for the new latent component
 	#		order: vector of model order
-	#	      bounds: four numbers, gives bounds for rho and omega, 
+	#	      bounds: four numbers, gives bounds for rho and omega,
 	#			the cycle parameters of the new latent component
 	#			rho lies in (bounds[1],bounds[2])
 	#			omega lies in (bounds[3],bounds[4])
@@ -75,10 +75,10 @@ sigex.add <- function(mdl,vrank,class,order,bounds,name,delta)
 	mdlK[[length(mdlK)+1]] <- c(rank.null,vrank)
 	if(length(vrank)==1) mdlK[[length(mdlK)]] <- mdlK[[length(mdlK)]][-1]
 	mdlType[[length(mdlType)+1]] <- list(class,order,bounds,name)
-	delta.null <- NULL
-	if(length(delta)==1) delta.null <- 0
-	mdlDiff[[length(mdlDiff)+1]] <- c(delta.null,delta)
-	if(length(delta)==1) mdlDiff[[length(mdlDiff)]] <- mdlDiff[[length(mdlDiff)]][-1]
+
+	# Set differecing operator for mdl
+	mdlDiff[[length(mdlDiff)+1]] <- get_diff(delta)
+
 
 	mdl <- list(ranks = mdlK,type = mdlType,diffop = mdlDiff,regress = mdlReg)
 	return(mdl)
