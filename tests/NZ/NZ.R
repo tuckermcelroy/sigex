@@ -9,6 +9,7 @@ library(devtools)
 
 # suppose directory is set to where sigex is located, e.g.
 #setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
+#setwd("/home/tucker/Documents/GitHub/sigex")
 load_all(".")
 root.dir <- getwd()
 setwd(paste(root.dir,"/tests/NZ",sep=""))
@@ -191,14 +192,18 @@ psi.len <- length(psi.mle)
 constraint <- diag(psi.len)
 index.mat <- matrix(seq(1,N^2),nrow=N,ncol=N)
 index.constraint <- setdiff(matrix(index.mat,ncol=1),diag(index.mat))
-offset <- N*(N+1)/2 + N^2
+offset <- N*(N+1)/2
 index.constraints <- offset + index.constraint
 offset <- offset + N^2
 index.constraints <- c(index.constraints,offset + index.constraint)
 offset <- offset + N^2
 index.constraints <- c(index.constraints,offset + index.constraint)
+offset <- offset + N^2
+index.constraints <- c(index.constraints,offset + index.constraint)
+offset <- offset + N^2
+index.constraints <- c(index.constraints,offset + index.constraint)
 constraint <- constraint[index.constraints,,drop=FALSE]
-constraint <- cbind(constraint,rep(0,length(index.constraints)))
+constraint <- cbind(rep(0,length(index.constraints)),constraint)
 
 # regression constraints
 constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(2,2,2,2,2,2,2),NULL))
@@ -582,6 +587,456 @@ resid.acf <- acf(t(resid.mle),lag.max=4*53,plot=TRUE)$acf
 print(eigen(hess)$values)
 tstats <- sigex.tstats(mdl,psi.mle,hess,constraint)
 print(tstats)
+
+
+
+#####  SCRAP
+
+## fit 7 univariate models
+
+# Sunday  SARMA
+
+i <- 1
+mdl.sun <- NULL
+mdl.sun <- sigex.add(mdl.sun,1,"sarma",c(0,2,4,0,52),NULL,"process",c(1,-1))
+mdl.sun <- sigex.meaninit(mdl.sun,data.ts[,i,drop=FALSE],0)
+mdl.sun <- sigex.reg(mdl.sun,1,ts(as.matrix(easter.reg[,i]),
+                            start=start(easter.reg),
+                            frequency=frequency(easter.reg),
+                            names="Easter-day"))
+mdl.sun <- sigex.reg(mdl.sun,1,ts(as.matrix(school1.reg[,i]),
+                            start=start(school1.reg),
+                            frequency=frequency(school1.reg),
+                            names="School1-Start"))
+mdl.sun <- sigex.reg(mdl.sun,1,ts(as.matrix(school1e.reg[,i]),
+                            start=start(school1e.reg),
+                            frequency=frequency(school1e.reg),
+                            names="School1-End"))
+mdl.sun <- sigex.reg(mdl.sun,1,ts(as.matrix(school2.reg[,i]),
+                            start=start(school2.reg),
+                            frequency=frequency(school2.reg),
+                            names="School2-Start"))
+mdl.sun <- sigex.reg(mdl.sun,1,ts(as.matrix(school2e.reg[,i]),
+                            start=start(school2e.reg),
+                            frequency=frequency(school2e.reg),
+                            names="School2-End"))
+mdl.sun <- sigex.reg(mdl.sun,1,ts(as.matrix(school3.reg[,i]),
+                            start=start(school3.reg),
+                            frequency=frequency(school3.reg),
+                            names="School3-Start"))
+mdl.sun <- sigex.reg(mdl.sun,1,ts(as.matrix(school3e.reg[,i]),
+                            start=start(school3e.reg),
+                            frequency=frequency(school3e.reg),
+                            names="School3-End"))
+
+constraint <- NULL
+par.mle <- sigex.default(mdl.sun,data.ts[,i,drop=FALSE],constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl.sun)
+
+fit.mle <- sigex.mlefit(data.ts[,i,drop=FALSE],par.mle,constraint,mdl.sun,"bfgs",debug=TRUE)
+
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+tstats <- sigex.tstats(mdl.sun,psi.mle,hess,constraint)
+print(tstats)
+
+resid.mle <- sigex.resid(psi.mle,mdl.sun,data.ts[,i,drop=FALSE])[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
+                        colnames(data.ts[,i,drop=FALSE]),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*frequency(data.ts),plot=TRUE)$acf
+
+# -2313.506
+psi.sun <- psi.mle
+#psi.sun <- c(-4.07102751905699, 2.44060964365952, 0.504283072867637, 2.40960579766798, 
+#0.284471757019792, 0.376982011579344, -0.170354318249828, 0.000821039182642259, 
+#-0.356693054572869, -0.210338500206163, 0.178053589641864, -0.182968103386536, 
+#0.22141697063521, -0.130994499688667, 0.263268549888182)
+
+# Monday  SARMA
+
+i <- 2
+mdl.mon <- NULL
+mdl.mon <- sigex.add(mdl.mon,1,"sarma",c(0,2,4,0,52),NULL,"process",c(1,-1))
+mdl.mon <- sigex.meaninit(mdl.mon,data.ts[,i,drop=FALSE],0)
+mdl.mon <- sigex.reg(mdl.mon,1,ts(as.matrix(easter.reg[,i]),
+                                  start=start(easter.reg),
+                                  frequency=frequency(easter.reg),
+                                  names="Easter-day"))
+mdl.mon <- sigex.reg(mdl.mon,1,ts(as.matrix(school1.reg[,i]),
+                                  start=start(school1.reg),
+                                  frequency=frequency(school1.reg),
+                                  names="School1-Start"))
+mdl.mon <- sigex.reg(mdl.mon,1,ts(as.matrix(school1e.reg[,i]),
+                                  start=start(school1e.reg),
+                                  frequency=frequency(school1e.reg),
+                                  names="School1-End"))
+mdl.mon <- sigex.reg(mdl.mon,1,ts(as.matrix(school2.reg[,i]),
+                                  start=start(school2.reg),
+                                  frequency=frequency(school2.reg),
+                                  names="School2-Start"))
+mdl.mon <- sigex.reg(mdl.mon,1,ts(as.matrix(school2e.reg[,i]),
+                                  start=start(school2e.reg),
+                                  frequency=frequency(school2e.reg),
+                                  names="School2-End"))
+mdl.mon <- sigex.reg(mdl.mon,1,ts(as.matrix(school3.reg[,i]),
+                                  start=start(school3.reg),
+                                  frequency=frequency(school3.reg),
+                                  names="School3-Start"))
+mdl.mon <- sigex.reg(mdl.mon,1,ts(as.matrix(school3e.reg[,i]),
+                                  start=start(school3e.reg),
+                                  frequency=frequency(school3e.reg),
+                                  names="School3-End"))
+
+constraint <- NULL
+par.mle <- sigex.default(mdl.mon,data.ts[,i,drop=FALSE],constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl.mon)
+
+fit.mle <- sigex.mlefit(data.ts[,i,drop=FALSE],par.mle,constraint,mdl.mon,"bfgs",debug=TRUE)
+
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+tstats <- sigex.tstats(mdl.mon,psi.mle,hess,constraint)
+print(tstats)
+
+resid.mle <- sigex.resid(psi.mle,mdl.mon,data.ts[,i,drop=FALSE])[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
+                        colnames(data.ts[,i,drop=FALSE]),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*frequency(data.ts),plot=TRUE)$acf
+
+# -2058.759
+psi.mon <- psi.mle
+# psi.mon <- c(-3.71673255276367, 2.81665989393415, 0.455821930160383, 1.95849931377876, 
+#0.382618404217175, 0.347620963878928, -0.105333354153538, 0.00108330881916517, 
+#0.1544093642847, 0.0571421511614232, 0.226684037278746, -0.337666113897167, 
+#0.0955607194603728, 0.0871900840586311, 0.0355048167930293)
+
+# Tuesday  SARMA
+
+i <- 3
+mdl.tue <- NULL
+mdl.tue <- sigex.add(mdl.tue,1,"sarma",c(0,2,4,0,52),NULL,"process",c(1,-1))
+mdl.tue <- sigex.meaninit(mdl.tue,data.ts[,i,drop=FALSE],0)
+mdl.tue <- sigex.reg(mdl.tue,1,ts(as.matrix(easter.reg[,i]),
+                                  start=start(easter.reg),
+                                  frequency=frequency(easter.reg),
+                                  names="Easter-day"))
+mdl.tue <- sigex.reg(mdl.tue,1,ts(as.matrix(school1.reg[,i]),
+                                  start=start(school1.reg),
+                                  frequency=frequency(school1.reg),
+                                  names="School1-Start"))
+mdl.tue <- sigex.reg(mdl.tue,1,ts(as.matrix(school1e.reg[,i]),
+                                  start=start(school1e.reg),
+                                  frequency=frequency(school1e.reg),
+                                  names="School1-End"))
+mdl.tue <- sigex.reg(mdl.tue,1,ts(as.matrix(school2.reg[,i]),
+                                  start=start(school2.reg),
+                                  frequency=frequency(school2.reg),
+                                  names="School2-Start"))
+mdl.tue <- sigex.reg(mdl.tue,1,ts(as.matrix(school2e.reg[,i]),
+                                  start=start(school2e.reg),
+                                  frequency=frequency(school2e.reg),
+                                  names="School2-End"))
+mdl.tue <- sigex.reg(mdl.tue,1,ts(as.matrix(school3.reg[,i]),
+                                  start=start(school3.reg),
+                                  frequency=frequency(school3.reg),
+                                  names="School3-Start"))
+mdl.tue <- sigex.reg(mdl.tue,1,ts(as.matrix(school3e.reg[,i]),
+                                  start=start(school3e.reg),
+                                  frequency=frequency(school3e.reg),
+                                  names="School3-End"))
+
+constraint <- NULL
+par.mle <- sigex.default(mdl.tue,data.ts[,i,drop=FALSE],constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl.tue)
+
+fit.mle <- sigex.mlefit(data.ts[,i,drop=FALSE],par.mle,constraint,mdl.tue,"bfgs",debug=TRUE)
+
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+tstats <- sigex.tstats(mdl.tue,psi.mle,hess,constraint)
+print(tstats)
+
+resid.mle <- sigex.resid(psi.mle,mdl.tue,data.ts[,i,drop=FALSE])[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
+                        colnames(data.ts[,i,drop=FALSE]),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*frequency(data.ts),plot=TRUE)$acf
+
+# -2072.44
+psi.tue <- psi.mle
+#psi.tue <- c(-3.73650814903223, 3.38356662731394, 0.466866273929686, 1.78191727599679, 
+#             0.55344678224801, 0.422070587987303, -0.123367710789483, 0.00105292031797421, 
+#             0.328220766528598, -0.425224905861729, 0.461160570456221, -0.231132142135402, 
+#             -0.204556232341297, 0.106365657597149, -1.08026453182959)
+
+
+# Wednesday  SARMA
+
+i <- 4
+mdl.wed <- NULL
+mdl.wed <- sigex.add(mdl.wed,1,"sarma",c(0,2,4,0,52),NULL,"process",c(1,-1))
+mdl.wed <- sigex.meaninit(mdl.wed,data.ts[,i,drop=FALSE],0)
+mdl.wed <- sigex.reg(mdl.wed,1,ts(as.matrix(easter.reg[,i]),
+                                  start=start(easter.reg),
+                                  frequency=frequency(easter.reg),
+                                  names="Easter-day"))
+mdl.wed <- sigex.reg(mdl.wed,1,ts(as.matrix(school1.reg[,i]),
+                                  start=start(school1.reg),
+                                  frequency=frequency(school1.reg),
+                                  names="School1-Start"))
+mdl.wed <- sigex.reg(mdl.wed,1,ts(as.matrix(school1e.reg[,i]),
+                                  start=start(school1e.reg),
+                                  frequency=frequency(school1e.reg),
+                                  names="School1-End"))
+mdl.wed <- sigex.reg(mdl.wed,1,ts(as.matrix(school2.reg[,i]),
+                                  start=start(school2.reg),
+                                  frequency=frequency(school2.reg),
+                                  names="School2-Start"))
+mdl.wed <- sigex.reg(mdl.wed,1,ts(as.matrix(school2e.reg[,i]),
+                                  start=start(school2e.reg),
+                                  frequency=frequency(school2e.reg),
+                                  names="School2-End"))
+mdl.wed <- sigex.reg(mdl.wed,1,ts(as.matrix(school3.reg[,i]),
+                                  start=start(school3.reg),
+                                  frequency=frequency(school3.reg),
+                                  names="School3-Start"))
+mdl.wed <- sigex.reg(mdl.wed,1,ts(as.matrix(school3e.reg[,i]),
+                                  start=start(school3e.reg),
+                                  frequency=frequency(school3e.reg),
+                                  names="School3-End"))
+
+constraint <- NULL
+par.mle <- sigex.default(mdl.wed,data.ts[,i,drop=FALSE],constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl.wed)
+
+fit.mle <- sigex.mlefit(data.ts[,i,drop=FALSE],par.mle,constraint,mdl.wed,"bfgs",debug=TRUE)
+
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+tstats <- sigex.tstats(mdl.wed,psi.mle,hess,constraint)
+print(tstats)
+
+resid.mle <- sigex.resid(psi.mle,mdl.wed,data.ts[,i,drop=FALSE])[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
+                        colnames(data.ts[,i,drop=FALSE]),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*frequency(data.ts),plot=TRUE)$acf
+
+# -2187.547
+psi.wed <- psi.mle
+# psi.wed <- c(-3.88752052496473, 2.57991874774606, 0.381616148947387, 1.7688876355792, 
+#0.476209520549579, 0.566399196309179, -0.00854481257841716, 0.000893904427356007, 
+#0.0492484190910288, 0.0166551032816581, -1.09965928066817, 0.507858990853311, 
+#-0.645837739465141, 0.490057288297561, -0.642952148261199)
+
+
+#  Thursday  SARMA
+
+i <- 5
+mdl.thu <- NULL
+mdl.thu <- sigex.add(mdl.thu,1,"sarma",c(0,2,4,0,52),NULL,"process",c(1,-1))
+mdl.thu <- sigex.meaninit(mdl.thu,data.ts[,i,drop=FALSE],0)
+mdl.thu <- sigex.reg(mdl.thu,1,ts(as.matrix(easter.reg[,i]),
+                                  start=start(easter.reg),
+                                  frequency=frequency(easter.reg),
+                                  names="Easter-day"))
+mdl.thu <- sigex.reg(mdl.thu,1,ts(as.matrix(school1.reg[,i]),
+                                  start=start(school1.reg),
+                                  frequency=frequency(school1.reg),
+                                  names="School1-Start"))
+mdl.thu <- sigex.reg(mdl.thu,1,ts(as.matrix(school1e.reg[,i]),
+                                  start=start(school1e.reg),
+                                  frequency=frequency(school1e.reg),
+                                  names="School1-End"))
+mdl.thu <- sigex.reg(mdl.thu,1,ts(as.matrix(school2.reg[,i]),
+                                  start=start(school2.reg),
+                                  frequency=frequency(school2.reg),
+                                  names="School2-Start"))
+mdl.thu <- sigex.reg(mdl.thu,1,ts(as.matrix(school2e.reg[,i]),
+                                  start=start(school2e.reg),
+                                  frequency=frequency(school2e.reg),
+                                  names="School2-End"))
+mdl.thu <- sigex.reg(mdl.thu,1,ts(as.matrix(school3.reg[,i]),
+                                  start=start(school3.reg),
+                                  frequency=frequency(school3.reg),
+                                  names="School3-Start"))
+mdl.thu <- sigex.reg(mdl.thu,1,ts(as.matrix(school3e.reg[,i]),
+                                  start=start(school3e.reg),
+                                  frequency=frequency(school3e.reg),
+                                  names="School3-End"))
+
+constraint <- NULL
+par.mle <- sigex.default(mdl.thu,data.ts[,i,drop=FALSE],constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl.thu)
+
+fit.mle <- sigex.mlefit(data.ts[,i,drop=FALSE],par.mle,constraint,mdl.thu,"bfgs",debug=TRUE)
+
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+tstats <- sigex.tstats(mdl.thu,psi.mle,hess,constraint)
+print(tstats)
+
+resid.mle <- sigex.resid(psi.mle,mdl.thu,data.ts[,i,drop=FALSE])[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
+                        colnames(data.ts[,i,drop=FALSE]),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*frequency(data.ts),plot=TRUE)$acf
+
+# -2057.218
+psi.thu <- psi.mle
+#psi.thu <- c(-3.72998751169167, 2.50300536739333, 0.383291814679505, 1.99917886503278, 
+#             0.518392117669723, 0.407488351143634, -0.103163118274746, 0.000640049582275312, 
+#             -0.0573437351433279, 0.497956950408837, 1.50904671713997, 0.311572498937319, 
+#             0.656559136345757, 0.055313659778188, 0.672494154045533)
+
+#  Friday  SARMA
+
+i <- 6
+mdl.fri <- NULL
+mdl.fri <- sigex.add(mdl.fri,1,"sarma",c(0,2,4,0,52),NULL,"process",c(1,-1))
+mdl.fri <- sigex.meaninit(mdl.fri,data.ts[,i,drop=FALSE],0)
+mdl.fri <- sigex.reg(mdl.fri,1,ts(as.matrix(easter.reg[,i]),
+                                  start=start(easter.reg),
+                                  frequency=frequency(easter.reg),
+                                  names="Easter-day"))
+mdl.fri <- sigex.reg(mdl.fri,1,ts(as.matrix(school1.reg[,i]),
+                                  start=start(school1.reg),
+                                  frequency=frequency(school1.reg),
+                                  names="School1-Start"))
+mdl.fri <- sigex.reg(mdl.fri,1,ts(as.matrix(school1e.reg[,i]),
+                                  start=start(school1e.reg),
+                                  frequency=frequency(school1e.reg),
+                                  names="School1-End"))
+mdl.fri <- sigex.reg(mdl.fri,1,ts(as.matrix(school2.reg[,i]),
+                                  start=start(school2.reg),
+                                  frequency=frequency(school2.reg),
+                                  names="School2-Start"))
+mdl.fri <- sigex.reg(mdl.fri,1,ts(as.matrix(school2e.reg[,i]),
+                                  start=start(school2e.reg),
+                                  frequency=frequency(school2e.reg),
+                                  names="School2-End"))
+mdl.fri <- sigex.reg(mdl.fri,1,ts(as.matrix(school3.reg[,i]),
+                                  start=start(school3.reg),
+                                  frequency=frequency(school3.reg),
+                                  names="School3-Start"))
+mdl.fri <- sigex.reg(mdl.fri,1,ts(as.matrix(school3e.reg[,i]),
+                                  start=start(school3e.reg),
+                                  frequency=frequency(school3e.reg),
+                                  names="School3-End"))
+
+constraint <- NULL
+par.mle <- sigex.default(mdl.fri,data.ts[,i,drop=FALSE],constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl.fri)
+
+fit.mle <- sigex.mlefit(data.ts[,i,drop=FALSE],par.mle,constraint,mdl.fri,"bfgs",debug=TRUE)
+
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+tstats <- sigex.tstats(mdl.fri,psi.mle,hess,constraint)
+print(tstats)
+
+resid.mle <- sigex.resid(psi.mle,mdl.fri,data.ts[,i,drop=FALSE])[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
+                        colnames(data.ts[,i,drop=FALSE]),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*frequency(data.ts),plot=TRUE)$acf
+
+# 
+psi.fri <- psi.mle
+
+
+# Saturday  SARMA
+
+i <- 7
+mdl.sat <- NULL
+mdl.sat <- sigex.add(mdl.sat,1,"sarma",c(0,2,4,0,52),NULL,"process",c(1,-1))
+mdl.sat <- sigex.meaninit(mdl.sat,data.ts[,i,drop=FALSE],0)
+mdl.sat <- sigex.reg(mdl.sat,1,ts(as.matrix(easter.reg[,i]),
+                                  start=start(easter.reg),
+                                  frequency=frequency(easter.reg),
+                                  names="Easter-day"))
+mdl.sat <- sigex.reg(mdl.sat,1,ts(as.matrix(school1.reg[,i]),
+                                  start=start(school1.reg),
+                                  frequency=frequency(school1.reg),
+                                  names="School1-Start"))
+mdl.sat <- sigex.reg(mdl.sat,1,ts(as.matrix(school1e.reg[,i]),
+                                  start=start(school1e.reg),
+                                  frequency=frequency(school1e.reg),
+                                  names="School1-End"))
+mdl.sat <- sigex.reg(mdl.sat,1,ts(as.matrix(school2.reg[,i]),
+                                  start=start(school2.reg),
+                                  frequency=frequency(school2.reg),
+                                  names="School2-Start"))
+mdl.sat <- sigex.reg(mdl.sat,1,ts(as.matrix(school2e.reg[,i]),
+                                  start=start(school2e.reg),
+                                  frequency=frequency(school2e.reg),
+                                  names="School2-End"))
+mdl.sat <- sigex.reg(mdl.sat,1,ts(as.matrix(school3.reg[,i]),
+                                  start=start(school3.reg),
+                                  frequency=frequency(school3.reg),
+                                  names="School3-Start"))
+mdl.sat <- sigex.reg(mdl.sat,1,ts(as.matrix(school3e.reg[,i]),
+                                  start=start(school3e.reg),
+                                  frequency=frequency(school3e.reg),
+                                  names="School3-End"))
+
+constraint <- NULL
+par.mle <- sigex.default(mdl.sat,data.ts[,i,drop=FALSE],constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl.sat)
+
+fit.mle <- sigex.mlefit(data.ts[,i,drop=FALSE],par.mle,constraint,mdl.sat,"bfgs",debug=TRUE)
+
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+tstats <- sigex.tstats(mdl.sat,psi.mle,hess,constraint)
+print(tstats)
+
+resid.mle <- sigex.resid(psi.mle,mdl.sat,data.ts[,i,drop=FALSE])[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
+                        colnames(data.ts[,i,drop=FALSE]),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*frequency(data.ts),plot=TRUE)$acf
+
+# 
+psi.sat <- psi.mle
+
+
+###  getting constrained SVARMA
+
+constraint <- NULL
+
+# model constraints
+par.mle <- sigex.default(mdl,data.ts,constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl)
+psi.len <- length(psi.mle)
+constraint <- diag(psi.len)
+index.mat <- matrix(seq(1,N^2),nrow=N,ncol=N)
+index.constraint <- setdiff(matrix(index.mat,ncol=1),diag(index.mat))
+offset <- N*(N+1)/2
+index.constraints <- offset + index.constraint
+offset <- offset + N^2
+index.constraints <- c(index.constraints,offset + index.constraint)
+offset <- offset + N^2
+index.constraints <- c(index.constraints,offset + index.constraint)
+offset <- offset + N^2
+index.constraints <- c(index.constraints,offset + index.constraint)
+offset <- offset + N^2
+index.constraints <- c(index.constraints,offset + index.constraint)
+constraint <- constraint[index.constraints,,drop=FALSE]
+constraint <- cbind(rep(0,length(index.constraints)),constraint)
+
+# regression constraints
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(2,2,2,2,2,2,2),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(3,3,3,3,3,3,3),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(4,4,4,4,4,4,4),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(5,5,5,5,5,5,5),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(6,6,6,6,6,6,6),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(7,7,7,7,7,7,7),NULL))
+
+
+
 
 
 
