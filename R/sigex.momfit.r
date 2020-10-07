@@ -88,19 +88,23 @@ sigex.momfit <- function(data.ts,param,mdl)
 		mdlOrder <- mdlType[[2]]
 		mdlBounds <- mdlType[[3]]
 		mdlPar <- param[[3]][[i]]
+		
+		# Default
+		ar.poly <- 1
+		ma.poly <- delta.poly
 
-		# ARMA model
-		if(mdlClass == "arma")
-		{
-			p.order <- mdlOrder[1]
-			q.order <- mdlOrder[2]
-			ar.coef <- NULL
-			ma.coef <- NULL
-			if(p.order > 0) ar.coef <- mdlPar[1:p.order]
-			if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
-			ma.poly <- polymult(c(1,ma.coef),delta.poly)
-			ar.poly <- c(1,-1*ar.coef)
- 		}
+ # 		# ARMA model
+ # 		if(mdlClass == "arma")
+ # 		{
+ # 			p.order <- mdlOrder[1]
+ # 			q.order <- mdlOrder[2]
+ # 			ar.coef <- NULL
+ # 			ma.coef <- NULL
+ # 			if(p.order > 0) ar.coef <- mdlPar[1:p.order]
+ # 			if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
+ # 			ma.poly <- polymult(c(1,ma.coef),delta.poly)
+ # 			ar.poly <- c(1,-1*ar.coef)
+ #  	}
 
 		# Stabilized ARMA model
 		if(mdlClass == "arma.stab")
@@ -118,35 +122,35 @@ sigex.momfit <- function(data.ts,param,mdl)
 			ar.poly <- c(1,-1*ar.coef)
 		}
 
-		# SARMA model
-		if(mdlClass == "sarma")
-		{
-			p.order <- mdlOrder[1]
-			q.order <- mdlOrder[2]
-			ps.order <- mdlOrder[3]
-			qs.order <- mdlOrder[4]
-			s.period <- mdlOrder[5]
-			stretch <- c(rep(0,s.period-1),1)
-			ar.coef <- NULL
-			ma.coef <- NULL
-			ars.coef <- NULL
-			mas.coef <- NULL
-			if(p.order > 0) ar.coef <- mdlPar[1:p.order]
-			if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
-			if(ps.order > 0)
-			{
-				ars.coef <- mdlPar[(p.order+q.order+1):(p.order+q.order+ps.order)]
-				ars.coef <- ars.coef %x% stretch
-			}
-			if(qs.order > 0)
-			{
-				mas.coef <- mdlPar[(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
-				mas.coef <- mas.coef %x% stretch
-			}
-			ar.poly <- polymult(c(1,-1*ar.coef),c(1,-1*ars.coef))
-			ma.poly <- polymult(c(1,-1*ma.coef),c(1,-1*mas.coef))
-			ma.poly <- polymult(ma.poly,delta.poly)
-		}
+		# # SARMA model
+		# if(mdlClass == "sarma")
+		# {
+		# 	p.order <- mdlOrder[1]
+		# 	q.order <- mdlOrder[2]
+		# 	ps.order <- mdlOrder[3]
+		# 	qs.order <- mdlOrder[4]
+		# 	s.period <- mdlOrder[5]
+		# 	stretch <- c(rep(0,s.period-1),1)
+		# 	ar.coef <- NULL
+		# 	ma.coef <- NULL
+		# 	ars.coef <- NULL
+		# 	mas.coef <- NULL
+		# 	if(p.order > 0) ar.coef <- mdlPar[1:p.order]
+		# 	if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
+		# 	if(ps.order > 0)
+		# 	{
+		# 		ars.coef <- mdlPar[(p.order+q.order+1):(p.order+q.order+ps.order)]
+		# 		ars.coef <- ars.coef %x% stretch
+		# 	}
+		# 	if(qs.order > 0)
+		# 	{
+		# 		mas.coef <- mdlPar[(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
+		# 		mas.coef <- mas.coef %x% stretch
+		# 	}
+		# 	ar.poly <- polymult(c(1,-1*ar.coef),c(1,-1*ars.coef))
+		# 	ma.poly <- polymult(c(1,-1*ma.coef),c(1,-1*mas.coef))
+		# 	ma.poly <- polymult(ma.poly,delta.poly)
+		# }
 
 		# Stabilized SARMA model
 		if(mdlClass == "sarma.stab")

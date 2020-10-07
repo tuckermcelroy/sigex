@@ -78,7 +78,35 @@ psi2phi <- function(psi)
 	## get param for the component
 
 	# ARMA
-	if(mdlClass %in% c("arma","arma.stab"))
+	if(mdlClass %in% c("arma"))
+	{
+	  p.order <- mdlOrder[1]
+	  q.order <- mdlOrder[2]
+	  ar.coefs <- NULL
+	  ma.coefs <- NULL
+	  if(p.order > 0)
+	  {
+	    for(k in 1:N)
+	    {
+	      zeta.ar <- zeta[(1+(k-1)*p.order):(k*p.order)]
+	      ar.coef <- psi2phi(zeta.ar)
+	      ar.coefs <- rbind(ar.coefs,ar.coef)
+	    }
+	  }
+	  if(q.order > 0)
+	  {
+	    for(k in 1:N)
+	    {
+	      zeta.ma <- zeta[(N*p.order+1+(k-1)*q.order):(N*p.order+k*q.order)]
+	      ma.coef <- psi2phi(-1*zeta.ma)
+	      ma.coefs <- rbind(ma.coefs,ma.coef)
+	    }
+	  }
+	  zeta.par <- cbind(ar.coefs,ma.coefs)
+	}
+	
+	# Stabilized ARMA
+	if(mdlClass %in% c("arma.stab"))
 	{
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
@@ -100,7 +128,57 @@ psi2phi <- function(psi)
 	}
 
 	# SARMA
-	if(mdlClass %in% c("sarma","sarma.stab"))
+	if(mdlClass %in% c("sarma"))
+	{
+	  p.order <- mdlOrder[1]
+	  q.order <- mdlOrder[2]
+	  ps.order <- mdlOrder[3]
+	  qs.order <- mdlOrder[4]
+	  s.period <- mdlOrder[5]
+	  ar.coefs <- NULL
+	  ma.coefs <- NULL
+	  ars.coefs <- NULL
+	  mas.coefs <- NULL
+	  if(p.order > 0)
+	  {
+	    for(k in 1:N)
+	    {
+	      zeta.ar <- zeta[(1+(k-1)*p.order):(k*p.order)]
+  	    ar.coef <- psi2phi(zeta.ar)
+  	    ar.coefs <- rbind(ar.coefs,ar.coef
+  	  )
+	  }
+	  if(q.order > 0)
+	  {
+	    for(k in 1:N)
+	    {
+	      zeta.ma <- zeta[(N*p.order+1+(k-1)*q.order):(N*p.order+k*q.order)]
+	      ma.coef <- psi2phi(zeta.ma)
+	      ma.coefs <- rbind(ma.coefs,ma.coef)
+	    }
+	  }
+	  if(ps.order > 0)
+	  {
+	    for(k in 1:N)
+	    {
+	      zeta.ars <- zeta[(N*p.order+N*q.order+1+(k-1)*ps.order):(N*p.order+N*q.order+k*ps.order)]
+	      ars.coef <- psi2phi(zeta.ars)
+	      ars.coefs <- rbind(ars.coefs,ars.coef)
+	    }
+	  }
+	  if(qs.order > 0)
+	  {
+	    for(k in 1:N)
+	    {
+	      zeta.mas <- zeta[(N*p.order+N*q.order+N*ps.order+1+(k-1)*qs.order):(N*p.order+N*q.order+N*ps.order+k*qs.order)]
+	      mas.coef <- psi2phi(zeta.mas)
+	      mas.coefs <- rbind(mas.coefs,mas.coef)
+	  }
+	  zeta.par <- cbind(ar.coefs,cbind(ma.coefs,cbind(ars.coefs,mas.coefs)))
+	}
+	
+	# Stabilized SARMA
+	if(mdlClass %in% c("sarma.stab"))
 	{
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]

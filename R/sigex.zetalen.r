@@ -46,11 +46,13 @@ sigex.zetalen <- function(mdlType,N)
 	mdlOrder <- mdlType[[2]]
 
 	# ARMA 
-	if(mdlClass %in% c("arma","arma.stab")) zeta.len <- sum(mdlOrder)
-
+	if(mdlClass %in% c("arma")) zeta.len <- sum(mdlOrder)*N
+	if(mdlClass %in% c("arma.stab")) zeta.len <- sum(mdlOrder)
+	
 	# SARMA 
-	if(mdlClass %in% c("sarma","sarma.stab")) zeta.len <- sum(mdlOrder[1:4])
-
+	if(mdlClass %in% c("sarma")) zeta.len <- sum(mdlOrder[1:4])*N
+	if(mdlClass %in% c("sarma.stab")) zeta.len <- sum(mdlOrder[1:4])
+	
 	# VARMA
 	if(mdlClass %in% c("varma")) zeta.len <- sum(mdlOrder)*N^2
 

@@ -81,13 +81,26 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 		q.order <- mdlOrder[2]
 		ar.coef <- NULL
 		ma.coef <- NULL
-		if(p.order > 0) ar.coef <- mdlPar[1:p.order]
-		if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
-		ar.poly <- c(1,-1*ar.coef)
-		ma.poly <- c(1,ma.coef)
-		ma.poly <- polymult(delta,ma.poly)
-		comp.MA <- array(t(ma.poly %x% diag(N)),c(N,N,length(ma.poly)))
-		comp.AR <- array(t(ar.poly %x% diag(N)),c(N,N,length(ar.poly)))
+		if(p.order > 0) 
+		{
+		  for(j in 1:p.order)
+		  {
+		    ar.coef <- cbind(ar.coef,diag(mdlPar[,j,drop=FALSE]))
+		  }
+		}
+		if(q.order > 0) 
+		{
+		  for(j in 1:q.order)
+		  {
+		    ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.order,drop=FALSE]))
+		  }
+		}  
+		ar.array <- array(cbind(diag(N),-1*ar.coef),c(N,N,p.order+1))
+		ma.array <- array(cbind(diag(N),ma.coef),c(N,N,q.order+1))
+		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
+		madiff.array <- polymulMat(delta.array,ma.array) 
+		comp.MA <- madiff.array
+		comp.AR <- ar.array
 		comp.sigma <- xi.mat
 	}
 
@@ -125,23 +138,50 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 		ma.coef <- NULL
 		ars.coef <- NULL
 		mas.coef <- NULL
-		if(p.order > 0) ar.coef <- mdlPar[1:p.order]
-		if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
-		if(ps.order > 0) 
+		ar.array <- array(diag(N),c(N,N,1))
+		ma.array <- array(diag(N),c(N,N,1))
+		ars.array <- array(diag(N),c(N,N,1))
+		mas.array <- array(diag(N),c(N,N,1))
+		if(p.order > 0) 
 		{
-			ars.coef <- mdlPar[(p.order+q.order+1):(p.order+q.order+ps.order)]
-			ars.coef <- ars.coef %x% stretch
+		  for(j in 1:p.order)
+		  {
+		    ar.coef <- cbind(ar.coef,diag(mdlPar[,j,drop=FALSE]))
+		  }
+		  ar.array <- array(cbind(diag(N),-1*matrix(ar.coef,nrow=N)),c(N,N,p.order+1))
 		}
+		if(q.order > 0) 
+		{
+		  for(j in 1:q.order)
+		  {
+		    ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.order,drop=FALSE]))
+		  }
+		  ma.array <- array(cbind(diag(N),-1*matrix(ma.coef,nrow=N)),c(N,N,q.order+1))
+		}  
+		if(ps.order > 0)
+		{
+		  for(j in 1:ps.order)
+		  {
+		    ars.coef <- cbind(ars.coef,diag(mdlPar[,j+p.order+q.order,drop=FALSE]))
+		  }
+		  ars.coef <- array(t(stretch) %x% ars.coef,c(N,N,s.period*ps.order))
+		  ars.array <- array(cbind(diag(N),-1*matrix(ars.coef,nrow=N)),c(N,N,s.period*ps.order+1))
+		}		  
 		if(qs.order > 0)
 		{
-			mas.coef <- mdlPar[(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
-			mas.coef <- mas.coef %x% stretch
+		  for(j in 1:qs.order)
+		  {
+		    mas.coef <- cbind(mas.coef,diag(mdlPar[,j+p.order+q.order+ps.order,drop=FALSE]))
+		  }
+		  mas.coef <- array(t(stretch) %x% mas.coef,c(N,N,s.period*qs.order))
+		  mas.array <- array(cbind(diag(N),-1*matrix(mas.coef,nrow=N)),c(N,N,s.period*qs.order+1))
 		}
-		ar.poly <- polymult(c(1,-1*ar.coef),c(1,-1*ars.coef))
-		ma.poly <- polymult(c(1,-1*ma.coef),c(1,-1*mas.coef))
-		ma.poly <- polymult(ma.poly,delta)
-		comp.MA <- array(t(ma.poly %x% diag(N)),c(N,N,length(ma.poly)))
-		comp.AR <- array(t(ar.poly %x% diag(N)),c(N,N,length(ar.poly)))
+		ar.poly <- polymulMat(ar.array,ars.array)
+		ma.poly <- polymulMat(ma.array,mas.array)
+		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
+		madiff.array <- polymulMat(delta.array,ma.poly)
+		comp.MA <- madiff.array
+		comp.AR <- ar.poly
 		comp.sigma <- xi.mat
 	}
 

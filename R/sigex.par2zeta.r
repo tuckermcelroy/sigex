@@ -75,12 +75,39 @@ phi2psi <- function(phi)
 	## get zeta for the component
 
 	# ARMA
-	if(mdlClass %in% c("arma","arma.stab"))
+	if(mdlClass %in% c("arma"))
+	{
+	  p.order <- mdlOrder[1]
+	  q.order <- mdlOrder[2]
+	  N <- dim(mdlPar)[1]
+	  zetas.ar <- NULL
+	  zetas.ma <- NULL
+	  if(p.order > 0)
+	  {
+	    for(k in 1:N)
+	    {
+  	    ar.coef <- mdlPar[k,1:p.order]
+	      zeta.ar <- phi2psi(ar.coef)
+	      zetas.ar <- c(zetas.ar,zeta.ar)
+	    }
+	  }
+	  if(q.order > 0)
+	  {
+	    for(k in 1:N)
+	    {
+	      ma.coef <- mdlPar[k,(p.order+1):(p.order+q.order)]
+	      zeta.ma <- phi2psi(-1*ma.coef)
+	      zetas.ma <- c(zetas.ma,zeta.ma)
+	    }
+	  }
+	  zeta <- c(zetas.ar,zetas.ma)
+	}
+	
+	# Stabilized ARMA
+	if(mdlClass %in% c("arma.stab"))
 	{
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
-		ar.coef <- NULL
-		ma.coef <- NULL
 		zeta.ar <- NULL
 		zeta.ma <- NULL
 		if(p.order > 0)
@@ -97,44 +124,92 @@ phi2psi <- function(phi)
 	}
 
 	# SARMA
-	if(mdlClass %in% c("sarma","sarma.stab"))
+	if(mdlClass %in% c("sarma"))
 	{
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
 		ps.order <- mdlOrder[3]
 		qs.order <- mdlOrder[4]
 		s.period <- mdlOrder[5]
-		ar.coef <- NULL
-		ma.coef <- NULL
-		ars.coef <- NULL
-		mas.coef <- NULL
-		zeta.ar <- NULL
-		zeta.ma <- NULL
-		zeta.ars <- NULL
-		zeta.mas <- NULL
+		N <- dim(mdlPar)[1]
+		zetas.ar <- NULL
+		zetas.ma <- NULL
+		zetas.ars <- NULL
+		zetas.mas <- NULL
 		if(p.order > 0)
 		{
-			ar.coef <- mdlPar[1:p.order]
-			zeta.ar <- phi2psi(ar.coef)
+		  for(k in 1:N)
+		  {
+		    ar.coef <- mdlPar[k,1:p.order]
+			  zeta.ar <- phi2psi(ar.coef)
+			  zetas.ar <- c(zetas.ar,zeta.ar)
+		  }
 		}
 		if(q.order > 0)
 		{
-			ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
-			zeta.ma <- phi2psi(ma.coef)
+		  for(k in 1:N)
+		  {
+		    ma.coef <- mdlPar[k,(p.order+1):(p.order+q.order)]
+	  		zeta.ma <- phi2psi(ma.coef)
+	  		zetas.ma <- c(zetas.ma,zeta.ma)
+		  }
 		}
 		if(ps.order > 0)
 		{
-			ars.coef <- mdlPar[(p.order+q.order+1):(p.order+q.order+ps.order)]
-			zeta.ars <- phi2psi(ars.coef)
+		  for(k in 1:N)
+		  {
+		    ars.coef <- mdlPar[k,(p.order+q.order+1):(p.order+q.order+ps.order)]
+			  zeta.ars <- phi2psi(ars.coef)
+			  zetas.ars <- c(zetas.ars,zeta.ars)
+		  }
 		}
 		if(qs.order > 0)
 		{
-			mas.coef <- mdlPar[(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
-			zeta.mas <- phi2psi(mas.coef)
+		  for(k in 1:N)
+		  {
+		    mas.coef <- mdlPar[k,(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
+			  zeta.mas <- phi2psi(mas.coef)
+			  zetas.mas <- c(zetas.mas,zeta.mas)
+		  }
 		}
-		zeta <- c(zeta.ar,zeta.ma,zeta.ars,zeta.mas)
+		zeta <- c(zetas.ar,zetas.ma,zetas.ars,zetas.mas)
 	}
 
+	# Stabilized SARMA
+	if(mdlClass %in% c("sarma.stab"))
+	{
+	  p.order <- mdlOrder[1]
+	  q.order <- mdlOrder[2]
+	  ps.order <- mdlOrder[3]
+	  qs.order <- mdlOrder[4]
+	  s.period <- mdlOrder[5]
+	  zeta.ar <- NULL
+	  zeta.ma <- NULL
+	  zeta.ars <- NULL
+	  zeta.mas <- NULL
+	  if(p.order > 0)
+	  {
+	    ar.coef <- mdlPar[1:p.order]
+	    zeta.ar <- phi2psi(ar.coef)
+	  }
+	  if(q.order > 0)
+	  {
+	    ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
+	    zeta.ma <- phi2psi(ma.coef)
+	  }
+	  if(ps.order > 0)
+	  {
+	    ars.coef <- mdlPar[(p.order+q.order+1):(p.order+q.order+ps.order)]
+	    zeta.ars <- phi2psi(ars.coef)
+	  }
+	  if(qs.order > 0)
+	  {
+	    mas.coef <- mdlPar[(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
+	    zeta.mas <- phi2psi(mas.coef)
+	  }
+	  zeta <- c(zeta.ar,zeta.ma,zeta.ars,zeta.mas)
+	}
+	
 	# VARMA
 	if(mdlClass %in% c("varma"))
 	{
