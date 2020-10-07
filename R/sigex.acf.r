@@ -154,6 +154,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		  for(j in 1:q.order)
 		  {
 		    ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.order,drop=FALSE]))
+		    print(ma.coef)
 		  }
 		  ma.array <- array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1))
 		}  
