@@ -558,36 +558,8 @@ wk.irr <- sigex.getwk(data,param,mdl,6,TRUE,grid,len)
 
 
 
-
-##### SCRAP
-
-series <- 7
-
-# SARMA
-mdl2 <- NULL
-mdl2 <- sigex.add(mdl2,1,"sarma",c(0,3,3,0,52),NULL,"process",c(1,-1))
-mdl2 <- sigex.meaninit(mdl2,data.ts[,series],0)
-
-
-par.mle <- sigex.default(mdl2,data.ts[,series,drop=FALSE],constraint)
-psi.mle <- sigex.par2psi(par.mle,mdl2)
-
-fit.mle2 <- sigex.mlefit(data.ts[,series,drop=FALSE],par.mle,constraint,mdl2,"bfgs",debug=TRUE)
-
-## manage output
-psi.mle <- sigex.eta2psi(fit.mle2[[1]]$par,constraint)
-hess <- fit.mle2[[1]]$hessian
-par.mle <- fit.mle2[[2]]
-
-
-resid.mle <- sigex.resid(psi.mle,mdl2,data.ts[,series,drop=FALSE])[[1]]
-resid.acf <- acf(t(resid.mle),lag.max=4*53,plot=TRUE)$acf
-
-
-print(eigen(hess)$values)
-tstats <- sigex.tstats(mdl,psi.mle,hess,constraint)
-print(tstats)
-
+ 
+  
 
 
 #####  SCRAP
