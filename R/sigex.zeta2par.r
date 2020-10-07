@@ -173,6 +173,7 @@ psi2phi <- function(psi)
 	      zeta.mas <- zeta[(N*p.order+N*q.order+N*ps.order+1+(k-1)*qs.order):(N*p.order+N*q.order+N*ps.order+k*qs.order)]
 	      mas.coef <- psi2phi(zeta.mas)
 	      mas.coefs <- rbind(mas.coefs,mas.coef)
+	    } 
 	  }
 	  zeta.par <- cbind(ar.coefs,cbind(ma.coefs,cbind(ars.coefs,mas.coefs)))
 	}

@@ -9,7 +9,7 @@ library(devtools)
 
 # suppose directory is set to where sigex is located, e.g.
 #setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
-#setwd("/home/tucker/Documents/GitHub/sigex")
+setwd("/home/tucker/Documents/GitHub/sigex")
 load_all(".")
 root.dir <- getwd()
 setwd(paste(root.dir,"/tests/NZ",sep=""))
