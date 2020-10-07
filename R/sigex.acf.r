@@ -100,7 +100,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
 		madiff.array <- polymulMat(delta.array,ma.array)
 		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat,
-		                     maxlag=maxlag)[,,1:maxlag]
+		                     maxlag=maxlag)[,,1:maxlag,drop=FALSE]
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
 
@@ -154,7 +154,6 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		  for(j in 1:q.order)
 		  {
 		    ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.order,drop=FALSE]))
-		    print(ma.coef)
 		  }
 		  ma.array <- array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1))
 		}  
@@ -165,7 +164,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		    ars.coef <- cbind(ars.coef,diag(mdlPar[,j+p.order+q.order,drop=FALSE]))
 		  }
 		  ars.coef <- array(t(stretch) %x% ars.coef,c(N,N,s.period*ps.order))
-		  ars.array <- array(cbind(diag(N),-1*ars.coef),c(N,N,s.period*ps.order+1))
+		  ars.array <- array(cbind(diag(N),-1*matrix(ars.coef,nrow=N)),c(N,N,s.period*ps.order+1))
 		}		  
 	  if(qs.order > 0)
 	  {
@@ -174,14 +173,14 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		    mas.coef <- cbind(mas.coef,diag(mdlPar[,j+p.order+q.order+ps.order,drop=FALSE]))
 	    }
 	    mas.coef <- array(t(stretch) %x% mas.coef,c(N,N,s.period*qs.order))
-		  mas.array <- array(cbind(diag(N),-1*mas.coef),c(N,N,s.period*qs.order+1))
+		  mas.array <- array(cbind(diag(N),-1*matrix(mas.coef,nrow=N)),c(N,N,s.period*qs.order+1))
 		}
 		ar.poly <- polymulMat(ar.array,ars.array)
 	  ma.poly <- polymulMat(ma.array,mas.array)
 	  delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
 		madiff.array <- polymulMat(delta.array,ma.poly)
 		psi.acf <- VARMAauto(phi = -1*ar.poly[,,-1,drop=FALSE], theta = madiff.array[,,-1,drop=FALSE],
-		                   xi.mat, maxlag=maxlag)[,,1:maxlag]
+		                   xi.mat, maxlag=maxlag)[,,1:maxlag,drop=FALSE]
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
 
@@ -395,3 +394,4 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 
 	return(x.acf)
 }
+

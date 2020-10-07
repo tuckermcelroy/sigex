@@ -43,7 +43,7 @@ sigex.param2gcd <- function(L.psi,N,vrank)
 	#
 	####################################################################
 
-	L.mat <- 1
+	L.mat <- as.matrix(1)
 	if(N > 1) {
 	fill <- NULL
 	ind <- 0
