@@ -69,7 +69,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 	mdlBounds <- mdlType[[3]]
 	d.delta <- length(delta)
 	xi.mat <- L.par %*% diag(exp(D.par),nrow=length(D.par)) %*% t(L.par)
-  N <- dim(L.par)
+  N <- dim(L.par)[1]
 	
 	##################################
 	## get acf of stationary component
