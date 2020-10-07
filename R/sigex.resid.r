@@ -101,7 +101,7 @@ sigex.resid <- function(psi,mdl,data.ts,debug=FALSE)
 		zetalen <- sigex.zetalen(mdlType)
 		if(zetalen > 0) {
 			subzeta <- zeta[(ind+1):(ind+zetalen)]
-			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType)
+			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,N)
 		}
 		ind <- ind + zetalen
 

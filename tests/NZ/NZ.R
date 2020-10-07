@@ -9,7 +9,7 @@ library(devtools)
 
 # suppose directory is set to where sigex is located, e.g.
 #setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
-#setwd("/home/tucker/Documents/GitHub/sigex")
+setwd("/home/tucker/Documents/GitHub/sigex")
 load_all(".")
 root.dir <- getwd()
 setwd(paste(root.dir,"/tests/NZ",sep=""))
@@ -707,7 +707,7 @@ resid.acf <- acf(resid.mle,lag.max=4*frequency(data.ts),plot=TRUE)$acf
 
 # -2058.759
 psi.mon <- psi.mle
-# psi.mon <- c(-3.71673255276367, 2.81665989393415, 0.455821930160383, 1.95849931377876, 
+#psi.mon <- c(-3.71673255276367, 2.81665989393415, 0.455821930160383, 1.95849931377876, 
 #0.382618404217175, 0.347620963878928, -0.105333354153538, 0.00108330881916517, 
 #0.1544093642847, 0.0571421511614232, 0.226684037278746, -0.337666113897167, 
 #0.0955607194603728, 0.0871900840586311, 0.0355048167930293)
@@ -826,7 +826,7 @@ resid.acf <- acf(resid.mle,lag.max=4*frequency(data.ts),plot=TRUE)$acf
 
 # -2187.547
 psi.wed <- psi.mle
-# psi.wed <- c(-3.88752052496473, 2.57991874774606, 0.381616148947387, 1.7688876355792, 
+#psi.wed <- c(-3.88752052496473, 2.57991874774606, 0.381616148947387, 1.7688876355792, 
 #0.476209520549579, 0.566399196309179, -0.00854481257841716, 0.000893904427356007, 
 #0.0492484190910288, 0.0166551032816581, -1.09965928066817, 0.507858990853311, 
 #-0.645837739465141, 0.490057288297561, -0.642952148261199)
@@ -943,9 +943,12 @@ resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
                         colnames(data.ts[,i,drop=FALSE]),TRUE)
 resid.acf <- acf(resid.mle,lag.max=4*frequency(data.ts),plot=TRUE)$acf
 
-# 
+# -2074.888
 psi.fri <- psi.mle
-
+#psi.fri <- c(-3.75835853837978, 2.92661574783167, 0.152738271758969, 2.13559818245616, 
+#             0.463643958101823, 0.528739568613193, -0.0597676412636782, 0.000326919006301636, 
+#             0.0750839533564237, -0.382807515259472, 1.14385613449601, -0.436345776605543, 
+#             0.0393416191070808, 0.310748871253615, 0.153824128601056)
 
 # Saturday  SARMA
 
@@ -999,15 +1002,68 @@ resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
                         colnames(data.ts[,i,drop=FALSE]),TRUE)
 resid.acf <- acf(resid.mle,lag.max=4*frequency(data.ts),plot=TRUE)$acf
 
-# 
+#  -2050.405
 psi.sat <- psi.mle
+#psi.sat <- c(-3.72122242545419, 2.84637162942386, 0.481698020325866, 1.95540213883444, 
+#             0.54614410843796, 0.513339642154714, 0.0526384416356759, 0.000932076031292542, 
+#             -0.245759680535988, -0.199815969680003, 0.435888749475343, -0.0960892559637839, 
+#             0.399847261433419, -0.116661022378742, 0.434501022976733)
+
+
+##
+psi.days <- NULL
+psi.days <- cbind(psi.days,psi.sun)
+psi.days <- cbind(psi.days,psi.mon)
+psi.days <- cbind(psi.days,psi.tue)
+psi.days <- cbind(psi.days,psi.wed)
+psi.days <- cbind(psi.days,psi.thu)
+psi.days <- cbind(psi.days,psi.fri)
+psi.days <- cbind(psi.days,psi.sat)
 
 
 ###  getting constrained SVARMA
 
+
+# model construction
+mdl <- NULL
+mdl <- sigex.add(mdl,seq(1,N),"svarma",c(0,2,4,0,52),NULL,"process",c(1,-1))
+mdl <- sigex.meaninit(mdl,data.ts,0)
+
+for(i in 1:N) {
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(easter.reg[,i]),
+                            start=start(easter.reg),
+                            frequency=frequency(easter.reg),
+                            names="Easter-day"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(school1.reg[,i]),
+                            start=start(school1.reg),
+                            frequency=frequency(school1.reg),
+                            names="School1-Start"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(school1e.reg[,i]),
+                            start=start(school1e.reg),
+                            frequency=frequency(school1e.reg),
+                            names="School1-End"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(school2.reg[,i]),
+                            start=start(school2.reg),
+                            frequency=frequency(school2.reg),
+                            names="School2-Start"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(school2e.reg[,i]),
+                            start=start(school2e.reg),
+                            frequency=frequency(school2e.reg),
+                            names="School2-End"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(school3.reg[,i]),
+                            start=start(school3.reg),
+                            frequency=frequency(school3.reg),
+                            names="School3-Start"))
+  mdl <- sigex.reg(mdl,i,ts(as.matrix(school3e.reg[,i]),
+                            start=start(school3e.reg),
+                            frequency=frequency(school3e.reg),
+                            names="School3-End"))
+}
+
+
 constraint <- NULL
 
-# model constraints
+# model constraints and initial values
 par.mle <- sigex.default(mdl,data.ts,constraint)
 psi.mle <- sigex.par2psi(par.mle,mdl)
 psi.len <- length(psi.mle)
@@ -1015,14 +1071,22 @@ constraint <- diag(psi.len)
 index.mat <- matrix(seq(1,N^2),nrow=N,ncol=N)
 index.constraint <- setdiff(matrix(index.mat,ncol=1),diag(index.mat))
 offset <- N*(N+1)/2
+psi.mle[offset + diag(index.mat)] <- psi.days[2,]
 index.constraints <- offset + index.constraint
 offset <- offset + N^2
+psi.mle[offset + diag(index.mat)] <- psi.days[3,]
 index.constraints <- c(index.constraints,offset + index.constraint)
 offset <- offset + N^2
+psi.mle[offset + diag(index.mat)] <- psi.days[4,]
 index.constraints <- c(index.constraints,offset + index.constraint)
 offset <- offset + N^2
+psi.mle[offset + diag(index.mat)] <- psi.days[5,]
 index.constraints <- c(index.constraints,offset + index.constraint)
 offset <- offset + N^2
+psi.mle[offset + diag(index.mat)] <- psi.days[6,]
+index.constraints <- c(index.constraints,offset + index.constraint)
+offset <- offset + N^2
+psi.mle[offset + diag(index.mat)] <- psi.days[7,]
 index.constraints <- c(index.constraints,offset + index.constraint)
 constraint <- constraint[index.constraints,,drop=FALSE]
 constraint <- cbind(rep(0,length(index.constraints)),constraint)
@@ -1034,6 +1098,11 @@ constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(4,4,4,4,4,4,4
 constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(5,5,5,5,5,5,5),NULL))
 constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(6,6,6,6,6,6,6),NULL))
 constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(7,7,7,7,7,7,7),NULL))
+
+fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+
+
+ 
 
 
 

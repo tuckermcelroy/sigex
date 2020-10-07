@@ -1,4 +1,4 @@
-sigex.zeta2par <- function(zeta,mdlType)
+sigex.zeta2par <- function(zeta,mdlType,N)
 {
 
 	##########################################################################
@@ -42,6 +42,7 @@ sigex.zeta2par <- function(zeta,mdlType)
 	#			corresponding t.s. models, such as cycles
 	#		mdlType: this is a component of mdl (the specified sigex model),
 	#			 cited as mdl[[2]]
+  #   N: cross-section dimension
 	#	Outputs:
 	#		zeta.par: see background.  This is a portion of the full
 	#			param list, corresponding to param[[3]]
