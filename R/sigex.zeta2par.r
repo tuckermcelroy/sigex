@@ -145,8 +145,8 @@ psi2phi <- function(psi)
 	    {
 	      zeta.ar <- zeta[(1+(k-1)*p.order):(k*p.order)]
   	    ar.coef <- psi2phi(zeta.ar)
-  	    ar.coefs <- rbind(ar.coefs,ar.coef
-  	  )
+  	    ar.coefs <- rbind(ar.coefs,ar.coef)
+	    }
 	  }
 	  if(q.order > 0)
 	  {
@@ -310,3 +310,5 @@ psi2phi <- function(psi)
 
  	return(zeta.par)
 }
+
+	
