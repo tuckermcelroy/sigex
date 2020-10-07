@@ -95,10 +95,10 @@ sigex.whittle <- function(psi,mdl,data.ts)
 	{
 		mdlType <- mdl[[2]][[i]]	
 		delta <- mdl[[3]][[i]]
-		zetalen <- sigex.zetalen(mdlType)
+		zetalen <- sigex.zetalen(mdlType,N)
 		if(zetalen > 0) {
 			subzeta <- zeta[(ind+1):(ind+zetalen)]
-			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType)
+			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,N)
 		}
 		ind <- ind + zetalen
 

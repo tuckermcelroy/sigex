@@ -61,7 +61,7 @@ sigex.default <- function(mdl,data.ts,constraint)
 		L.dim <- sum(A.mat[,as.vector(vrank)])
 		psi.len <- psi.len + D.dim + L.dim
 		mdlType <- mdl[[2]][[i]]
-		psi.len <- psi.len + sigex.zetalen(mdlType)
+		psi.len <- psi.len + sigex.zetalen(mdlType,N)
 	}
 	for(k in 1:N)
 	{

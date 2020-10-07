@@ -86,7 +86,7 @@ sigex.psi2par <- function(psi,mdl,data.ts)
 	for(i in 1:length(mdl[[3]]))
 	{
 		mdlType <- mdl[[2]][[i]]
-		zetalen <- sigex.zetalen(mdlType)
+		zetalen <- sigex.zetalen(mdlType,N)
 		if(zetalen > 0) {
 			subzeta <- zeta[(ind+1):(ind+zetalen)]
 			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,N)

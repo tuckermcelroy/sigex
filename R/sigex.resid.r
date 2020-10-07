@@ -98,7 +98,7 @@ sigex.resid <- function(psi,mdl,data.ts,debug=FALSE)
 	{
 		mdlType <- mdl[[2]][[i]]
 		delta <- mdl[[3]][[i]]
-		zetalen <- sigex.zetalen(mdlType)
+		zetalen <- sigex.zetalen(mdlType,N)
 		if(zetalen > 0) {
 			subzeta <- zeta[(ind+1):(ind+zetalen)]
 			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,N)

@@ -1,4 +1,4 @@
-sigex.zetalen <- function(mdlType)
+sigex.zetalen <- function(mdlType,N)
 {
 
 	##########################################################################
@@ -36,7 +36,8 @@ sigex.zetalen <- function(mdlType)
 	#	Inputs:
 	#		mdlType: this is a component of mdl (the specified sigex model),
 	#			 cited as mdl[[2]]
-	#	Outputs:
+  #   N: cross-section dimension
+  #	Outputs:
 	#		zetalen: the length of zeta
 	#
 	####################################################################
