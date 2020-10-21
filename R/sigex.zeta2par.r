@@ -46,7 +46,7 @@ sigex.zeta2par <- function(zeta,mdlType,N)
 	#	Outputs:
 	#		zeta.par: see background.  This is a portion of the full
 	#			param list, corresponding to param[[3]]
-	#	Requires: sigex.param2gcd, var.pre2par
+	#	Requires: sigex.param2gcd, var2.pre2par
 	#
 	####################################################################
 
@@ -104,7 +104,7 @@ psi2phi <- function(psi)
 	  }
 	  zeta.par <- cbind(ar.coefs,ma.coefs)
 	}
-	
+
 	# Stabilized ARMA
 	if(mdlClass %in% c("arma.stab"))
 	{
@@ -173,11 +173,11 @@ psi2phi <- function(psi)
 	      zeta.mas <- zeta[(N*p.order+N*q.order+N*ps.order+1+(k-1)*qs.order):(N*p.order+N*q.order+N*ps.order+k*qs.order)]
 	      mas.coef <- psi2phi(zeta.mas)
 	      mas.coefs <- rbind(mas.coefs,mas.coef)
-	    } 
+	    }
 	  }
 	  zeta.par <- cbind(ar.coefs,cbind(ma.coefs,cbind(ars.coefs,mas.coefs)))
 	}
-	
+
 	# Stabilized SARMA
 	if(mdlClass %in% c("sarma.stab"))
 	{
@@ -230,13 +230,13 @@ psi2phi <- function(psi)
 		if(p.order > 0)
 		{
 			zeta.ar <- zeta[1:(p.order*N^2)]
-			ar.coef <- var.pre2par(zeta.ar,p.order,N,FALSE)
+			ar.coef <- var2.pre2par(zeta.ar,p.order,N)
 			zeta.par <- matrix(ar.coef,nrow=N)
 		}
 		if(q.order > 0)
 		{
 			zeta.ma <- zeta[(p.order*N^2 +1):(p.order*N^2 + q.order*N^2)]
-			ma.coef <- -1*var.pre2par(zeta.ma,q.order,N,FALSE)
+			ma.coef <- -1*var2.pre2par(zeta.ma,q.order,N)
 			zeta.par <- cbind(zeta.par,matrix(ma.coef,nrow=N))
 		}
 		zeta.par <- array(zeta.par,c(N,N,p.order+q.order))
@@ -262,25 +262,25 @@ psi2phi <- function(psi)
 		if(p.order > 0)
 		{
 			zeta.ar <- zeta[1:(p.order*N^2)]
-			ar.coef <- var.pre2par(zeta.ar,p.order,N,FALSE)
+			ar.coef <- var2.pre2par(zeta.ar,p.order,N)
 			zeta.par <- matrix(ar.coef,nrow=N)
 		}
 		if(q.order > 0)
 		{
 			zeta.ma <- zeta[(p.order*N^2 +1):(p.order*N^2 + q.order*N^2)]
-			ma.coef <- var.pre2par(zeta.ma,q.order,N,FALSE)
+			ma.coef <- var2.pre2par(zeta.ma,q.order,N)
 			zeta.par <- cbind(zeta.par,matrix(ma.coef,nrow=N))
 		}
 		if(ps.order > 0)
 		{
 			zeta.ars <- zeta[(p.order*N^2+q.order*N^2+1):(p.order*N^2+q.order*N^2+ps.order*N^2)]
-			ars.coef <- var.pre2par(zeta.ars,ps.order,N,FALSE)
+			ars.coef <- var2.pre2par(zeta.ars,ps.order,N)
 			zeta.par <- cbind(zeta.par,matrix(ars.coef,nrow=N))
 		}
 		if(qs.order > 0)
 		{
 			zeta.mas <- zeta[(p.order*N^2+q.order*N^2+ps.order*N^2+1):(p.order*N^2+q.order*N^2+ps.order*N^2+qs.order*N^2)]
-			mas.coef <- var.pre2par(zeta.mas,qs.order,N,FALSE)
+			mas.coef <- var2.pre2par(zeta.mas,qs.order,N)
 			zeta.par <- cbind(zeta.par,matrix(mas.coef,nrow=N))
 		}
 		zeta.par <- array(zeta.par,c(N,N,p.order+q.order+ps.order+qs.order))
@@ -311,4 +311,3 @@ psi2phi <- function(psi)
  	return(zeta.par)
 }
 
-	

@@ -44,7 +44,7 @@ sigex.par2zeta <- function(mdlPar,mdlType)
 	#			 cited as mdl[[2]]
 	#	Outputs:
 	#		zeta: see background.
-	#	Requires: var.par2pre
+	#	Requires: var2.par2pre
 	#
 	####################################################################
 
@@ -102,7 +102,7 @@ phi2psi <- function(phi)
 	  }
 	  zeta <- c(zetas.ar,zetas.ma)
 	}
-	
+
 	# Stabilized ARMA
 	if(mdlClass %in% c("arma.stab"))
 	{
@@ -209,7 +209,7 @@ phi2psi <- function(phi)
 	  }
 	  zeta <- c(zeta.ar,zeta.ma,zeta.ars,zeta.mas)
 	}
-	
+
 	# VARMA
 	if(mdlClass %in% c("varma"))
 	{
@@ -222,12 +222,12 @@ phi2psi <- function(phi)
 		if(p.order > 0)
 		{
 			ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
-			zeta.ar <- var.par2pre(ar.coef)
+			zeta.ar <- var2.par2pre(ar.coef)
 		}
 		if(q.order > 0)
 		{
 			ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
-			zeta.ma <- var.par2pre(-1*ma.coef)
+			zeta.ma <- var2.par2pre(-1*ma.coef)
 		}
 		zeta <- c(zeta.ar,zeta.ma)
 	}
@@ -251,22 +251,22 @@ phi2psi <- function(phi)
 		if(p.order > 0)
 		{
 			ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
-			zeta.ar <- var.par2pre(ar.coef)
+			zeta.ar <- var2.par2pre(ar.coef)
 		}
 		if(q.order > 0)
 		{
 			ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
-			zeta.ma <- var.par2pre(ma.coef)
+			zeta.ma <- var2.par2pre(ma.coef)
 		}
 		if(ps.order > 0)
 		{
 			ars.coef <- mdlPar[,,(p.order+q.order+1):(p.order+q.order+ps.order),drop=FALSE]
-			zeta.ars <- var.par2pre(ars.coef)
+			zeta.ars <- var2.par2pre(ars.coef)
 		}
 		if(qs.order > 0)
 		{
 			mas.coef <- mdlPar[,,(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order),drop=FALSE]
-			zeta.mas <- var.par2pre(mas.coef)
+			zeta.mas <- var2.par2pre(mas.coef)
 		}
 		zeta <- c(zeta.ar,zeta.ma,zeta.ars,zeta.mas)
 	}
