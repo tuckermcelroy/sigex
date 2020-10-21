@@ -85,7 +85,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		{
 		  for(j in 1:p.order)
 		  {
-		    ar.coef <- cbind(ar.coef,diag(mdlPar[,j,drop=FALSE]))
+		    ar.coef <- cbind(ar.coef,diag(mdlPar[,j],nrow=N))
 		  }
 		  ar.coef <- array(ar.coef,c(N,N,p.order))
 		}
@@ -93,7 +93,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		{
 		  for(j in 1:q.order)
 		  {
-		    ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.order,drop=FALSE]))
+		    ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.order],nrow=N))
 		  }
 		}
 		ma.array <- array(cbind(diag(N),ma.coef),c(N,N,q.order+1))
@@ -145,7 +145,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		{
 		  for(j in 1:p.order)
 		  {
-		    ar.coef <- cbind(ar.coef,diag(mdlPar[,j,drop=FALSE]))
+		    ar.coef <- cbind(ar.coef,diag(mdlPar[,j],nrow=N))
 		  }
 		  ar.array <- array(cbind(diag(N),-1*ar.coef),c(N,N,p.order+1))
 		}
@@ -153,7 +153,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		{
 		  for(j in 1:q.order)
 		  {
-		    ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.order,drop=FALSE]))
+		    ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.order],nrow=N))
 		  }
 		  ma.array <- array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1))
 		}
@@ -161,7 +161,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		{
 		  for(j in 1:ps.order)
 		  {
-			  ars.coef <- cbind(ars.coef,t(stretch) %x% diag(mdlPar[,j+p.order+q.order,drop=FALSE]))
+			  ars.coef <- cbind(ars.coef,t(stretch) %x% diag(mdlPar[,j+p.order+q.order],nrow=N))
 		  }
 		  ars.array <- array(cbind(diag(N),-1*ars.coef),c(N,N,s.period*ps.order+1))
 		}
@@ -169,7 +169,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 	  {
 	    for(j in 1:qs.order)
 	    {
-		    mas.coef <- cbind(mas.coef,t(stretch) %x% diag(mdlPar[,j+p.order+q.order+ps.order,drop=FALSE]))
+		    mas.coef <- cbind(mas.coef,t(stretch) %x% diag(mdlPar[,j+p.order+q.order+ps.order],nrow=N))
 	    }
 		  mas.array <- array(cbind(diag(N),-1*mas.coef),c(N,N,s.period*qs.order+1))
 		}
