@@ -1064,6 +1064,8 @@ psi.init[43:70] <- matrix(psi.days[4:7,],ncol=1)
 par.mle <- sigex.psi2par(psi.init,mdl,data.ts)
 
 
+sigex.lik(psi.init,mdl,data.ts)
+
 fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
 

@@ -51,3 +51,16 @@ debug <- TRUE
 mvar_midcast(x.acf,z,delta,debug)
 
 
+
+
+# VARMAauto tests
+
+setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\SigExNew")
+sourceCpp('VARMAauto.cpp')
+
+amat <- array(rnorm(12),c(2,2,3))
+bmat <- array(rnorm(8),c(2,2,2))
+polymulMat(amat,bmat)
+
+
+
