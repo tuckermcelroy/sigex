@@ -58,9 +58,21 @@ mvar_midcast(x.acf,z,delta,debug)
 setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\SigExNew")
 sourceCpp('VARMAauto.cpp')
 
-amat <- array(rnorm(12),c(2,2,3))
-bmat <- array(rnorm(8),c(2,2,2))
-polymulMat(amat,bmat)
+N <- 7
+p <- 100
+q <- 0
+phi <- array(rnorm(N*N*p),c(N,N,p))
+theta <- NULL
+sigma <- diag(N)
+param <- cbind(matrix(phi,nrow=N),sigma)
+
+tic()
+temp <- VARMA_auto(param,p,0,20)
+toc()
+
+tic()
+out <- VARMAauto(phi,theta,sigma,20)
+toc()
 
 
 
