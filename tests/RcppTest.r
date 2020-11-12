@@ -87,11 +87,11 @@ out <- VARMAauto(-1*phiseas[,,-1],theta,sigma,20)
 toc()
 
 tic()
-test <- autoVARMA(NULL,NULL,phi,NULL,sigma,season,1000,20)
+test <- autoVARMA(NULL,NULL,phi,NULL,sigma,season,2000,20)
 toc()
 
 tic()
-best <- auto_VARMA(cbind(matrix(phi,nrow=N),sigma),0,0,p,0,season,1000,20)
+best <- auto_VARMA(cbind(matrix(phi,nrow=N),sigma),0,0,p,0,season,2000,20)
 toc()
 
 
