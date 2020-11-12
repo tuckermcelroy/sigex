@@ -55,23 +55,43 @@ mvar_midcast(x.acf,z,delta,debug)
 
 # VARMAauto tests
 
+library(tictoc)
+
+source("C:\\Users\\neide\\Documents\\GitHub\\sigex\\tests\\autoVARMA.r")
+
 setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\SigExNew")
 sourceCpp('VARMAauto.cpp')
+sourceCpp('autoVARMA.cpp')
+
+
 
 N <- 7
-p <- 100
+p <- 6
+season <- 52
+stretch <- c(rep(0,season-1),1)
 q <- 0
-phi <- array(rnorm(N*N*p),c(N,N,p))
+psi <- rnorm(N*N*p)
+phi <- var2.pre2par(psi,p,N)
+phiseas <- array(t(stretch) %x% phi,c(N,N,season*p))
+phiseas <- array(cbind(diag(N),-1*matrix(phiseas,nrow=N)),c(N,N,season*p+1))
 theta <- NULL
 sigma <- diag(N)
-param <- cbind(matrix(phi,nrow=N),sigma)
+param <- cbind(matrix(-1*phiseas[,,-1],nrow=N),sigma)
 
 tic()
-temp <- VARMA_auto(param,p,0,20)
+temp <- VARMA_auto(param,p*season,0,20)
 toc()
 
 tic()
-out <- VARMAauto(phi,theta,sigma,20)
+out <- VARMAauto(-1*phiseas[,,-1],theta,sigma,20)
+toc()
+
+tic()
+test <- autoVARMA(NULL,NULL,phi,NULL,sigma,season,1000,20)
+toc()
+
+tic()
+best <- auto_VARMA(cbind(matrix(phi,nrow=N),sigma),0,0,p,0,season,1000,20)
 toc()
 
 
