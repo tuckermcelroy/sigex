@@ -7,16 +7,13 @@ rm(list=ls())
 
 library(devtools)
 library(Rcpp)
+library(tictoc)
 
 # suppose directory is set to where sigex is located, e.g.
 setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 #setwd("/home/tucker/Documents/GitHub/sigex")
 load_all(".")
 root.dir <- getwd()
-#setwd(paste(root.dir,"/tests",sep=""))
-#setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\SigExNew")
-#setwd(paste(root.dir,"/src",sep=""))
-#sourceCpp('autoVARMA.cpp')
 setwd(paste(root.dir,"/tests/NZ",sep=""))
 
 
@@ -1068,8 +1065,9 @@ psi.init[29:42] <- matrix(psi.days[2:3,],ncol=1)
 psi.init[43:70] <- matrix(psi.days[4:7,],ncol=1)
 par.mle <- sigex.psi2par(psi.init,mdl,data.ts)
 
-
+tic()
 sigex.lik(psi.init,mdl,data.ts)
+toc()
 
 fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
