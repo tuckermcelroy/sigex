@@ -41,6 +41,9 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 	#	Notes: this function computes the over-differenced acgf,
 	#		it is presumed that the given eta(B) contains the needed delta(B)
 	#		for that particular component.
+  # Conventions: ARMA and VAR models use minus convention for (V)AR polynomials,
+  #   and additive convention for (V)MA polynomials.  SARMA and SVARMA use
+  #   minus convention for all polynomials.
 	#	Inputs:
 	#		L.par: unit lower triangular matrix in GCD of the component's
 	#			white noise covariance matrix.  (Cf. sigex.param2gcd background)
@@ -87,7 +90,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		  {
 		    ar.coef <- cbind(ar.coef,diag(mdlPar[,j],nrow=N))
 		  }
-		  ar.coef <- array(ar.coef,c(N,N,p.order))
+#		  ar.coef <- array(ar.coef,c(N,N,p.order))
 		}
 		if(q.order > 0)
 		{
@@ -101,8 +104,10 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		madiff.array <- polymulMat(delta.array,ma.array)
 #		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat,
 #		                     maxlag=maxlag)[,,1:maxlag,drop=FALSE]
-		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat,
-		                     maxlag=maxlag)[,,1:maxlag,drop=FALSE]
+		psi.acf <- auto_VARMA(cbind(ar.coef,
+		                            matrix(madiff.array[,,-1],nrow=N),
+		                            xi.mat),p.order,q.order+d.order-1,
+		                            0,0,1,2000,maxlag)[,,1:maxlag,drop=FALSE]
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
 
@@ -139,17 +144,17 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		ma.coef <- NULL
 		ars.coef <- NULL
 		mas.coef <- NULL
-		ar.array <- array(diag(N),c(N,N,1))
-		ma.array <- array(diag(N),c(N,N,1))
-		ars.array <- array(diag(N),c(N,N,1))
-		mas.array <- array(diag(N),c(N,N,1))
+#		ar.array <- array(diag(N),c(N,N,1))
+#		ma.array <- array(diag(N),c(N,N,1))
+#		ars.array <- array(diag(N),c(N,N,1))
+#		mas.array <- array(diag(N),c(N,N,1))
 		if(p.order > 0)
 		{
 		  for(j in 1:p.order)
 		  {
 		    ar.coef <- cbind(ar.coef,diag(mdlPar[,j],nrow=N))
 		  }
-		  ar.array <- array(cbind(diag(N),-1*ar.coef),c(N,N,p.order+1))
+#		  ar.array <- array(cbind(diag(N),-1*ar.coef),c(N,N,p.order+1))
 		}
 		if(q.order > 0)
 		{
@@ -157,30 +162,38 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		  {
 		    ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.order],nrow=N))
 		  }
-		  ma.array <- array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1))
+#		  ma.array <- array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1))
 		}
 		if(ps.order > 0)
 		{
 		  for(j in 1:ps.order)
 		  {
-			  ars.coef <- cbind(ars.coef,t(stretch) %x% diag(mdlPar[,j+p.order+q.order],nrow=N))
+#			  ars.coef <- cbind(ars.coef,t(stretch) %x% diag(mdlPar[,j+p.order+q.order],nrow=N))
+			  ars.coef <- cbind(ars.coef,diag(mdlPar[,j+p.order+q.order],nrow=N))
 		  }
-		  ars.array <- array(cbind(diag(N),-1*ars.coef),c(N,N,s.period*ps.order+1))
+#		  ars.array <- array(cbind(diag(N),-1*ars.coef),c(N,N,s.period*ps.order+1))
 		}
 	  if(qs.order > 0)
 	  {
 	    for(j in 1:qs.order)
 	    {
-		    mas.coef <- cbind(mas.coef,t(stretch) %x% diag(mdlPar[,j+p.order+q.order+ps.order],nrow=N))
+#		    mas.coef <- cbind(mas.coef,t(stretch) %x% diag(mdlPar[,j+p.order+q.order+ps.order],nrow=N))
+		    mas.coef <- cbind(mas.coef,diag(mdlPar[,j+p.order+q.order+ps.order],nrow=N))
 	    }
-		  mas.array <- array(cbind(diag(N),-1*mas.coef),c(N,N,s.period*qs.order+1))
+#		  mas.array <- array(cbind(diag(N),-1*mas.coef),c(N,N,s.period*qs.order+1))
 		}
-		ar.poly <- polymulMat(ar.array,ars.array)
-	  ma.poly <- polymulMat(ma.array,mas.array)
+#		ar.poly <- polymulMat(ar.array,ars.array)
+#	  ma.poly <- polymulMat(ma.array,mas.array)
 	  delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
-		madiff.array <- polymulMat(delta.array,ma.poly)
-		psi.acf <- VARMAauto(phi = -1*ar.poly[,,-1,drop=FALSE], theta = madiff.array[,,-1,drop=FALSE],
-		                   xi.mat, maxlag=maxlag)[,,1:maxlag,drop=FALSE]
+#		madiff.array <- polymulMat(delta.array,ma.poly)
+    madiff.array <- polymulMat(delta.array,array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1)))
+#		psi.acf <- VARMAauto(phi = -1*ar.poly[,,-1,drop=FALSE], theta = madiff.array[,,-1,drop=FALSE],
+#		                   xi.mat, maxlag=maxlag)[,,1:maxlag,drop=FALSE]
+		psi.acf <- auto_VARMA(cbind(ar.coef,
+		                            matrix(madiff.array[,,-1],nrow=N),
+		                            ars.coef,-1*mas.coef,xi.mat),
+		                            p.order,q.order+d.delta-1,ps.order,qs.order,
+		                            s.period,2000,maxlag)[,,1:maxlag,drop=FALSE]
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
 
@@ -229,13 +242,18 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		q.order <- mdlOrder[2]
 		ar.coef <- NULL
 		ma.coef <- NULL
-		if(p.order > 0) ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
+		if(p.order > 0) ar.coef <- matrix(mdlPar[,,1:p.order,drop=FALSE],nrow=N)
 		if(q.order > 0) ma.coef <- matrix(mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE],nrow=N)
-		ma.array <- array(cbind(diag(N),ma.coef),c(N,N,q.order+1))
+#		ma.array <- array(cbind(diag(N),ma.coef),c(N,N,q.order+1))
 		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
-		madiff.array <- polymulMat(delta.array,ma.array)
-		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat,
-			maxlag=maxlag)[,,1:maxlag]
+#		madiff.array <- polymulMat(delta.array,ma.array)
+		madiff.array <- polymulMat(delta.array,array(cbind(diag(N),ma.coef),c(N,N,q.order+1)))
+#		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat,
+#			maxlag=maxlag)[,,1:maxlag]
+		psi.acf <- auto_VARMA(cbind(ar.coef,
+		                            matrix(madiff.array[,,-1],nrow=N),
+		                            xi.mat),p.order,q.order+d.order-1,
+		                            0,0,1,2000,maxlag)[,,1:maxlag,drop=FALSE]
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
 
@@ -252,38 +270,44 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		ma.coef <- NULL
 		ars.coef <- NULL
 		mas.coef <- NULL
-		ar.array <- array(diag(N),c(N,N,1))
-		ma.array <- array(diag(N),c(N,N,1))
-		ars.array <- array(diag(N),c(N,N,1))
-		mas.array <- array(diag(N),c(N,N,1))
+#		ar.array <- array(diag(N),c(N,N,1))
+#		ma.array <- array(diag(N),c(N,N,1))
+#		ars.array <- array(diag(N),c(N,N,1))
+#		mas.array <- array(diag(N),c(N,N,1))
 		if(p.order > 0)
 		{
-			ar.coef <- mdlPar[,,1:p.order,drop=FALSE]
-			ar.array <- array(cbind(diag(N),-1*matrix(ar.coef,nrow=N)),c(N,N,p.order+1))
+			ar.coef <- matrix(mdlPar[,,1:p.order,drop=FALSE],nrow=N)
+#			ar.array <- array(cbind(diag(N),-1*matrix(ar.coef,nrow=N)),c(N,N,p.order+1))
 		}
 		if(q.order > 0)
 		{
-			ma.coef <- mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE]
-			ma.array <- array(cbind(diag(N),-1*matrix(ma.coef,nrow=N)),c(N,N,q.order+1))
+			ma.coef <- matrix(mdlPar[,,(p.order+1):(p.order+q.order),drop=FALSE],nrow=N)
+#			ma.array <- array(cbind(diag(N),-1*matrix(ma.coef,nrow=N)),c(N,N,q.order+1))
 		}
 		if(ps.order > 0)
 		{
-			ars.coef <- matrix(mdlPar[,,(p.order+q.order+1):(p.order+q.order+ps.order),drop=FALSE],c(N,N,ps.order))
-			ars.coef <- array(t(stretch) %x% ars.coef,c(N,N,s.period*ps.order))
-			ars.array <- array(cbind(diag(N),-1*matrix(ars.coef,nrow=N)),c(N,N,s.period*ps.order+1))
+			ars.coef <- matrix(mdlPar[,,(p.order+q.order+1):(p.order+q.order+ps.order),drop=FALSE],nrow=N)
+#			ars.coef <- array(t(stretch) %x% ars.coef,c(N,N,s.period*ps.order))
+#			ars.array <- array(cbind(diag(N),-1*matrix(ars.coef,nrow=N)),c(N,N,s.period*ps.order+1))
 		}
 		if(qs.order > 0)
 		{
-			mas.coef <- matrix(mdlPar[,,(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order),drop=FALSE],c(N,N,qs.order))
-			mas.coef <- array(t(stretch) %x% mas.coef,c(N,N,s.period*qs.order))
-			mas.array <- array(cbind(diag(N),-1*matrix(mas.coef,nrow=N)),c(N,N,s.period*qs.order+1))
+			mas.coef <- matrix(mdlPar[,,(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order),drop=FALSE],nrow=N)
+#			mas.coef <- array(t(stretch) %x% mas.coef,c(N,N,s.period*qs.order))
+#			mas.array <- array(cbind(diag(N),-1*matrix(mas.coef,nrow=N)),c(N,N,s.period*qs.order+1))
 		}
-		ar.poly <- polymulMat(ar.array,ars.array)
-		ma.poly <- polymulMat(ma.array,mas.array)
+#		ar.poly <- polymulMat(ar.array,ars.array)
+#		ma.poly <- polymulMat(ma.array,mas.array)
 		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
-		madiff.array <- polymulMat(delta.array,ma.poly)
-		psi.acf <- VARMAauto(phi = -1*ar.poly[,,-1,drop=FALSE], theta = madiff.array[,,-1,drop=FALSE],
-			xi.mat, maxlag=maxlag)[,,1:maxlag]
+		madiff.array <- polymulMat(delta.array,array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1)))
+#		madiff.array <- polymulMat(delta.array,ma.poly)
+#		psi.acf <- VARMAauto(phi = -1*ar.poly[,,-1,drop=FALSE], theta = madiff.array[,,-1,drop=FALSE],
+#			xi.mat, maxlag=maxlag)[,,1:maxlag]
+		psi.acf <- auto_VARMA(cbind(ar.coef,
+		                            matrix(madiff.array[,,-1],nrow=N),
+		                            ars.coef,-1*mas.coef,xi.mat),
+		                      p.order,q.order+d.delta-1,ps.order,qs.order,
+		                      s.period,2000,maxlag)[,,1:maxlag,drop=FALSE]
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
 

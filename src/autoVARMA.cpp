@@ -1,11 +1,11 @@
-// Use the RcppArmadillo package 
-// Requires different header file from Rcpp.h 
-#include <RcppArmadillo.h> 
+// Use the RcppArmadillo package
+// Requires different header file from Rcpp.h
+#include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-arma::cx_vec getEigenValues(arma::mat M) 
+arma::cx_vec getEigenValues(arma::mat M)
 {
   return arma::eig_gen(M);
 }
@@ -43,52 +43,52 @@ arma::cx_vec polymult(arma::cx_vec a, arma::cx_vec b)
       c[h] = c[h] + a[h-j]*b[j];
     }
   }
-   
+
   return c;
-  
+
 }
 
 // [[Rcpp::export]]
 arma::cube polymul_mat(arma::cube amat,arma::cube bmat)
 {
-  
+
   int p = amat.n_slices -1;
   int q = bmat.n_slices -1;
   int N = amat.n_cols;
-  
+
   int r = p+q;
   arma::cube bmat_pad(N,N,r+1);
   arma::cube cmat(N,N,r+1);
-  
-  for(int i = 0; i < q+1; i++) 
-  { 
-    bmat_pad.slice(i) = bmat.slice(i); 
+
+  for(int i = 0; i < q+1; i++)
+  {
+    bmat_pad.slice(i) = bmat.slice(i);
   }
   cmat.slice(0) = amat.slice(0) * bmat_pad.slice(0);
-  
+
   if(r > 0) {
     for(int j = 1; j < r+1; j++)
     {
       cmat.slice(j) = amat.slice(0) * bmat_pad.slice(j);
-      if(p > 0) 
+      if(p > 0)
       {
         int l = std::min(p,j);
         for(int k = 0; k < l; k++)
-        { 
+        {
           arma::mat temp = amat.slice(k+1) * bmat_pad.slice(j-k-1);
           cmat.slice(j) = cmat.slice(j) + temp;
         }
-      }  
+      }
     }}
-  
+
   return cmat;
-  
+
 }
 
 // [[Rcpp::export]]
 List ar_adjoint(arma::cube poly_array)
 {
-  
+
   int p = poly_array.n_slices -1;
   int N = poly_array.n_cols;
   arma::mat poly_0 = poly_array.slice(0);
@@ -99,7 +99,7 @@ List ar_adjoint(arma::cube poly_array)
   arma::cube adj_array(N,N,r);
   arma::mat poly_inv = inv(poly_0);
   adj_array.slice(0) = ar_poly[0]*poly_inv;
-    
+
   if(p > 0)
   {
     arma::mat poly_mat(N,N*p);
@@ -130,7 +130,7 @@ List ar_adjoint(arma::cube poly_array)
       ar_prod = polymult(ar_prod,a_root);
     }
     ar_poly = arma::real(ar_prod);
-    for(int j = 1; j < r; j++)    
+    for(int j = 1; j < r; j++)
     {
       adj_array.slice(j) = ar_poly[j]*poly_inv;
       int l = std::min(p,j);
@@ -140,9 +140,9 @@ List ar_adjoint(arma::cube poly_array)
       }
     }
   }
-    
+
   return List::create(Named("adjoint") = adj_array,Named("det") = ar_poly);
-  
+
 }
 
 // [[Rcpp::export]]
@@ -173,11 +173,11 @@ arma::cube auto_VARMA(arma::mat param,int p,int q,int ps,int qs,int season,int g
   //
   //	Purpose: computes autocovariances of SVARMA usng frequency domain
   //	Background: function computes autocovariances of SVARMA (p,q,ps,qs) from lag zero
-  //		to maxlag, with array inputs phi and theta.  VARMA equation:
-  //	(1 - phi[1]B ... - phi[p]B^p) X_t = (1 + theta[1]B ...+ theta[q]B^q) WN_t
-  //	Note: for absent VAR or VMA portions, pass in NULL
+  //		to maxlag, with array inputs phi and theta.  SVARMA equation:
+  //	(1 - phi[1]B ... - phi[p]B^p) (1 - Phi[1]B^s ... - Phi[ps]B^{s*ps}) X_t =
+  //    (1 + theta[1]B ... + theta[q]B^q) (1 + Theta[1]B^s ... + Theta[qs]B^{s*qs}) WN_t.
   //	Inputs:
-  //    param: matrix of dimension m x (p+q+ps+qs+1), 
+  //    param: matrix of dimension m x (p+q+ps+qs+1),
   //        equals [ phi | theta | phiseas | thetaseas | sigma ]
   //		  phi: block matrix of dimension N x N*p of VAR coefficients
   //		  theta: block matrix of dimension N x N*q of VMA coefficients
@@ -247,7 +247,7 @@ arma::cube auto_VARMA(arma::mat param,int p,int q,int ps,int qs,int season,int g
     freqs[grid-k] = -1*arma::datum::pi * k/grid;
   }
   arma::cx_vec lambdas = complexExp(-1*freqs);
-    
+
   for(int k = 0; k < len; k++)
   {
     arma::cx_mat phi_z(N,N);
@@ -311,9 +311,9 @@ arma::cube auto_VARMA(arma::mat param,int p,int q,int ps,int qs,int season,int g
       spec = spec * pow(lambdas,-h)[k] * pow(abs(phi_detz),-2) * pow(abs(phiseas_detz),-2);
       gamma.slice(h) = gamma.slice(h) + arma::real(spec) * simpson;
     }
-    
+
   }
-    
+
   return gamma;
 
-}    
+}
