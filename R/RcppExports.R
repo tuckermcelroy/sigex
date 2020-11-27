@@ -33,35 +33,3 @@ auto_VARMA <- function(param, p, q, ps, qs, season, grid, maxlag) {
     .Call(`_sigex_auto_VARMA`, param, p, q, ps, qs, season, grid, maxlag)
 }
 
-getRe <- function(x) {
-    .Call(`_sigex_getRe`, x)
-}
-
-getIm <- function(x) {
-    .Call(`_sigex_getIm`, x)
-}
-
-getRagIndex <- function(zval) {
-    .Call(`_sigex_getRagIndex`, zval)
-}
-
-subsetting <- function(x, y, z) {
-    .Call(`_sigex_subsetting`, x, y, z)
-}
-
-matmult <- function(A, B) {
-    .Call(`_sigex_matmult`, A, B)
-}
-
-kronprod <- function(A, B) {
-    .Call(`_sigex_kronprod`, A, B)
-}
-
-vec2mat <- function(x) {
-    .Call(`_sigex_vec2mat`, x)
-}
-
-mvar_midcast <- function(x_acf, z, delta, debug) {
-    .Call(`_sigex_mvar_midcast`, x_acf, z, delta, debug)
-}
-
