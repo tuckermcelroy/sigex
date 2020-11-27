@@ -14,9 +14,9 @@ setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 load_all(".")
 root.dir <- getwd()
 #setwd(paste(root.dir,"/tests",sep=""))
-setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\SigExNew")
-setwd(paste(root.dir,"/src",sep=""))
-sourceCpp('autoVARMA.cpp')
+#setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\SigExNew")
+#setwd(paste(root.dir,"/src",sep=""))
+#sourceCpp('autoVARMA.cpp')
 setwd(paste(root.dir,"/tests/NZ",sep=""))
 
 
