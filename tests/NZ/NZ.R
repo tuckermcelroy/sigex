@@ -6,12 +6,15 @@
 rm(list=ls())
 
 library(devtools)
+library(Rcpp)
 
 # suppose directory is set to where sigex is located, e.g.
 #setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 setwd("/home/tucker/Documents/GitHub/sigex")
 load_all(".")
 root.dir <- getwd()
+setwd(paste(root.dir,"/src",sep=""))
+sourceCpp('autoVARMA.cpp')
 setwd(paste(root.dir,"/tests/NZ",sep=""))
 
 

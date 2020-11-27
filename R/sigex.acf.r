@@ -99,6 +99,8 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		ma.array <- array(cbind(diag(N),ma.coef),c(N,N,q.order+1))
 		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
 		madiff.array <- polymulMat(delta.array,ma.array)
+#		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat,
+#		                     maxlag=maxlag)[,,1:maxlag,drop=FALSE]
 		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat,
 		                     maxlag=maxlag)[,,1:maxlag,drop=FALSE]
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
