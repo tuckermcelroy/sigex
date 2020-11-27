@@ -11,12 +11,12 @@ library(Rcpp)
 # suppose directory is set to where sigex is located, e.g.
 setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
 #setwd("/home/tucker/Documents/GitHub/sigex")
+load_all(".")
 root.dir <- getwd()
 #setwd(paste(root.dir,"/tests",sep=""))
 setwd("C:\\Users\\neide\\OneDrive\\Documents\\Research\\SigExNew")
+setwd(paste(root.dir,"/src",sep=""))
 sourceCpp('autoVARMA.cpp')
-setwd(root.dir)
-load_all(".")
 setwd(paste(root.dir,"/tests/NZ",sep=""))
 
 
