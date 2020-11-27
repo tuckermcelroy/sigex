@@ -104,7 +104,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		madiff.array <- polymulMat(delta.array,ma.array)
 #		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat,
 #		                     maxlag=maxlag)[,,1:maxlag,drop=FALSE]
-		psi.acf <- sigex_auto_VARMA(cbind(ar.coef,
+		psi.acf <- _sigex_auto_VARMA(cbind(ar.coef,
 		                            matrix(madiff.array[,,-1],nrow=N),
 		                            xi.mat),p.order,q.order+d.order-1,
 		                            0,0,1,2000,maxlag)[,,1:maxlag,drop=FALSE]
@@ -189,7 +189,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
     madiff.array <- polymulMat(delta.array,array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1)))
 #		psi.acf <- VARMAauto(phi = -1*ar.poly[,,-1,drop=FALSE], theta = madiff.array[,,-1,drop=FALSE],
 #		                   xi.mat, maxlag=maxlag)[,,1:maxlag,drop=FALSE]
-		psi.acf <- sigex_auto_VARMA(cbind(ar.coef,
+		psi.acf <- _sigex_auto_VARMA(cbind(ar.coef,
 		                            matrix(madiff.array[,,-1],nrow=N),
 		                            ars.coef,-1*mas.coef,xi.mat),
 		                            p.order,q.order+d.delta-1,ps.order,qs.order,
@@ -250,7 +250,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		madiff.array <- polymulMat(delta.array,array(cbind(diag(N),ma.coef),c(N,N,q.order+1)))
 #		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat,
 #			maxlag=maxlag)[,,1:maxlag]
-		psi.acf <- sigex_auto_VARMA(cbind(ar.coef,
+		psi.acf <- _sigex_auto_VARMA(cbind(ar.coef,
 		                            matrix(madiff.array[,,-1],nrow=N),
 		                            xi.mat),p.order,q.order+d.order-1,
 		                            0,0,1,2000,maxlag)[,,1:maxlag,drop=FALSE]
@@ -303,7 +303,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 #		madiff.array <- polymulMat(delta.array,ma.poly)
 #		psi.acf <- VARMAauto(phi = -1*ar.poly[,,-1,drop=FALSE], theta = madiff.array[,,-1,drop=FALSE],
 #			xi.mat, maxlag=maxlag)[,,1:maxlag]
-		psi.acf <- sigex_auto_VARMA(cbind(ar.coef,
+		psi.acf <- _sigex_auto_VARMA(cbind(ar.coef,
 		                            matrix(madiff.array[,,-1],nrow=N),
 		                            ars.coef,-1*mas.coef,xi.mat),
 		                      p.order,q.order+d.delta-1,ps.order,qs.order,
