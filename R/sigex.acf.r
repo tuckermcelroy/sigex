@@ -1,4 +1,4 @@
-sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
+sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
 {
 
 	##########################################################################
@@ -57,6 +57,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 	#		delta: differencing polynomial (corresponds to eta(B) in Background)
 	#			written in format c(delta0,delta1,...,deltad)
  	#		maxlag: number of autocovariances required
+  #   freqdom: a flag, indicating whether frequency domain acf routine should be used
 	#	Outputs:
 	#		x.acf: matrix of dimension N x N*maxlag, consisting of autocovariance
 	#			matrices stacked horizontally, i.e.
@@ -104,10 +105,19 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 		madiff.array <- polymulMat(delta.array,ma.array)
 #		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat,
 #		                     maxlag=maxlag)[,,1:maxlag,drop=FALSE]
-		psi.acf <- auto_VARMA(cbind(ar.coef,
+		if(freqdom)
+		{
+		  psi.acf <- auto_VARMA(cbind(ar.coef,
 		                            matrix(madiff.array[,,-1],nrow=N),
 		                            xi.mat),p.order,q.order+d.delta-1,
 		                            0,0,1,2000,maxlag)[,,1:maxlag,drop=FALSE]
+		} else
+		{
+		  psi.acf <- VARMA_auto(cbind(ar.coef,
+		                              matrix(madiff.array[,,-1],nrow=N),
+		                              xi.mat),p.order,q.order+d.delta-1,
+		                        0,0,1,2000,maxlag)[,,1:maxlag,drop=FALSE]
+		}
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
 
