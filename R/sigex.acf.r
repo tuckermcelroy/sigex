@@ -116,7 +116,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
 		  psi.acf <- VARMA_auto(cbind(ar.coef,
 		                              matrix(madiff.array[,,-1],nrow=N),
 		                              xi.mat),p.order,q.order+d.delta-1,
-		                        0,0,1,2000,maxlag)[,,1:maxlag,drop=FALSE]
+		                              maxlag)[,,1:maxlag,drop=FALSE]
 		}
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
@@ -199,12 +199,18 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
     madiff.array <- polymulMat(delta.array,array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1)))
 #		psi.acf <- VARMAauto(phi = -1*ar.poly[,,-1,drop=FALSE], theta = madiff.array[,,-1,drop=FALSE],
 #		                   xi.mat, maxlag=maxlag)[,,1:maxlag,drop=FALSE]
-		psi.acf <- auto_VARMA(cbind(ar.coef,
+    if(freqdom)
+    {
+  		psi.acf <- auto_VARMA(cbind(ar.coef,
 		                            matrix(madiff.array[,,-1],nrow=N),
 		                            ars.coef,-1*mas.coef,xi.mat),
 		                            p.order,q.order+d.delta-1,ps.order,qs.order,
 		                            s.period,2000,maxlag)[,,1:maxlag,drop=FALSE]
-		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
+    } else
+    {
+
+    }
+    x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
 
 	# Stabilized SARMA model
