@@ -106,7 +106,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 #		                     maxlag=maxlag)[,,1:maxlag,drop=FALSE]
 		psi.acf <- auto_VARMA(cbind(ar.coef,
 		                            matrix(madiff.array[,,-1],nrow=N),
-		                            xi.mat),p.order,q.order+d.order-1,
+		                            xi.mat),p.order,q.order+d.delta-1,
 		                            0,0,1,2000,maxlag)[,,1:maxlag,drop=FALSE]
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
@@ -252,7 +252,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag)
 #			maxlag=maxlag)[,,1:maxlag]
 		psi.acf <- auto_VARMA(cbind(ar.coef,
 		                            matrix(madiff.array[,,-1],nrow=N),
-		                            xi.mat),p.order,q.order+d.order-1,
+		                            xi.mat),p.order,q.order+d.delta-1,
 		                            0,0,1,2000,maxlag)[,,1:maxlag,drop=FALSE]
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
