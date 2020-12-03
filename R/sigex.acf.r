@@ -1,4 +1,4 @@
-sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
+sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
 {
 
 	##########################################################################
@@ -57,7 +57,8 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
 	#		delta: differencing polynomial (corresponds to eta(B) in Background)
 	#			written in format c(delta0,delta1,...,deltad)
  	#		maxlag: number of autocovariances required
-  #   freqdom: a flag, indicating whether frequency domain acf routine should be used
+  #   freqdom: a flag, indicating whether frequency domain acf routine should be used;
+  #     for now the default is FALSE, but this is set to TRUE for SARMA and SVARMA models.
 	#	Outputs:
 	#		x.acf: matrix of dimension N x N*maxlag, consisting of autocovariance
 	#			matrices stacked horizontally, i.e.
@@ -74,9 +75,6 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
 	d.delta <- length(delta)
 	xi.mat <- L.par %*% diag(exp(D.par),nrow=length(D.par)) %*% t(L.par)
   N <- dim(L.par)[1]
-
-
-#  freqdom <- FALSE
 
 	##################################
 	## get acf of stationary component
@@ -106,8 +104,6 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
 		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
 		madiff.array <- polymulMat(delta.array,ma.array)
 		ma.coef <- matrix(madiff.array[,,-1],nrow=N)
-#		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat,
-#		                     maxlag=maxlag)[,,1:maxlag,drop=FALSE]
 		if(freqdom)
 		{
 		  psi.acf <- auto_VARMA(cbind(ar.coef,ma.coef,xi.mat),
@@ -146,6 +142,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
 	# SARMA model
 	if(mdlClass == "sarma")
 	{
+	  freqdom <- TRUE
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
 		ps.order <- mdlOrder[3]
@@ -190,8 +187,6 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
 		}
 	  delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
     madiff.array <- polymulMat(delta.array,array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1)))
-#		psi.acf <- VARMAauto(phi = -1*ar.poly[,,-1,drop=FALSE], theta = madiff.array[,,-1,drop=FALSE],
-#		                   xi.mat, maxlag=maxlag)[,,1:maxlag,drop=FALSE]
     if(freqdom)
     {
       ma.coef <- matrix(madiff.array[,,-1],nrow=N)
@@ -265,8 +260,6 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
 		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
 		madiff.array <- polymulMat(delta.array,array(cbind(diag(N),ma.coef),c(N,N,q.order+1)))
 		ma.coef <- matrix(madiff.array[,,-1],nrow=N)
-#		psi.acf <- VARMAauto(phi = ar.coef, theta = madiff.array[,,-1,drop=FALSE],xi.mat,
-#			maxlag=maxlag)[,,1:maxlag]
 		if(freqdom)
 		{
 		  psi.acf <- auto_VARMA(cbind(ar.coef,ma.coef,xi.mat),
@@ -284,6 +277,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
 	# SVARMA model
 	if(mdlClass == "svarma")
 	{
+	  freqdom <- TRUE
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
 		ps.order <- mdlOrder[3]
@@ -322,8 +316,6 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
 		}
 		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
 		madiff.array <- polymulMat(delta.array,array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1)))
-#		psi.acf <- VARMAauto(phi = -1*ar.poly[,,-1,drop=FALSE], theta = madiff.array[,,-1,drop=FALSE],
-#			xi.mat, maxlag=maxlag)[,,1:maxlag]
 		if(freqdom)
 		{
 		  ma.coef <- matrix(madiff.array[,,-1],nrow=N)
