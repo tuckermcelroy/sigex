@@ -76,7 +76,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=TRUE)
   N <- dim(L.par)[1]
 
 
-  freqdom <- FALSE
+#  freqdom <- FALSE
 
 	##################################
 	## get acf of stationary component

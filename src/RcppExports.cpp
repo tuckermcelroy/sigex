@@ -6,6 +6,18 @@
 
 using namespace Rcpp;
 
+// polymul_matt
+arma::cube polymul_matt(arma::cube amat, arma::cube bmat);
+RcppExport SEXP _sigex_polymul_matt(SEXP amatSEXP, SEXP bmatSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::cube >::type amat(amatSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type bmat(bmatSEXP);
+    rcpp_result_gen = Rcpp::wrap(polymul_matt(amat, bmat));
+    return rcpp_result_gen;
+END_RCPP
+}
 // VARMA_auto
 arma::cube VARMA_auto(arma::mat param, int p, int q, int maxlag);
 RcppExport SEXP _sigex_VARMA_auto(SEXP paramSEXP, SEXP pSEXP, SEXP qSEXP, SEXP maxlagSEXP) {
@@ -97,6 +109,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_sigex_polymul_matt", (DL_FUNC) &_sigex_polymul_matt, 2},
     {"_sigex_VARMA_auto", (DL_FUNC) &_sigex_VARMA_auto, 4},
     {"_sigex_getEigenValues", (DL_FUNC) &_sigex_getEigenValues, 1},
     {"_sigex_complexExp", (DL_FUNC) &_sigex_complexExp, 1},
