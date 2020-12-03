@@ -1,6 +1,6 @@
-// Use the RcppArmadillo package 
-// Requires different header file from Rcpp.h 
-#include <RcppArmadillo.h> 
+// Use the RcppArmadillo package
+// Requires different header file from Rcpp.h
+#include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
@@ -11,41 +11,43 @@ arma::cube polymul_matt(arma::cube amat,arma::cube bmat)
   int p = amat.n_slices -1;
   int q = bmat.n_slices -1;
   int N = amat.n_cols;
-  
+
   int r = p+q;
   arma::cube bmat_pad(N,N,r+1);
   arma::cube cmat(N,N,r+1);
-  
-  for(int i = 0; i < q+1; i++) 
-  { 
-    bmat_pad.slice(i) = bmat.slice(i); 
+  bmat_pad.fill(0);
+  cmat.fill(0);
+
+  for(int i = 0; i < q+1; i++)
+  {
+    bmat_pad.slice(i) = bmat.slice(i);
   }
   cmat.slice(0) = amat.slice(0) * bmat_pad.slice(0);
-  
+
   if(r > 0) {
   for(int j = 1; j < r+1; j++)
   {
     cmat.slice(j) = amat.slice(0) * bmat_pad.slice(j);
-    if(p > 0) 
+    if(p > 0)
     {
       int l = std::min(p,j);
       for(int k = 0; k < l; k++)
-      { 
+      {
         arma::mat temp = amat.slice(k+1) * bmat_pad.slice(j-k-1);
         cmat.slice(j) = cmat.slice(j) + temp;
       }
-    }  
+    }
   }}
-  
+
   return cmat;
-  
+
 }
- 
+
 
 // [[Rcpp::export]]
 arma::cube VARMA_auto(arma::mat param,int p, int q, int maxlag)
 {
-  
+
   //***********************************************************************
   //
   //	VARMAauto.cpp
@@ -65,7 +67,7 @@ arma::cube VARMA_auto(arma::mat param,int p, int q, int maxlag)
   //    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   //
   //**************************************************************************
-  
+
   //************************ Documentation **********************************
   //
   //	Purpose: computes autocovariances of VARMA
@@ -76,14 +78,14 @@ arma::cube VARMA_auto(arma::mat param,int p, int q, int maxlag)
   //	Inputs:
   //    param: matrix of dimension m x (p+q+1)m, equals [ phi | theta | sigma ]
   //		  phi: block matrix of dimension m x mp of VAR coefficients
-  //		  theta: block matrix of dimension m x mq of VMA coefficients 
+  //		  theta: block matrix of dimension m x mq of VMA coefficients
   //		  sigma: m x m covariance matrix of white noise
   //  Notes: for pure VMA, leave out phi; for pure VAR, leave out theta.
   //	Outputs:
   //		autocovariances at lags 0 through maxlag, as array of dimension m x m x (maxlag+1)
   //
   //**************************************************************************
-  
+
   int m = param.n_rows;
   arma::mat idmat = arma::eye<arma::mat>(m,m);
   arma::mat phi = idmat;  // only to get phi globally defined, but if p = 0, phi should be NULL
@@ -92,7 +94,7 @@ arma::cube VARMA_auto(arma::mat param,int p, int q, int maxlag)
   arma::cube sigma_cube(m,m,1);
   sigma_cube.slice(0) = sigma;
   arma::cube gamma_final(m,m,maxlag+1);
-  
+
   arma::mat Kmat (m*m,m*m);
   Kmat.fill(0);
   for(int j = 0; j < m; j++)
@@ -104,9 +106,9 @@ arma::cube VARMA_auto(arma::mat param,int p, int q, int maxlag)
       Kmat(row_index,col_index) = 1;
     }
   }
-  
-  if(q == 0) 
-  { 
+
+  if(q == 0)
+  {
     gam_ma.slice(0) = sigma;
   } else
   {
@@ -130,7 +132,7 @@ arma::cube VARMA_auto(arma::mat param,int p, int q, int maxlag)
   arma::vec gamvec_ma = vectorise(gam_ma);
   arma::cube gam_mixcube(m,m,q+1);
   arma::cube gam_armacube(m,m,p+1);
-  
+
   if(p > 0)
   {
     arma::mat id2mat = arma::eye<arma::mat>(m*m,m*m);
@@ -200,13 +202,13 @@ arma::cube VARMA_auto(arma::mat param,int p, int q, int maxlag)
     {
       gam_armacube.slice(i) = gam_arma.cols(i*m,(i+1)*m-1);
     }
-    phi.reshape(m,m*p);    
+    phi.reshape(m,m*p);
   } else
   {
     gam_armacube.slice(0) = gam_ma.slice(0);
     gam_mixcube = gam_ma;
   }
-    
+
   if(maxlag <= p)
   {
     gamma_final = gam_armacube.slices(0,maxlag);
@@ -239,8 +241,7 @@ arma::cube VARMA_auto(arma::mat param,int p, int q, int maxlag)
       gamma_final.slice(k+p+1) = acf;
     }
   }
- 
+
   return gamma_final;
-  
+
 }
- 
