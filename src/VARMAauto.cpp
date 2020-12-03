@@ -5,6 +5,44 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
+arma::cube polymul_matt(arma::cube amat,arma::cube bmat)
+{
+
+  int p = amat.n_slices -1;
+  int q = bmat.n_slices -1;
+  int N = amat.n_cols;
+
+  int r = p+q;
+  arma::cube bmat_pad(N,N,r+1);
+  arma::cube cmat(N,N,r+1);
+
+  for(int i = 0; i < q+1; i++)
+  {
+    bmat_pad.slice(i) = bmat.slice(i);
+  }
+  cmat.slice(0) = amat.slice(0) * bmat_pad.slice(0);
+
+  if(r > 0) {
+  for(int j = 1; j < r+1; j++)
+  {
+    cmat.slice(j) = amat.slice(0) * bmat_pad.slice(j);
+    if(p > 0)
+    {
+      int l = std::min(p,j);
+      for(int k = 0; k < l; k++)
+      {
+        arma::mat temp = amat.slice(k+1) * bmat_pad.slice(j-k-1);
+        cmat.slice(j) = cmat.slice(j) + temp;
+      }
+    }
+  }}
+
+  return cmat;
+
+}
+
+
+// [[Rcpp::export]]
 arma::cube VARMA_auto(arma::mat param,int p, int q, int maxlag)
 {
 
@@ -79,14 +117,14 @@ arma::cube VARMA_auto(arma::mat param,int p, int q, int maxlag)
     {
       theta_cube.slice(i+1) = theta.cols(i*m,(i+1)*m-1);
     }
-    arma::cube prod_cube = polymul_mat(theta_cube,sigma_cube);
+    arma::cube prod_cube = polymul_matt(theta_cube,sigma_cube);
     theta_cube.slice(q) = idmat;
     for(int i = 0; i < q; i++)
     {
       arma::mat temp = theta.cols(i*m,(i+1)*m-1);
       theta_cube.slice(q-1-i) = temp.t();
     }
-    arma::cube out = polymul_mat(prod_cube,theta_cube);
+    arma::cube out = polymul_matt(prod_cube,theta_cube);
     gam_ma = out.slices(q,2*q);
   }
   arma::vec gamvec_ma = vectorise(gam_ma);
