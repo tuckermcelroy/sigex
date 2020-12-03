@@ -6,6 +6,7 @@
 rm(list=ls())
 
 library(devtools)
+library(Rcpp)
 
 # suppose directory is set to where sigex is located, e.g.
 #setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")

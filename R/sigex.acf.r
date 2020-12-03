@@ -142,7 +142,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
 	# SARMA model
 	if(mdlClass == "sarma")
 	{
-	  freqdom <- TRUE
+#	  freqdom <- TRUE
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
 		ps.order <- mdlOrder[3]
