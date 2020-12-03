@@ -192,7 +192,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
       ma.coef <- matrix(madiff.array[,,-1],nrow=N)
       psi.acf <- auto_VARMA(cbind(ar.coef,ma.coef,ars.coef,-1*mas.coef,xi.mat),
 		                            p.order,q.order+d.delta-1,ps.order,qs.order,
-		                            s.period,2000,maxlag)[,,1:maxlag,drop=FALSE]
+		                            s.period,5000,maxlag)[,,1:maxlag,drop=FALSE]
     } else
     {
       ar.array <- array(cbind(diag(N),-1*ar.coef),c(N,N,p.order+1))
