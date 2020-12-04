@@ -276,7 +276,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
 	# SVARMA model
 	if(mdlClass == "svarma")
 	{
-	  freqdom <- TRUE
+#	  freqdom <- TRUE
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]
 		ps.order <- mdlOrder[3]
