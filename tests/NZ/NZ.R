@@ -45,7 +45,8 @@ begin <- c(start.date[3],start.day)
 end <- c(end.date[3],end.day)
 
 ## create ts object and plot
-dataALL.ts <- sigex.load(imm,begin,period,c("NZArr","NZDep","VisArr","VisDep","PLTArr","PLTDep"),TRUE)
+dataALL.ts <- sigex.load(imm,begin,period,
+                         c("NZArr","NZDep","VisArr","VisDep","PLTArr","PLTDep"),TRUE)
 
 
 #############################
@@ -300,12 +301,12 @@ sa.lowfilter <- out[[1]]
 shift.low <- out[[2]]
 
 sa.low <- sigex.adhocextract(psi,mdl,data.ts,sa.lowfilter,shift.low,0,TRUE)
-sa.low.daily <- list()
-sa.low.daily[[1]] <- sigex.weekly2daily(ts(sa.low[[1]],start=start(dataONE.ts),
+sa.hi.daily <- list()
+sa.hi.daily[[1]] <- sigex.weekly2daily(ts(sa.low[[1]],start=start(dataONE.ts),
                                            frequency=frequency(dataONE.ts)),first.day)
-sa.low.daily[[2]] <- sigex.weekly2daily(ts(sa.low[[2]],start=start(dataONE.ts),
+sa.hi.daily[[2]] <- sigex.weekly2daily(ts(sa.low[[2]],start=start(dataONE.ts),
                                            frequency=frequency(dataONE.ts)),first.day)
-sa.low.daily[[3]] <- sigex.weekly2daily(ts(sa.low[[3]],start=start(dataONE.ts),
+sa.hi.daily[[3]] <- sigex.weekly2daily(ts(sa.low[[3]],start=start(dataONE.ts),
                                            frequency=frequency(dataONE.ts)),first.day)
 
 ## embed daily TD filter as a weekly filter
@@ -319,21 +320,25 @@ td.lowfilter <- out[[1]]
 shift.low <- out[[2]]
 
 td.low <- sigex.adhocextract(psi,mdl,data.ts,td.lowfilter,shift.low,0,TRUE)
-td.low.daily <- list()
-td.low.daily[[1]] <- sigex.weekly2daily(ts(td.low[[1]],start=start(dataONE.ts),
+td.hi.daily <- list()
+td.hi.daily[[1]] <- sigex.weekly2daily(ts(td.low[[1]],start=start(dataONE.ts),
                                            frequency=frequency(dataONE.ts)),first.day)
-td.low.daily[[2]] <- sigex.weekly2daily(ts(td.low[[2]],start=start(dataONE.ts),
+td.hi.daily[[2]] <- sigex.weekly2daily(ts(td.low[[2]],start=start(dataONE.ts),
                                            frequency=frequency(dataONE.ts)),first.day)
-td.low.daily[[3]] <- sigex.weekly2daily(ts(td.low[[3]],start=start(dataONE.ts),
+td.hi.daily[[3]] <- sigex.weekly2daily(ts(td.low[[3]],start=start(dataONE.ts),
                                            frequency=frequency(dataONE.ts)),first.day)
 
 ## get fixed effects
-reg.trend <- NULL
+reg.td <- NULL
 for(i in 1:N)
 {
-  reg.trend <- cbind(reg.trend,sigex.fixed(data.ts,mdl,i,param,"Trend"))
+  reg.td <- cbind(reg.td,sigex.fixed(data.ts,mdl,i,param,"Trend"))
 }
-reg.trend <- ts(matrix(t(reg.trend),ncol=1),start=start(dataONE.ts),frequency=period)
+reg.td <- rbind(rep(0,N),reg.td)
+reg.td <- ts(sigex.weekly2daily(reg.td,first.day),
+                start=start(dataONE.ts),frequency=period)
+reg.trend <- filter(reg.td,rep(1,7)/7,method="convolution",sides=1)
+reg.trend <- as.matrix(reg.trend[8:length(reg.td)])
 
 
 ## plotting
@@ -345,18 +350,18 @@ fade <- 60
 
 #pdf(file="nz-signals.pdf",height=8,width=10)
 plot(dataONE.ts,xlab="Year")
-sigex.graph(sa.low.daily,reg.trend,start(sa.low.daily[[1]]),
+sigex.graph(sa.hi.daily,reg.trend,start(sa.hi.daily[[1]]),
             period,1,0,trendcol,fade)
-sigex.graph(td.low.daily,reg.trend,start(td.low.daily[[1]]),
+sigex.graph(td.hi.daily,reg.trend,start(td.low.daily[[1]]),
             period,1,0,sacol,fade)
 dev.off()
 
 ## spectral diagnostics: seasonal adjustment
-sigex.specar(sa.low.daily[[1]],FALSE,1,7)
+sigex.specar(sa.hi.daily[[1]],FALSE,1,7)
 dev.off()
 
 ## spectral diagnostics: non-weekly effect
-sigex.specar(td.low.daily[[1]],FALSE,1,7)
+sigex.specar(td.hi.daily[[1]],FALSE,1,7)
 dev.off()
 
 
