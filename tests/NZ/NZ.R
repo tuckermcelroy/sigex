@@ -87,7 +87,6 @@ data.ts <- sigex.daily2weekly(dataONE.ts,first.day,start.date)
 plot(data.ts)
 
 
-
 ###############################
 ### Part III: Model Declaration
 
@@ -194,17 +193,10 @@ par.mle <- sigex.default(mdl,data.ts,constraint)
 psi.mle <- sigex.par2psi(par.mle,mdl)
 
 ## run fitting: commented out, this took a long time
-fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+#fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
-# HERE
-
-## manage output
-psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
-hess <- fit.mle[[1]]$hessian
-par.mle <- fit.mle[[2]]
-
-## MLE fitting results
-# divergence -4128.609
+## input parameter from previous fit (MLE on reduced span)
+# divergence -4129.609
 psi.mle <- c(0.195543136661102, 0.210896311604314, 0.224884839193806, 0.297710366252992,
              0.318076964322756, 0.288167112704856, 0.130848490409544, 0.17299456406149,
              0.213720675984967, 0.0780486278573135, 0.188624612762698, 0.467926733192453,
@@ -264,7 +256,14 @@ resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
 resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
 resid.acf <- acf(resid.mle,lag.max=4*53,plot=FALSE)$acf
 
-#pdf(file="retResidAcf.pdf",height=10,width=10)
+## examine condition numbers
+log(sigex.conditions(data.ts,psi.mle,mdl))
+
+## model checking
+sigex.portmanteau(resid.mle,2*52,length(psi.mle))
+sigex.gausscheck(resid.mle)
+
+#pdf(file="nzResidAcf.pdf",height=10,width=10)
 par(mfrow=c(N,N),mar=c(3,2,2,0)+0.1,cex.lab=.8,cex.axis=.5,bty="n")
 for(j in 1:N)
 {
@@ -277,217 +276,89 @@ for(j in 1:N)
 }
 dev.off()
 
-
-## examine condition numbers
-log(sigex.conditions(data.ts,psi.mle,mdl))
-
-## model checking
-sigex.portmanteau(resid.mle,4*period,length(psi.mle))
-sigex.gausscheck(resid.mle)
-
-## check on standard errors and get t statistics
-print(eigen(hess)$values)
-tstats <- sigex.tstats(mdl,psi.mle,hess,constraint)
-print(tstats)
-
 ## bundle
 analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
 
 
-####################################################################
-############################# METHOD 2: FORECASTING and WK SIGEX
-############## RECOMMENDED METHOD #####################
+##########################################
+### Part V: Signal Extraction
 
-#grid <- 70000	# high accuracy, close to method 1
-#grid <- 700	# low accuracy, but pretty fast
-grid <- 7000	# need grid > filter length
-window <- 200
-horizon <- 2000
-#leads <- c(-rev(seq(0,window-1)),seq(1,T),seq(T+1,T+window))
-#data.ext <- t(sigex.cast(psi,mdl,data,leads,TRUE))
-target <- array(diag(N),c(N,N,1))
+## load up the fitted model for signal extraction
+data.ts <- analysis.mle[[1]]
+mdl <- analysis.mle[[3]]
+psi <- analysis.mle[[4]]
+param <- sigex.psi2par(psi,mdl,data.ts)
 
-extract.trendann <- sigex.wkextract2(psi,mdl,data,1,target,grid,window,horizon,FALSE)
-extract.seas.week <- sigex.wkextract2(psi,mdl,data,c(2,3,4),target,grid,window,horizon,FALSE)
-extract.seas.week1 <- sigex.wkextract2(psi,mdl,data,2,target,grid,window,horizon,NULL,FALSE)
-extract.seas.week2 <- sigex.wkextract2(psi,mdl,data,3,target,grid,window,horizon,NULL,FALSE)
-extract.seas.week3 <- sigex.wkextract2(psi,mdl,data,4,target,grid,window,horizon,NULL,FALSE)
-extract.sa <- sigex.wkextract2(psi,mdl,data,c(1,5),target,grid,window,horizon,NULL,FALSE)
-extract.irr <- sigex.wkextract2(psi,mdl,data,5,target,grid,window,horizon,NULL,FALSE)
+## embed daily SA filter as a weekly filter
+sa.hifilter <- c(1,rep(2,365),1)/(2*365)
+len <- 183
+hi.freq <- 7
+low.freq <- 1
+shift.hi <- len
+out <- sigex.hi2low(sa.hifilter,hi.freq,low.freq,shift.hi)
+sa.lowfilter <- out[[1]]
+shift.low <- out[[2]]
 
+sa.low <- sigex.adhocextract(psi,mdl,data.ts,sa.lowfilter,shift.low,0,TRUE)
+sa.low.daily <- list()
+sa.low.daily[[1]] <- sigex.weekly2daily(ts(sa.low[[1]],start=start(dataONE.ts),
+                                           frequency=frequency(dataONE.ts)),first.day)
+sa.low.daily[[2]] <- sigex.weekly2daily(ts(sa.low[[2]],start=start(dataONE.ts),
+                                           frequency=frequency(dataONE.ts)),first.day)
+sa.low.daily[[3]] <- sigex.weekly2daily(ts(sa.low[[3]],start=start(dataONE.ts),
+                                           frequency=frequency(dataONE.ts)),first.day)
 
-##################################################################
-#################### LP splitting of trend and cycle #################
+## embed daily TD filter as a weekly filter
+td.hifilter <- rep(1,7)/7
+len <- 3
+hi.freq <- 7
+low.freq <- 1
+shift.hi <- len
+out <- sigex.hi2low(td.hifilter,hi.freq,low.freq,shift.hi)
+td.lowfilter <- out[[1]]
+shift.low <- out[[2]]
 
-cutoff <- pi/365
-trunc <- 50000	# appropriate for mu = pi/(365)
+td.low <- sigex.adhocextract(psi,mdl,data.ts,td.lowfilter,shift.low,0,TRUE)
+td.low.daily <- list()
+td.low.daily[[1]] <- sigex.weekly2daily(ts(td.low[[1]],start=start(dataONE.ts),
+                                           frequency=frequency(dataONE.ts)),first.day)
+td.low.daily[[2]] <- sigex.weekly2daily(ts(td.low[[2]],start=start(dataONE.ts),
+                                           frequency=frequency(dataONE.ts)),first.day)
+td.low.daily[[3]] <- sigex.weekly2daily(ts(td.low[[3]],start=start(dataONE.ts),
+                                           frequency=frequency(dataONE.ts)),first.day)
 
-extract.trend <- sigex.lpfiltering(mdl,data,1,NULL,psi,cutoff,grid,window,trunc,TRUE)
-extract.seas.ann <- sigex.lpfiltering(mdl,data,1,NULL,psi,cutoff,grid,window,trunc,FALSE)
-extract.trendirreg <- sigex.lpfiltering(mdl,data,1,5,psi,cutoff,grid,window,trunc,TRUE)
-
-
-
-#########################################
-### get fixed effects
-
+## get fixed effects
 reg.trend <- NULL
+for(i in 1:N)
+{
+  reg.trend <- cbind(reg.trend,sigex.fixed(data.ts,mdl,i,param,"Trend"))
+}
+reg.trend <- ts(matrix(t(reg.trend),ncol=1),start=start(dataONE.ts),frequency=period)
 
 
-################################# PLOTS
-
-## time series Plots
-
+## plotting
 trendcol <- "tomato"
 cyccol <- "orchid"
 seascol <- "seagreen"
 sacol <- "navyblue"
 fade <- 60
 
-subseries <- 1
+#pdf(file="nz-signals.pdf",height=8,width=10)
+plot(dataONE.ts,xlab="Year")
+sigex.graph(sa.low.daily,reg.trend,start(sa.low.daily[[1]]),
+            period,1,0,trendcol,fade)
+sigex.graph(td.low.daily,reg.trend,start(td.low.daily[[1]]),
+            period,1,0,sacol,fade)
+dev.off()
 
-plot(data[,subseries],xlab="Year",ylab="",ylim=c(2,9),lwd=1)
-#sigex.graph(extract.sa,reg.trend,begin,period,subseries,0,sacol,fade)
-sigex.graph(extract.trendirreg,reg.trend,begin,period,subseries,0,sacol,fade)
-sigex.graph(extract.trend,reg.trend,begin,period,subseries,0,trendcol,10)
-sigex.graph(extract.seas.ann,NULL,begin,period,subseries,5,seascol,10)
-sigex.graph(extract.seas.week,NULL,begin,period,subseries,3,cyccol,fade)
+## spectral diagnostics: seasonal adjustment
+sigex.specar(sa.low.daily[[1]],FALSE,1,7)
+dev.off()
 
-plot(data[,subseries],xlab="Year",ylab="",ylim=c(0,9),lwd=1)
-sigex.graph(extract.seas.week1,NULL,begin,period,subseries,5,cyccol,fade)
-sigex.graph(extract.seas.week2,NULL,begin,period,subseries,3,cyccol,fade)
-sigex.graph(extract.seas.week3,NULL,begin,period,subseries,1,cyccol,fade)
-
-
-subseries <- 2
-
-plot(data[,subseries],xlab="Year",ylab="",ylim=c(2,9),lwd=1)
-#sigex.graph(extract.sa,reg.trend,begin,period,subseries,0,sacol,fade)
-sigex.graph(extract.trendirreg,reg.trend,begin,period,subseries,0,sacol,fade)
-sigex.graph(extract.trend,reg.trend,begin,period,subseries,0,trendcol,10)
-sigex.graph(extract.seas.ann,NULL,begin,period,subseries,5,seascol,10)
-sigex.graph(extract.seas.week,NULL,begin,period,subseries,3,cyccol,fade)
-
-plot(data[,subseries],xlab="Year",ylab="",ylim=c(0,9),lwd=1)
-sigex.graph(extract.seas.week1,NULL,begin,period,subseries,5,cyccol,fade)
-sigex.graph(extract.seas.week2,NULL,begin,period,subseries,3,cyccol,fade)
-sigex.graph(extract.seas.week3,NULL,begin,period,subseries,1,cyccol,fade)
-
-
-subseries <- 3
-
-plot(data[,subseries],xlab="Year",ylab="",ylim=c(2,9),lwd=1)
-#sigex.graph(extract.sa,reg.trend,begin,period,subseries,0,sacol)
-sigex.graph(extract.trendirreg,reg.trend,begin,period,subseries,0,sacol,fade)
-sigex.graph(extract.trend,reg.trend,begin,period,subseries,0,trendcol,10)
-sigex.graph(extract.seas.ann,NULL,begin,period,subseries,5,seascol,10)
-sigex.graph(extract.seas.week,NULL,begin,period,subseries,3,cyccol,fade)
-
-plot(data[,subseries],xlab="Year",ylab="",ylim=c(0,9),lwd=1)
-sigex.graph(extract.seas.week1,NULL,begin,period,subseries,5,cyccol,fade)
-sigex.graph(extract.seas.week2,NULL,begin,period,subseries,3,cyccol,fade)
-sigex.graph(extract.seas.week3,NULL,begin,period,subseries,1,cyccol,fade)
-
-
-subseries <- 4
-
-plot(data[,subseries],xlab="Year",ylab="",ylim=c(2,9),lwd=1)
-#sigex.graph(extract.sa,reg.trend,begin,period,subseries,0,sacol)
-sigex.graph(extract.trendirreg,reg.trend,begin,period,subseries,0,sacol,fade)
-sigex.graph(extract.trend,reg.trend,begin,period,subseries,0,trendcol,10)
-sigex.graph(extract.seas.ann,NULL,begin,period,subseries,5,seascol,10)
-sigex.graph(extract.seas.week,NULL,begin,period,subseries,3,cyccol,fade)
-
-plot(data[,subseries],xlab="Year",ylab="",ylim=c(0,9),lwd=1)
-sigex.graph(extract.seas.week1,NULL,begin,period,subseries,5,cyccol,fade)
-sigex.graph(extract.seas.week2,NULL,begin,period,subseries,3,cyccol,fade)
-sigex.graph(extract.seas.week3,NULL,begin,period,subseries,1,cyccol,fade)
-
-
-subseries <- 5
-
-plot(data[,subseries],xlab="Year",ylab="",ylim=c(2,7),lwd=1)
-#sigex.graph(extract.sa,reg.trend,begin,period,subseries,0,sacol)
-sigex.graph(extract.trendirreg,reg.trend,begin,period,subseries,0,sacol,fade)
-sigex.graph(extract.trend,reg.trend,begin,period,subseries,0,trendcol,10)
-sigex.graph(extract.seas.ann,NULL,begin,period,subseries,4,seascol,10)
-sigex.graph(extract.seas.week,NULL,begin,period,subseries,3,cyccol,fade)
-
-plot(data[,subseries],xlab="Year",ylab="",ylim=c(0,7),lwd=1)
-sigex.graph(extract.seas.week1,NULL,begin,period,subseries,3,cyccol,fade)
-sigex.graph(extract.seas.week2,NULL,begin,period,subseries,2,cyccol,fade)
-sigex.graph(extract.seas.week3,NULL,begin,period,subseries,1,cyccol,fade)
-
-
-subseries <- 6
-
-plot(data[,subseries],xlab="Year",ylab="",ylim=c(2,7),lwd=1)
-#sigex.graph(extract.sa,reg.trend,begin,period,subseries,0,sacol)
-sigex.graph(extract.trendirreg,reg.trend,begin,period,subseries,0,sacol,fade)
-sigex.graph(extract.trend,reg.trend,begin,period,subseries,0,trendcol,10)
-sigex.graph(extract.seas.ann,NULL,begin,period,subseries,4,seascol,10)
-sigex.graph(extract.seas.week,NULL,begin,period,subseries,3,cyccol,fade)
-
-plot(data[,subseries],xlab="Year",ylab="",ylim=c(0,7),lwd=1)
-sigex.graph(extract.seas.week1,NULL,begin,period,subseries,3,cyccol,fade)
-sigex.graph(extract.seas.week2,NULL,begin,period,subseries,2,cyccol,fade)
-sigex.graph(extract.seas.week3,NULL,begin,period,subseries,1,cyccol,fade)
-
-
-### Spectral density plots
-
-subseries <- 1
-
-## spectral plots
-week.freq <- 365/7
-month.freq <- 365/(365/12)
-ann.freq <- 1
-
-spec.ar(ts(extract.trend[[1]][,subseries],frequency=period),main="")
-abline(v=ann.freq,col=4)
-abline(v=week.freq,col=2)
-abline(v=2*week.freq,col=2)
-abline(v=3*week.freq,col=2)
-abline(v=month.freq,col=3)
-
-spec.ar(ts(extract.sa[[1]][,subseries],frequency=period),main="")
-abline(v=ann.freq,col=4)
-abline(v=week.freq,col=2)
-abline(v=2*week.freq,col=2)
-abline(v=3*week.freq,col=2)
-abline(v=month.freq,col=3)
-
-spec.ar(ts(extract.seas.week1[[1]][,subseries],frequency=period))
-abline(v=week.freq,col=2)
-
-spec.ar(ts(extract.seas.week2[[1]][,subseries],frequency=period))
-abline(v=2*week.freq,col=2)
-
-spec.ar(ts(extract.seas.week3[[1]][,subseries],frequency=period))
-abline(v=3*week.freq,col=2)
+## spectral diagnostics: non-weekly effect
+sigex.specar(td.low.daily[[1]],FALSE,1,7)
+dev.off()
 
 
 
-### SCRAP : factorizations
 
-PhiMat <- par.last[[3]][[1]][,,2]
-svd.phi <- svd(PhiMat - diag(N))
-BetaMat <- t(svd.phi$v[1:6,])
-qr.beta <- qr(BetaMat)
-beta.perp <- qr.Q(qr.beta,complete=TRUE)[,7,drop=FALSE]
-beta.proj <- beta.perp %*% t(beta.perp)
-
-beta.proj <- structure(c(0.000103139109313062, -0.00326158865995792, 0.00578711766062262,
-            0.000318077261285435, -0.004998683926094, 0.00446560925472329,
-            0.00373765970622375, -0.00326158865995792, 0.103141869826278,
-            -0.18300717798945, -0.0100586207822493, 0.158074380481365, -0.141216853645681,
-            -0.118196759636522, 0.00578711766062262, -0.18300717798945, 0.324714175262406,
-            0.0178472603504856, -0.280475294204478, 0.25056456620162, 0.209719442405012,
-            0.000318077261285435, -0.0100586207822493, 0.0178472603504856,
-            0.000980938703278384, -0.0154157593936303, 0.0137717764984944,
-            0.011526806571152, -0.004998683926094, 0.158074380481365, -0.280475294204478,
-            -0.0154157593936303, 0.242263494026761, -0.216427787194153, -0.181147380650723,
-            0.00446560925472329, -0.141216853645681, 0.25056456620162, 0.0137717764984944,
-            -0.216427787194153, 0.193347277756108, 0.161829279759014, 0.00373765970622375,
-            -0.118196759636522, 0.209719442405012, 0.011526806571152, -0.181147380650723,
-            0.161829279759014, 0.135449105315856), .Dim = c(7L, 7L))
