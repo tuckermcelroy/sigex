@@ -89,7 +89,7 @@ psi2phi <- function(psi)
 	    for(k in 1:N)
 	    {
 	      zeta.ar <- zeta[(1+(k-1)*p.order):(k*p.order)]
-	      ar.coef <- psi2phi(zeta.ar)
+	      ar.coef <- matrix(psi2phi(zeta.ar),nrow=1)
 	      ar.coefs <- rbind(ar.coefs,ar.coef)
 	    }
 	  }
@@ -98,7 +98,7 @@ psi2phi <- function(psi)
 	    for(k in 1:N)
 	    {
 	      zeta.ma <- zeta[(N*p.order+1+(k-1)*q.order):(N*p.order+k*q.order)]
-	      ma.coef <- psi2phi(-1*zeta.ma)
+	      ma.coef <- matrix(psi2phi(-1*zeta.ma),nrow=1)
 	      ma.coefs <- rbind(ma.coefs,ma.coef)
 	    }
 	  }
@@ -144,7 +144,7 @@ psi2phi <- function(psi)
 	    for(k in 1:N)
 	    {
 	      zeta.ar <- zeta[(1+(k-1)*p.order):(k*p.order)]
-  	    ar.coef <- psi2phi(zeta.ar)
+  	    ar.coef <- matrix(psi2phi(zeta.ar),nrow=1)
   	    ar.coefs <- rbind(ar.coefs,ar.coef)
 	    }
 	  }
@@ -153,7 +153,7 @@ psi2phi <- function(psi)
 	    for(k in 1:N)
 	    {
 	      zeta.ma <- zeta[(N*p.order+1+(k-1)*q.order):(N*p.order+k*q.order)]
-	      ma.coef <- psi2phi(zeta.ma)
+	      ma.coef <- matrix(psi2phi(zeta.ma),nrow=1)
 	      ma.coefs <- rbind(ma.coefs,ma.coef)
 	    }
 	  }
@@ -162,7 +162,7 @@ psi2phi <- function(psi)
 	    for(k in 1:N)
 	    {
 	      zeta.ars <- zeta[(N*p.order+N*q.order+1+(k-1)*ps.order):(N*p.order+N*q.order+k*ps.order)]
-	      ars.coef <- psi2phi(zeta.ars)
+	      ars.coef <- matrix(psi2phi(zeta.ars),nrow=1)
 	      ars.coefs <- rbind(ars.coefs,ars.coef)
 	    }
 	  }
@@ -171,7 +171,7 @@ psi2phi <- function(psi)
 	    for(k in 1:N)
 	    {
 	      zeta.mas <- zeta[(N*p.order+N*q.order+N*ps.order+1+(k-1)*qs.order):(N*p.order+N*q.order+N*ps.order+k*qs.order)]
-	      mas.coef <- psi2phi(zeta.mas)
+	      mas.coef <- matrix(psi2phi(zeta.mas),nrow=1)
 	      mas.coefs <- rbind(mas.coefs,mas.coef)
 	    }
 	  }
