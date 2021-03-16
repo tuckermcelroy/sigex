@@ -98,7 +98,7 @@ psi2phi <- function(psi)
 	    for(k in 1:N)
 	    {
 	      zeta.ma <- zeta[(N*p.order+1+(k-1)*q.order):(N*p.order+k*q.order)]
-	      ma.coef <- matrix(psi2phi(-1*zeta.ma),nrow=1)
+	      ma.coef <- matrix(-1*psi2phi(zeta.ma),nrow=1)
 	      ma.coefs <- rbind(ma.coefs,ma.coef)
 	    }
 	  }
@@ -122,7 +122,7 @@ psi2phi <- function(psi)
 		if(q.order > 0)
 		{
 			zeta.ma <- zeta[(p.order+1):(p.order+q.order)]
-			ma.coef <- psi2phi(-1*zeta.ma)
+			ma.coef <- -1*psi2phi(zeta.ma)
 		}
 		zeta.par <- c(ar.coef,ma.coef)
 	}
