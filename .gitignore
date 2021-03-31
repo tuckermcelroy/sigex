@@ -40,5 +40,8 @@ vignettes/*.pdf
 .Rbuildignore
 .DS_Store
 
+.o
+.dll
+
 
 tests/GL-comparison/GL-comparison.pdf
