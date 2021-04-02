@@ -4,7 +4,7 @@
 \alias{sigex.specar}
 \title{plot AR spectrum of input time series}
 \usage{
-sigex.specar(data.ts, diff = FALSE, subseries)
+sigex.specar(data.ts, diff = FALSE, subseries, period)
 }
 \arguments{
 \item{data.ts}{a T x N matrix ts object,
@@ -15,6 +15,8 @@ and plot Growth Rate, else in Levels}
 
 \item{subseries}{index between 1 and N, indicating which series
 to examine}
+
+\item{period}{number of observations per cycle (e.g. a year or week)}
 }
 \value{
 NA

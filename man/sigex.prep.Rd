@@ -4,8 +4,14 @@
 \alias{sigex.prep}
 \title{applies some preliminary transformations to the data}
 \usage{
-sigex.prep(data.ts, transform, aggregate, subseries, range = NULL,
-  plot = FALSE)
+sigex.prep(
+  data.ts,
+  transform,
+  aggregate,
+  subseries,
+  range = NULL,
+  plot = FALSE
+)
 }
 \arguments{
 \item{data.ts}{a T x N matrix ts object,
@@ -22,7 +28,8 @@ be aggregated into a total}
 indicating which series    to examine}
 
 \item{range}{if set to NULL, take full span of data, otherwise
-subset the times corresponding to indices in range}
+subset the times corresponding to start and end date
+indicated by range[[1]] and range[[2]]}
 
 \item{plot}{boolean, whether to plot the series (max of N=10 allowed)}
 }
