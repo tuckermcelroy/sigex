@@ -1,11 +1,13 @@
-#' computes -2*log(Gaussian likelihood) of model
+#' Computes -2*log(Gaussian likelihood) of model
 #'
-#' @param psi A  vector of all the real hyper-parameters
-#' @param mdl the specified sigex model, a list object
-#' @param data.ts a T x N matrix, corresponding to N time series of length T
-#' @param debug set to TRUE if lik values should be printed to screen
+#' @param psi A vector of all the real hyper-parameters
+#' @param mdl The specified sigex model, a list object
+#' @param data.ts A T x N matrix ts object; any  values to be imputed
+#'			must be encoded with NA in that entry.  The NA is for missing value,
+#'     or an enforced imputation (e.g. extreme-value adjustment).
+#' @param debug Set to TRUE if lik values should be printed to screen
 #'
-#' @return value of the divergence
+#' @return Value of the divergence
 #' @export
 #'
 

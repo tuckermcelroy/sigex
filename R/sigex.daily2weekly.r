@@ -1,6 +1,22 @@
+#' Embeds a daily time series as a weekly time series
+#'
+#' @param	data.ts A T x N matrix ts object (with no missing values)
+#'			corresponding to N time series of length T
+#' @param first.day A number between 1 and 7 that indicates what day of the week
+#'     should correspond to the first component of the 7-vector.
+#'     So 1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday,
+#'       5 = Thursday, 6 = Friday, 7 = Sunday.
+#' @param	start.date A given starting date in month-day-year format,
+#'			a 3-element vector
+#'
+#' @return data.ts: a T x 7 matrix ts object; any  values to be imputed
+#'			are marked with NA in that entry.  The NA is for missing value.
+#' @export
+#'
+
 sigex.daily2weekly <- function(data.ts,first.day,start.date)
 {
-  
+
   ##########################################################################
   #
   #	sigex.daily2weekly
@@ -20,7 +36,7 @@ sigex.daily2weekly <- function(data.ts,first.day,start.date)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation #####################################
   #
   #	Purpose: embeds a daily time series as a weekly time series
@@ -30,7 +46,7 @@ sigex.daily2weekly <- function(data.ts,first.day,start.date)
   #     or an enforced imputation (e.g. extreme-value adjustment).
   #   first.day is a number between 1 and 7 that indicates what day of the week
   #     should correspond to the first component of the 7-vector.
-  #     So 1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday, 
+  #     So 1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday,
   #       5 = Thursday, 6 = Friday, 7 = Sunday.
   #		start.date: a given starting date in month-day-year format,
   #			a 3-element vector
@@ -40,7 +56,7 @@ sigex.daily2weekly <- function(data.ts,first.day,start.date)
   # Requires: day2week, date2day
   #
   ##############################################################
-  
+
   start.day <- date2day(start.date[1],start.date[2],start.date[3])
   week.days <- c("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday")
   days.index <- seq(first.day,first.day+6) %% 7
@@ -54,9 +70,8 @@ sigex.daily2weekly <- function(data.ts,first.day,start.date)
   data.mat <- t(matrix(data.ts,nrow=7))
   data.ts <- ts(data.mat,start=c(start.date[3],week.index),frequency=53,
                 names=week.days[days.index])
-  
+
   return(data.ts)
 }
 
-  
-  
+

@@ -1,12 +1,12 @@
-#' load data into a time series object
+#' Load data into a time series object
 #'
-#' @param data a T x N matrix, corresponding to N time series of length T
-#' @param start.date date of first time obersvation; the
+#' @param data A T x N matrix, corresponding to N time series of length T
+#' @param start.date Date of first time obersvation; the
 #'			 format is c(year,season)
-#' @param period number of seasons per year
-#' @param epithets vector of N character strings, giving a short name for
+#' @param period Number of seasons per year
+#' @param epithets Vector of N character strings, giving a short name for
 #'			 each series
-#' @param plot boolean, whether to plot the series (max of N=10 allowed)
+#' @param plot Boolean, whether to plot the series (max of N=10 allowed)
 #'
 #' @return data.ts: a T x N matrix ts object
 #' @export

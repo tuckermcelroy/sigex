@@ -2,7 +2,7 @@
 % Please edit documentation in R/sigex.prep.r
 \name{sigex.prep}
 \alias{sigex.prep}
-\title{applies some preliminary transformations to the data}
+\title{Applies some preliminary transformations to the data}
 \usage{
 sigex.prep(
   data.ts,
@@ -14,29 +14,29 @@ sigex.prep(
 )
 }
 \arguments{
-\item{data.ts}{a T x N matrix ts object,
+\item{data.ts}{A T x N matrix ts object,
 corresponding to N time series of length T}
 
-\item{transform}{a character indicating an instantaneous
+\item{transform}{A character indicating an instantaneous
 transformation to be applied; current options are
 "none", "log", and "logistic"}
 
-\item{aggregate}{a boolean, set to TRUE if all subseries are to
+\item{aggregate}{A boolean, set to TRUE if all subseries are to
 be aggregated into a total}
 
-\item{subseries}{sequence of indices between 1 and N,
+\item{subseries}{Sequence of indices between 1 and N,
 indicating which series    to examine}
 
-\item{range}{if set to NULL, take full span of data, otherwise
+\item{range}{If set to NULL, take full span of data, otherwise
 subset the times corresponding to start and end date
 indicated by range[[1]] and range[[2]]}
 
-\item{plot}{boolean, whether to plot the series (max of N=10 allowed)}
+\item{plot}{Boolean, whether to plot the series (max of N=10 allowed)}
 }
 \value{
 data.ts: a T x N0 matrix ts object, where N0=1 if
 		aggregate=TRUE, otherwise N0=N
 }
 \description{
-applies some preliminary transformations to the data
+Applies some preliminary transformations to the data
 }

@@ -2,19 +2,19 @@
 % Please edit documentation in R/sigex.transform.r
 \name{sigex.transform}
 \alias{sigex.transform}
-\title{applies aggregation, followed by transformations to the data}
+\title{Applies aggregation, followed by transformations to the data}
 \usage{
 sigex.transform(data.ts, transform, aggregate = FALSE)
 }
 \arguments{
-\item{data.ts}{a T x N matrix ts object,
+\item{data.ts}{A T x N matrix ts object,
 corresponding to N time series of length T}
 
-\item{transform}{a character indicating an instantaneous
+\item{transform}{A character indicating an instantaneous
 transformation to be applied; current options are
 "none", "log", and "logistic"}
 
-\item{aggregate}{a boolean, set to TRUE if all series are to
+\item{aggregate}{A boolean, set to TRUE if all series are to
 be aggregated into a total}
 }
 \value{
@@ -22,5 +22,5 @@ data.ts: a T x N0 matrix ts object, where N0=1 if
 		aggregate=TRUE, otherwise N0=N
 }
 \description{
-applies aggregation, followed by transformations to the data
+Applies aggregation, followed by transformations to the data
 }

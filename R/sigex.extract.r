@@ -1,3 +1,24 @@
+#' Computes signal extraction estimates with two standard errors
+#'
+#' @param data.ts A T x N matrix ts object
+#' @param	filter List object corresponding to the output of sigex.signal,
+#'			a list object of f.mat and v.mat.
+#'			f.mat: array of dimension c(T,N,T,N), where f.mat[,j,,k]
+#'				is the signal extraction matrix that utilizes input series k
+#'				to generate the signal estimate for series j.
+#'			v.mat: array of dimension c(T,N,T,N), where v.mat[,j,,k]
+#'				is the error covariance matrix arising from input series k
+#'				used to generate the signal estimate for series j.
+#' @param	mdl The specified sigex model, a list object
+#' @param	param The model parameters entered into a list object
+#'
+#' @return list object with extract, upp, and low
+#'		extract: T x N matrix of the signal estimates
+#'		upp: as extract, plus twice the standard error
+#'		low: as extract, minus twice the standard error
+#' @export
+#'
+
 sigex.extract <- function(data.ts,filter,mdl,param)
 {
 
@@ -24,8 +45,8 @@ sigex.extract <- function(data.ts,filter,mdl,param)
 	################# Documentation ############################################
 	#
 	#	Purpose: computes signal extraction estimates with two standard errors
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
@@ -35,10 +56,10 @@ sigex.extract <- function(data.ts,filter,mdl,param)
 	#		generating function (acgf) via gamma_w (B).
 	#		The signal extraction filter for y_t is determined from
 	#		this acgf and delta.
-	#		param is the name for the model parameters entered into 
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)  
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object
 	#		filter: list object corresponding to the output of sigex.signal,
@@ -58,7 +79,7 @@ sigex.extract <- function(data.ts,filter,mdl,param)
 	#		low: as extract, minus twice the standard error
 	#
 	####################################################################
- 
+
 	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
@@ -70,18 +91,18 @@ sigex.extract <- function(data.ts,filter,mdl,param)
 	{
 		reg.mat <- mdl[[4]][[k]]
 		len <- dim(reg.mat)[2]
-		data.diff[,k] <- data.diff[,k] - reg.mat %*% 
+		data.diff[,k] <- data.diff[,k] - reg.mat %*%
 			as.matrix(param[[4]][(ind+1):(ind+len)])
 		ind <- ind+len
 	}
 	xvec <- matrix(t(data.diff),nrow=N*T,ncol=1)
-	 
+
   extract <- filter[[1]] %*% xvec
 	extract <- t(matrix(extract,nrow=N,ncol=T))
 
 	mse <- t(matrix(diag(filter[[2]]),N,T))
 	upp <- extract + 2*sqrt(mse)
 	low <- extract - 2*sqrt(mse)
-	 
+
 	return(list(extract,upp,low))
 }

@@ -2,22 +2,24 @@
 % Please edit documentation in R/sigex.lik.r
 \name{sigex.lik}
 \alias{sigex.lik}
-\title{computes -2*log(Gaussian likelihood) of model}
+\title{Computes -2*log(Gaussian likelihood) of model}
 \usage{
 sigex.lik(psi, mdl, data.ts, debug = TRUE)
 }
 \arguments{
-\item{psi}{A  vector of all the real hyper-parameters}
+\item{psi}{A vector of all the real hyper-parameters}
 
-\item{mdl}{the specified sigex model, a list object}
+\item{mdl}{The specified sigex model, a list object}
 
-\item{data.ts}{a T x N matrix, corresponding to N time series of length T}
+\item{data.ts}{A T x N matrix ts object; any  values to be imputed
+    must be encoded with NA in that entry.  The NA is for missing value,
+or an enforced imputation (e.g. extreme-value adjustment).}
 
-\item{debug}{set to TRUE if lik values should be printed to screen}
+\item{debug}{Set to TRUE if lik values should be printed to screen}
 }
 \value{
-value of the divergence
+Value of the divergence
 }
 \description{
-computes -2*log(Gaussian likelihood) of model
+Computes -2*log(Gaussian likelihood) of model
 }

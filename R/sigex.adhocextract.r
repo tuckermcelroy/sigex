@@ -1,3 +1,28 @@
+#' Computes signal extractions and MSE from an ad hoc filter
+#'
+#' @param psi A vector of all the real hyper-parameters
+#' @param mdl The specified sigex model, a list object
+#' @param data.ts A T x N matrix ts object; any  values to be imputed
+#'			must be encoded with NA in that entry.  The NA is for missing value,
+#'      or an enforced imputation (e.g. extreme-value adjustment).
+#' @param adhoc An array N x N x L, where L is length
+#' @param shift Gives the integer offset for the adhoc filter:
+#'     filter coefficients have indices -shift,...,0,...,L-1-shift
+#'     set shift = 0 for a causal filter
+#' @param	horizon A non-negative integer indicating how many forecasts and
+#'			aftcasts of the signal should be generated
+#' @param needMSE A binary flag, set to 1 if you want MSE based on casting error,
+#'			or if there are any missing values; else (with value 0) the routine
+#'			runs faster and returns zero for the MSE.
+#'
+#' @return 	list object of extract.sig, upp, and low
+#'		extract.sig: (T+H) x N matrix of the signal estimates, where H is
+#'			twice the length of horizon
+#'		upp: as extract.sig, plus twice the standard error
+#'		low: as extract.sig, minus twice the standard error
+#' @export
+#'
+
 sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
 {
 

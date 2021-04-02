@@ -1,3 +1,19 @@
+#' Computes all nontrend fixed regression effects
+#'
+#' @param data.ts A T x N matrix ts object
+#' @param	mdl The specified sigex model, a list object
+#' @param	series Integer between 1 and N, the index of the individual series for
+#'			which regression effects are being computed.
+#' @param	param The model parameters entered into a list object
+#' @param	type A string designating the name of the regression effect
+#'
+#' @return 	mean.mat: length T time series consisting of regression effects.
+#'			This has the format X %*% beta, where each column of
+#'			X is a regressor of "type", and beta consists of the corresponding
+#'			regression parameters.
+#' @export
+#'
+
 sigex.fixed <- function(data.ts,mdl,series,param,type)
 {
 
@@ -23,7 +39,7 @@ sigex.fixed <- function(data.ts,mdl,series,param,type)
 
 	################# Documentation #####################################
 	#
-	#	Purpose: computes all nontrend fixed regression effects 
+	#	Purpose: computes all nontrend fixed regression effects
 	#	Background:
 	#		x is a multivariate time series (N x T), and each individual series
 	#		can have its distinct set of regressors.  So for each 1 <= j <= N,
@@ -38,15 +54,15 @@ sigex.fixed <- function(data.ts,mdl,series,param,type)
 	#		when d=0, any other non-stationary latent components are assumed to
 	#		have mean zero for identifiability.)  One can always add higher order
 	#		time polynomial regressors, if desired.
-	#		param is the name for the model parameters entered into 
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object
-	#		mdl: the specified sigex model, a list object. 
- 	#		series: integer between 1 and N, the index of the individual series for 
-	#			which regression effects are being computed.  
+	#		mdl: the specified sigex model, a list object.
+ 	#		series: integer between 1 and N, the index of the individual series for
+	#			which regression effects are being computed.
 	#		param: see background.  Must have form specified by mdl
 	#		type: a string designating the name of the regression effect
 	#	Outputs:
@@ -56,7 +72,7 @@ sigex.fixed <- function(data.ts,mdl,series,param,type)
 	#			regression parameters.
 	#
 	####################################################################
-	
+
 	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
@@ -70,19 +86,19 @@ sigex.fixed <- function(data.ts,mdl,series,param,type)
 		if (k==series)
 		{
 			col.ind <- which(colnames(mdl[[4]][[k]])==type)
-			if(length(col.ind) > 0) 
-			{ 
-				mean.mat <- as.matrix(reg.mat[,col.ind]) %*% 
-					as.matrix(param[[4]][ind+col.ind]) 
+			if(length(col.ind) > 0)
+			{
+				mean.mat <- as.matrix(reg.mat[,col.ind]) %*%
+					as.matrix(param[[4]][ind+col.ind])
 				mean.mat <- ts(mean.mat,names=type)
 			}
 		}
 		ind <- ind+len
 	}
-	
+
 	return(mean.mat)
 }
-	
+
 
 
 

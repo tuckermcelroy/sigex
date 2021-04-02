@@ -1,6 +1,20 @@
+#' Computes condition number for a covariance matrix
+#'
+#' @param	data.ts A T x N matrix ts object (with no missing values)
+#'			corresponding to N time series of length T
+#' @param psi A vector of all the real hyper-parameters
+#' @param	mdl The specified sigex model, a list object
+#'
+#' @return conds: a S x N matrix of condition numbers, where
+#'			S is the number of components.  Each row gives
+#'			the N condition numbers for the innovation
+#'			covariance matrix of the corresponding latent component.
+#' @export
+#'
+
 sigex.conditions <- function(data.ts,psi,mdl)
 {
-	
+
 	##########################################################################
 	#
 	#	sigex.conditions
@@ -32,13 +46,13 @@ sigex.conditions <- function(data.ts,psi,mdl)
 	#		of Sigma.  The number of nonzero Schur complements equals
 	#		the rank of Sigma.  The condition numbers can be computed
 	#		by dividing D by the diagonal of Sigma.
-	#		param is the name for the model parameters entered into 
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
 	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object
-	#		psi: see background.  
+	#		psi: see background.
 	#		mdl: the specified sigex model, a list object
 	#	Outputs:
 	#		conds: a S x N matrix of condition numbers, where
@@ -70,12 +84,12 @@ sigex.conditions <- function(data.ts,psi,mdl)
 		ind <- ind+D.dim
 		L.mat <- sigex.param2gcd(L.psi,N,as.vector(vrank))
 		k.order <- length(D.psi)
-	
+
 		cov.mat <- L.mat %*% diag(exp(D.psi),nrow=k.order) %*% t(L.mat)
 		eta2 <- getGCD(cov.mat,N)[[2]]/diag(cov.mat)
 		eta2[diag(cov.mat)==0] <- 0
 		eta2[1] <- 1
-		conds <- rbind(conds,eta2)	
+		conds <- rbind(conds,eta2)
 	}
 
 	return(conds)

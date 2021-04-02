@@ -1,12 +1,12 @@
-#' plot AR spectrum of input time series
+#' Plot AR spectrum of input time series
 #'
-#' @param data.ts a T x N matrix ts object,
+#' @param data.ts A T x N matrix ts object,
 #'			corresponding to N time series of length T
-#' @param diff boolean, if TRUE difference the series
+#' @param diff Boolean, if TRUE difference the series
 #'			and plot Growth Rate, else in Levels
-#' @param subseries index between 1 and N, indicating which series
+#' @param subseries Index between 1 and N, indicating which series
 #'			to examine
-#' @param period number of observations per cycle (e.g. a year or week)
+#' @param period Number of observations per cycle (e.g. a year or week)
 #'
 #' @return NA
 #' @export

@@ -1,3 +1,19 @@
+#' Computes the difference of -2*log(Gaussian likelihood) for
+#'		two models, the nested lik minus nesting lik
+#'
+#' @param data.ts A T x N matrix ts object; any  values to be imputed
+#'			must be encoded with NA in that entry.  The NA is for missing value,
+#'     or an enforced imputation (e.g. extreme-value adjustment).
+#' @param	psi.nested psi of the nested model
+#' @param	psi.nesting psi of the nesting model
+#' @param	mdl.nested The specified nested sigex model, a list object
+#' @param	mdl.nesting The specified nesting sigex model, a list object
+#'
+#' @return glr: difference of log likelihoods,
+#'		dof: degrees of freedom, given by different in number of parameters
+#' @export
+#'
+
 sigex.glr <- function(data.ts,psi.nested,psi.nesting,mdl.nested,mdl.nesting)
 {
 
@@ -25,8 +41,8 @@ sigex.glr <- function(data.ts,psi.nested,psi.nesting,mdl.nested,mdl.nesting)
 	#
 	#	Purpose: computes the difference of -2*log(Gaussian likelihood) for
 	#		two models, the nested lik minus nesting lik
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
 	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
@@ -38,9 +54,10 @@ sigex.glr <- function(data.ts,psi.nested,psi.nesting,mdl.nested,mdl.nesting)
 	#		This test can be applied to non-nested models,
 	#		but the distribution won't be chi^2
 	#	Inputs:
-	#		data.ts: a T x N matrix ts object; any missing values 
-	#			must be encoded with 1i in that entry
-	#		psi.nested: see background; psi of the nested model
+  #		data.ts: a T x N matrix ts object; any  values to be imputed
+  #			must be encoded with NA in that entry.  The NA is for missing value,
+  #     or an enforced imputation (e.g. extreme-value adjustment).
+  #		psi.nested: see background; psi of the nested model
 	#		psi.nesting: see background; psi of the nesting model
 	#		mdl.nested: the specified nested sigex model, a list object
 	#		mdl.nesting: the specified nesting sigex model, a list object
@@ -50,9 +67,9 @@ sigex.glr <- function(data.ts,psi.nested,psi.nesting,mdl.nested,mdl.nesting)
 	#	Requires: sigex.lik
 	#
 	####################################################################
- 
+
   debug <- FALSE
-	glr <- sigex.lik(psi.nested,mdl.nested,data.ts,debug) - 
+	glr <- sigex.lik(psi.nested,mdl.nested,data.ts,debug) -
 		sigex.lik(psi.nesting,mdl.nesting,data.ts,debug)
 	dof <- length(psi.nesting) - length(psi.nested)
 

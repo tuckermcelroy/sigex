@@ -1,3 +1,18 @@
+#' Initializes param with zeroes according to the constraints
+#'
+#' @param mdl The specified sigex model, a list object
+#' @param	data.ts A T x N matrix ts object (with no missing values)
+#'			corresponding to N time series of length T
+#' @param constraint Matrix of the form [Q , C], with C (constraint.mat)
+#'     the matrix of constraints and Q (constraint.vec) the vector
+#'     of constraint constants, such that C psi = Q.
+#'     Use NULL if there are no constraints
+#'
+#' @return par.default: this is param, filled from a psi of all zeroes,
+#'			subject to constraints.  Will have form specified by mdl.
+#' @export
+#'
+
 sigex.default <- function(mdl,data.ts,constraint)
 {
 
@@ -24,11 +39,11 @@ sigex.default <- function(mdl,data.ts,constraint)
 	################# Documentation #####################################
 	#
 	#	Purpose: initializes param with zeroes according to the constraints
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
   #	Format: psi has three portions, psi = [xi,zeta,beta]
 	#		xi ~ all hyper-parameters for covariance matrices
 	#		zeta ~ all hyper-parameters for t.s. models
@@ -38,7 +53,7 @@ sigex.default <- function(mdl,data.ts,constraint)
 	#		data.ts: a T x N matrix ts object
   #		constraint: matrix of the form [Q , C], with C (constraint.mat)
   #     the matrix of constraints and Q (constraint.vec) the vector
-  #     of constraint constants, such that C psi = Q. 
+  #     of constraint constants, such that C psi = Q.
   #     Use NULL if there are no constraints
   #	Outputs:
 	#		par.default: this is param, filled from a psi of all zeroes,
@@ -46,7 +61,7 @@ sigex.default <- function(mdl,data.ts,constraint)
 	#	Requires: sigex.zetalen, sigex.psi2par, sigex.eta2psi
 	#
 	####################################################################
- 
+
 	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
@@ -55,7 +70,7 @@ sigex.default <- function(mdl,data.ts,constraint)
 	psi.len <- 0
 
 	for(i in 1:length(mdl[[3]]))
-	{	
+	{
 		vrank <- mdl[[1]][[i]]
 		D.dim <- length(vrank)
 		L.dim <- sum(A.mat[,as.vector(vrank)])
@@ -68,13 +83,13 @@ sigex.default <- function(mdl,data.ts,constraint)
 		psi.len <- psi.len + dim(mdl[[4]][[k]])[2]
 	}
 	psi <- rep(0,psi.len)
-	
-	if(length(constraint) > 0) 
+
+	if(length(constraint) > 0)
 	{
 	  eta <- rep(0,dim(constraint)[2] -1 - dim(constraint)[1])
 	  psi <- sigex.eta2psi(eta,constraint)
 	}
-	
+
 	par.default <- sigex.psi2par(psi,mdl,data.ts)
 
 	return(par.default)

@@ -1,18 +1,18 @@
-#' applies some preliminary transformations to the data
+#' Applies some preliminary transformations to the data
 #'
-#' @param data.ts a T x N matrix ts object,
+#' @param data.ts A T x N matrix ts object,
 #'			corresponding to N time series of length T
-#' @param transform a character indicating an instantaneous
+#' @param transform A character indicating an instantaneous
 #'			transformation to be applied; current options are
 #'			"none", "log", and "logistic"
-#' @param aggregate a boolean, set to TRUE if all subseries are to
+#' @param aggregate A boolean, set to TRUE if all subseries are to
 #'			be aggregated into a total
-#' @param subseries sequence of indices between 1 and N,
+#' @param subseries Sequence of indices between 1 and N,
 #'			indicating which series	to examine
-#' @param range if set to NULL, take full span of data, otherwise
+#' @param range If set to NULL, take full span of data, otherwise
 #'			subset the times corresponding to start and end date
 #'			indicated by range[[1]] and range[[2]]
-#' @param plot boolean, whether to plot the series (max of N=10 allowed)
+#' @param plot Boolean, whether to plot the series (max of N=10 allowed)
 #'
 #' @return data.ts: a T x N0 matrix ts object, where N0=1 if
 #'			aggregate=TRUE, otherwise N0=N

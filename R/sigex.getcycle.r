@@ -1,3 +1,16 @@
+#' Compute AR and MA polynomials for Butterworth and Balanced cycles
+#'
+#' @param cycle.order Integer order of the cycle
+#' @param rho Persistency, a value between 0 and 1
+#' @param	omega Frequency in units of pi, a value between 0 and 1.
+#'			(The period is 2/omega)
+#'
+#' @return list object with cycle.AR and cycle.MA
+#'		cycle.AR: full AR polynomial in format c(1,-phi1,...,-phip)
+#'		cycle.MA: full MA polynomial in format c(1,theta1,...,thetaq)
+#' @export
+#'
+
 sigex.getcycle <- function(cycle.order,rho,omega)
 {
 
@@ -24,9 +37,9 @@ sigex.getcycle <- function(cycle.order,rho,omega)
 	################# Documentation #####################################
 	#
 	#	Purpose: compute AR and MA polynomials for Butterworth and Balanced cycles
-	#	Background:	
+	#	Background:
 	#		A stochastic cycle is a particular parametrization of an ARMA process,
-	#		governed by its order, its persistency (rho), and its period (2/omega)	
+	#		governed by its order, its persistency (rho), and its period (2/omega)
 	#	Inputs:
 	#		cycle.order: integer order of the cycle
 	#		rho: persistency, a value between 0 and 1
@@ -39,7 +52,7 @@ sigex.getcycle <- function(cycle.order,rho,omega)
 	#	Requires: polymult
 	#
 	####################################################################
-	
+
 	cycle.AR <- 1
 	cycle.MA <- 1
 	if(cycle.order > 0)
@@ -59,7 +72,7 @@ sigex.getcycle <- function(cycle.order,rho,omega)
 		{
 			cycle.AR <- polymult(cycle.AR,c(1,-2*rho*cos(pi*omega),rho^2))
 			cycle.MA <- polymult(cycle.MA,c(1,-1*rho*cos(pi*omega)))
-		} 
+		}
 		#cycle.acf <- polymult(cycle.MA,rev(cycle.MA))
 		}
 	}

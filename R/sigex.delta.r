@@ -1,3 +1,15 @@
+#' Compute differencing polynomial with factors omitted
+#'
+#' @param mdl The specified sigex model, a list object
+#' @param omits Indices of components that are to be omitted,
+#'			when computing the product of differencing polynomials
+#'			for the various components.
+#'
+#' @return Updated differencing polynomial,
+#'		written in format c(delta0,delta1,...,deltad)
+#' @export
+#'
+
 sigex.delta <- function(mdl,omits)
 {
 
@@ -24,8 +36,8 @@ sigex.delta <- function(mdl,omits)
 	################# Documentation #####################################
 	#
 	#	Purpose: compute differencing polynomial with factors omitted
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
@@ -33,11 +45,11 @@ sigex.delta <- function(mdl,omits)
 	#		The differencing polynomial for x_t is the product of
 	#		the components' polynomials, so long as they are relatively prime
 	#		(this is assumed).  Applying this product polynomial to x_t,
-	#		the effect on a summand y_t is that it is differenced to 
+	#		the effect on a summand y_t is that it is differenced to
 	#		stationary w_t, but a remainder polynomial acts on w_t as well,
 	#		given by the product of all other polynomials.
 	#	Inputs:
-	#		mdl: the specified sigex model, a list object.   
+	#		mdl: the specified sigex model, a list object.
  	#		omits: indices of components that are to be omitted,
 	#			when computing the product of differencing polynomials
 	#			for the various components.
@@ -53,7 +65,7 @@ sigex.delta <- function(mdl,omits)
 	{
 		polyn <- mdl[[3]][[i]]
 		if (i %in% omits) polyn <- 1
-		prod <- polymult(prod,polyn)		
+		prod <- polymult(prod,polyn)
 	}
 	return(prod)
 }

@@ -1,11 +1,11 @@
-#' applies aggregation, followed by transformations to the data
+#' Applies aggregation, followed by transformations to the data
 #'
-#' @param data.ts a T x N matrix ts object,
+#' @param data.ts A T x N matrix ts object,
 #'			corresponding to N time series of length T
-#' @param transform a character indicating an instantaneous
+#' @param transform A character indicating an instantaneous
 #'			transformation to be applied; current options are
 #'			"none", "log", and "logistic"
-#' @param aggregate a boolean, set to TRUE if all series are to
+#' @param aggregate A boolean, set to TRUE if all series are to
 #'			be aggregated into a total
 #'
 #' @return data.ts: a T x N0 matrix ts object, where N0=1 if

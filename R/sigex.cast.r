@@ -1,3 +1,20 @@
+#' Computes forecasts and aftcasts, without uncertainty;
+#'		a faster version of sigex.midcast, if you don't need midcasts
+#'
+#' @param psi A vector of all the real hyper-parameters
+#' @param mdl The specified sigex model, a list object
+#' @param	data.ts A T x N matrix ts object (with no missing values)
+#'			corresponding to N time series of length T
+#' @param	leads An integer sequence of desired casts; include index t
+#'			to obtain an estimate of x_t.  These integers don't have
+#'			to be a subset of {1,2,...,T}.  Include integers greater than
+#'			T to get forecasts, or less than 1 to get aftcasts.
+#'
+#' @return x.casted: N x (T+H) matrix of aftcasts, data, and forecasts, where H
+#'			is the total number of forecasts and aftcasts
+#' @export
+#'
+
 sigex.cast <- function(psi,mdl,data.ts,leads)
 {
 
@@ -25,21 +42,21 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 	#
 	#	Purpose: computes forecasts and aftcasts, without uncertainty;
 	#		a faster version of sigex.midcast, if you don't need midcasts
-	#	Background:	
+	#	Background:
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
-	#		psi: see background. 
+	#		psi: see background.
 	#		mdl: the specified sigex model, a list object
 	#		data.ts: a T x N matrix ts object (with no missing values)
 	#			corresponding to N time series of length T
 	#		leads: an integer sequence of desired casts; include index t
 	#			to obtain an estimate of x_t.  These integers don't have
 	#			to be a subset of {1,2,...,T}.  Include integers greater than
-	#			T to get forecasts, or less than 1 to get aftcasts. 
+	#			T to get forecasts, or less than 1 to get aftcasts.
 	#	Outputs:
 	#		x.casted: N x (T+H) matrix of aftcasts, data, and forecasts, where H
-	#			is the total number of forecasts and aftcasts	
+	#			is the total number of forecasts and aftcasts
 	#	Notes: presumes that regression effects have already been removed.
 	#	Requires: sigex.param2gcd, sigex.zeta2par, sigex.zetalen, sigex.acf, sigex.delta,
 	#			mvar.forecast
@@ -58,7 +75,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 	D.par <- mdl[[3]]
 	zeta.par <- vector("list",length(mdl[[3]]))
 	acf.mat <- matrix(0,nrow=N*length(indices),ncol=N)
-	
+
 	# get xi portion
 	ind <- 0
 	A.mat <- matrix(0,N,N)
@@ -80,7 +97,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 
 	# get beta portion
 	beta.len <- 0
-	for(i in 1:N) 
+	for(i in 1:N)
 	{
 		beta.len <- beta.len + dim(mdl[[4]][[i]])[2]
 	}
@@ -92,7 +109,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 	ind <- 0
 	for(i in 1:length(mdl[[3]]))
 	{
-		mdlType <- mdl[[2]][[i]]	
+		mdlType <- mdl[[2]][[i]]
 		delta <- mdl[[3]][[i]]
 		zetalen <- sigex.zetalen(mdlType,N)
 		if(zetalen > 0) {
@@ -100,13 +117,13 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,N)
 		}
 		ind <- ind + zetalen
-	
+
 		delta <- sigex.delta(mdl,i)
-		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,length(indices))		
+		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,length(indices))
 	}
 
 	x.acf <- array(acf.mat,dim=c(N,length(indices),N))
-	reg.vec <- beta.par	
+	reg.vec <- beta.par
 
 	# subtract regression effects
 	ind <- 0
@@ -126,7 +143,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 		sides=1)[length(fulldiff):T,])
 	Tdiff <- dim(x.diff)[1]
 	x.diff <- t(x.diff)
- 
+
 	fore.cast <- NULL
 	aft.cast <- NULL
 	if(fore.index > T)
@@ -139,7 +156,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 				method="recursive"))
 		} else { fore.cast <- t(diff.cast) }
 		fore.cast <- as.matrix(fore.cast[(Tdiff+1):(Tdiff+fore.index-T),])
-		fore.cast <- t(fore.cast)		
+		fore.cast <- t(fore.cast)
 	}
 	if(aft.index < 1)
 	{
@@ -153,7 +170,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 		} else { aft.cast <- t(diff.cast) }
 		aft.cast <- as.matrix(aft.cast[(Tdiff+1):(Tdiff+1-aft.index),])
 		aft.cast <- as.matrix(aft.cast[seq(1-aft.index,1),])
-		aft.cast <- t(aft.cast)		
+		aft.cast <- t(aft.cast)
 	}
 	x.casted <- cbind(aft.cast,t(data.diff),fore.cast)
 	x.real <- x.casted
