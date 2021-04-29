@@ -1,3 +1,13 @@
+#' Transform param to psi
+#'
+#' @param 	param  model parameters entered into
+#'		a list object with an intuitive structure.
+#' @param	mdl The specified sigex model, a list object
+#'
+#' @return psi: A vector of all the real hyper-parameters
+#' @export
+#'
+
 sigex.par2psi <- function(param,mdl)
 {
 
@@ -24,11 +34,11 @@ sigex.par2psi <- function(param,mdl)
 	################# Documentation #####################################
 	#
 	#	Purpose: transform param to psi
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Notes: this is a functional inverse to sigex.psi2par
 	#	Format: psi has three portions, psi = [xi,zeta,beta]
 	#		xi ~ all hyper-parameters for covariance matrices
@@ -53,7 +63,7 @@ sigex.par2psi <- function(param,mdl)
 		vrank <- mdl[[1]][[i]]
 		L.mat <- param[[1]][[i]]
 		D.mat <- param[[2]][[i]]
-		new.xi <- c(L.mat[lower.tri(diag(N))[,as.vector(vrank)]],D.mat) 
+		new.xi <- c(L.mat[lower.tri(diag(N))[,as.vector(vrank)]],D.mat)
 		xi <- c(xi,new.xi)
 		new.zeta <- sigex.par2zeta(param[[3]][[i]],mdlType)
 		zeta <- c(zeta,new.zeta)

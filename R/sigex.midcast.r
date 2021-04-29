@@ -1,3 +1,23 @@
+#' Computes predictors for variables at various indices
+#'
+#' @param psi A vector of all the real hyper-parameters
+#' @param mdl The specified sigex model, a list object
+#' @param data.ts  A T x N matrix ts object; any  values to be imputed
+#'			must be encoded with NA in that entry.  The NA is for missing value,
+#'     or an enforced imputation (e.g. extreme-value adjustment).
+#' @param castspan  A non-negative integer horizon giving number of fore- and aft-casts
+#'
+#' @return 		list containing casts.x and casts.var
+#'		casts.x: N x H matrix of forecasts, midcasts, aftcasts, where H
+#'			is the total number of time indices with missing values,
+#'			given by cardinality( leads setminus {1,2,...,T} )
+#'		casts.var: NH x NH matrix of covariances of casting errors.
+#'			note that casts.var.array <- array(casts.var,c(N,H,N,H))
+#'			corresponds to cast.var.array[,j,,k] equal to the
+#'			covariance between the jth and kth casting errors
+#' @export
+#'
+
 sigex.midcast <- function(psi,mdl,data.ts,castspan)
 {
 
@@ -24,24 +44,24 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 	################# Documentation #####################################
 	#
 	#	Purpose: computes predictors for variables at various indices
-	#	Background:	
+	#	Background:
 	#		psi refers to a vector of real numbers containing all
 	#		hyper-parameters (i.e., reals mapped bijectively to the parameter manifold)
 	#	Inputs:
-	#		psi: see background. 
+	#		psi: see background.
 	#		mdl: the specified sigex model, a list object
   #		data.ts: a T x N matrix ts object; any  values to be imputed
   #			must be encoded with NA in that entry.  The NA is for missing value,
   #     or an enforced imputation (e.g. extreme-value adjustment).
   #   castspan: an non-negative integer horizon giving number of fore- and aft-casts
   #	Outputs:
-	#		list containing casts.x and casts.var 
+	#		list containing casts.x and casts.var
 	#		casts.x: N x H matrix of forecasts, midcasts, aftcasts, where H
 	#			is the total number of time indices with missing values,
-	#			given by cardinality( leads setminus {1,2,...,T} )	
+	#			given by cardinality( leads setminus {1,2,...,T} )
 	#		casts.var: NH x NH matrix of covariances of casting errors.
-	#			note that casts.var.array <- array(casts.var,c(N,H,N,H)) 
-	#			corresponds to cast.var.array[,j,,k] equal to the 
+	#			note that casts.var.array <- array(casts.var,c(N,H,N,H))
+	#			corresponds to cast.var.array[,j,,k] equal to the
 	#			covariance between the jth and kth casting errors
 	#	Notes: presumes that regression effects have already been removed.
 	#	Requires: sigex.param2gcd, sigex.zeta2par, sigex.zetalen, sigex.acf, sigex.delta,
@@ -65,7 +85,7 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 	  leads.fore <- seq(T+1,T+castspan)
 	  leads.aft <- seq(1-castspan,0)
 	}
- 
+
 	#  alter z, inserting 1i for any out-of-sample forecasts/aftcasts
 	if(length(leads.fore)>0) { z <- cbind(z,matrix(1i,nrow=N,ncol=length(leads.fore))) }
 	if(length(leads.aft)>0) { z <- cbind(matrix(1i,nrow=N,ncol=length(leads.aft)),z) }
@@ -75,7 +95,7 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 	D.par <- mdl[[3]]
 	zeta.par <- vector("list",length(mdl[[3]]))
 	acf.mat <- matrix(0,nrow=N*TH,ncol=N)
-	
+
 	# get xi portion
 	ind <- 0
 	A.mat <- matrix(0,N,N)
@@ -97,7 +117,7 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 
 	# get beta portion
 	beta.len <- 0
-	for(i in 1:N) 
+	for(i in 1:N)
 	{
 		beta.len <- beta.len + dim(mdl[[4]][[i]])[2]
 	}
@@ -119,11 +139,11 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 		ind <- ind + zetalen
 
 		delta <- sigex.delta(mdl,i)
-		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,TH)		
+		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,TH)
 	}
 
 	x.acf <- array(acf.mat,dim=c(N,TH,N))
-	reg.vec <- beta.par	
+	reg.vec <- beta.par
 
 	# subtract regression effects from available sample only
 	ind <- 0
@@ -141,7 +161,7 @@ sigex.midcast <- function(psi,mdl,data.ts,castspan)
 	if(!inherits(attempt, "try-error")) {
 		casts.x <- attempt[[1]]
 		casts.var <- attempt[[2]] }
-	
+
 	return(list(casts.x,casts.var))
 }
 

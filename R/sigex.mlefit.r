@@ -1,3 +1,35 @@
+#' Fit model to the data using ML estimation
+#'
+#' @param data.ts A T x N matrix ts object; any missing values
+#'			must be encoded with 1i in that entry
+#' @param	param  model parameters entered into
+#'		a list object with an intuitive structure.
+#'    This is an initial specification to
+#'			start the nonlinear optimization routines
+#' @param	constraint  Matrix of the form [Q , C], with C (constraint.mat)
+#'     the matrix of constraints and Q (constraint.vec) the vector
+#'     of constraint constants, such that C psi = Q.
+#'     Use NULL if there are no constraints
+#' @param	mdl  The specified sigex model, a list object
+#' @param method  "bfgs" for BFGS, "sann" for simulated annealing,
+#'     "cg" for conjugate gradient
+#' @param thresh  Pre-parameters theta satisfy |theta|< thresh;
+#'     set thresh = Inf if no thresholding is desired
+#' @param	hess  A Boolean flag; if true, for BFGS it runs
+#'			another round of BFGS to get Hessian matrix
+#' @param	whittle  A Boolean flag; if true, uses Whittle likelihood instead of
+#'			default Gaussian likelihood
+#' @param	debug A Boolean flag; if true, sets the DEBUGGING mode, which prints
+#'			psi.last and psi.now to the global field.  Also lik will be printed.
+#'			psi.now gives the parameter that crashed the likelihood (if it crashed),
+#'			psi.last gives the last good parameter that did not crash the lik.
+#'
+#' @return 	list with mle and par.est
+#'		mle: an object of type outputted by optim
+#'		par.est: type param, with the estimated parameters filled in
+#' @export
+#'
+
 sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRUE,whittle=FALSE,debug=FALSE)
 {
 
@@ -24,30 +56,30 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	################# Documentation #####################################
 	#
 	#	Purpose: fit model to the data
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter manifold)  
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter manifold)
 	#	Notes: handles missing values in data.ts, which are indicated by 1i.
 	#	Inputs:
-	#		data.ts: a T x N matrix ts object; any missing values 
+	#		data.ts: a T x N matrix ts object; any missing values
 	#			must be encoded with 1i in that entry
-	#		param: see background; this is an initial specification to 
+	#		param: see background; this is an initial specification to
 	#			start the nonlinear optimization routines
   #		constraint: matrix of the form [Q , C], with C (constraint.mat)
   #     the matrix of constraints and Q (constraint.vec) the vector
-  #     of constraint constants, such that C psi = Q. 
+  #     of constraint constants, such that C psi = Q.
   #     Use NULL if there are no constraints
 	#		mdl: the specified sigex model, a list object
-	#	  method: "bfgs" for BFGS, "sann" for simulated annealing, 
+	#	  method: "bfgs" for BFGS, "sann" for simulated annealing,
   #     "cg" for conjugate gradient
-  #   thresh: pre-parameters theta satisfy |theta|< thresh; 
+  #   thresh: pre-parameters theta satisfy |theta|< thresh;
   #     set thresh = Inf if no thresholding is desired
 	#		hess: a Boolean flag; if true, for BFGS it runs
 	#			another round of BFGS to get Hessian matrix
 	#		whittle: a Boolean flag; if true, uses Whittle likelihood instead of
-	#			default Gaussian likelihood	
+	#			default Gaussian likelihood
 	#		debug: a Boolean flag; if true, sets the DEBUGGING mode, which prints
 	#			psi.last and psi.now to the global field.  Also lik will be printed.
 	#			psi.now gives the parameter that crashed the likelihood (if it crashed),
@@ -56,11 +88,11 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	#		list with mle and par.est
 	#		mle: an object of type outputted by optim
 	#		par.est: type param, with the estimated parameters filled in
-	#	Requires: sigex.par2psi, sigex.psi2par, sigex.lik, sigex.whittle, 
+	#	Requires: sigex.par2psi, sigex.psi2par, sigex.lik, sigex.whittle,
   #   sigex.eta2psi, sigex.psi2eta
 	#
 	####################################################################
-  
+
   fix.lik <- function(eta,constraint,mdl,data.ts,whittle,debug)
   {
     psi <- sigex.eta2psi(eta,constraint)
@@ -75,7 +107,7 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
     if(debug) psi.last <<- psi
     return(out)
   }
-  
+
   x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
@@ -95,12 +127,12 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	# set thresholding to prevent crash (irrelevant for SANN)
 	lower.bound <- rep(-thresh,length(eta))
 	upper.bound <- rep(thresh,length(eta))
-	
+
 	# initial attempt to fit
 	if(method=="bfgs") {
 	mle <- try(nlminb(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
 	          whittle=whittle,debug=debug,lower=lower.bound,upper=upper.bound,
-		        control=list(iter.max=50,eval.max=200)),TRUE) 
+		        control=list(iter.max=50,eval.max=200)),TRUE)
 	}
 	if(method=="sann") {
 	mle <- optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
@@ -118,7 +150,7 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 			eta.est <- mle$par
 			mle.hess <- try(optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
 			                      whittle=whittle,debug=debug,lower=lower.bound,upper=upper.bound,
-				                    method="L-BFGS-B",hessian=TRUE,control=list(maxit=100))) 
+				                    method="L-BFGS-B",hessian=TRUE,control=list(maxit=100)))
 			if(!inherits(mle.hess, "try-error")) { mle <- mle.hess }
 		}
 		eta.est <- mle$par
