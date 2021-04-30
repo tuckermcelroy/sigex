@@ -1,3 +1,21 @@
+#' Reads in a multivariate time series and generates a list of missing value indices
+#'
+#' @param z raw data as N x T matrix with missing values at various time points.
+#'			Missing values are at any 1 <= t <= T, and occur for some of the N series
+#'     (the ragged case), and are denoted with a 1i.  That is,
+#'			Im(z[,t]) = rep(1i,N) or subset thereof encodes missing values.
+#'
+#' @return  list containing leads.rag and ragged
+#'		leads.rag: an integer sequence of indices that have at least one missing value
+#'			These integers are a subset of {1,2,...,T}.
+#'   ragged: a list with number of items equal to length of leads.rag
+#'     within the sample {1,2,...,T}.  (ragged=NULL if there are none.)
+#'     Each element contains indices of vector components that are missing.
+#'     Note: ragged[[j]] must be non-empty, where leads[j] is the time
+#'      where at least one missing value (in-sample) occurs.
+#' @export
+#'
+
 sigex.i2rag <- function(z)
 {
 
@@ -20,19 +38,19 @@ sigex.i2rag <- function(z)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation #####################################
   #
   #	Purpose:  read multivariate time series and generate list of missing value indices
   #	Inputs:
   #		z: raw data as N x T matrix with missing values at various time points.
   #			Missing values are at any 1 <= t <= T, and occur for some of the N series
-  #     (the ragged case), and are denoted with a 1i.  That is, 
+  #     (the ragged case), and are denoted with a 1i.  That is,
   #			Im(z[,t]) = rep(1i,N) or subset thereof encodes missing values.
   #	Outputs:
   #		list containing leads.rag and ragged
   #		leads.rag: an integer sequence of indices that have at least one missing value
-  #			These integers are a subset of {1,2,...,T}.  
+  #			These integers are a subset of {1,2,...,T}.
   #   ragged: a list with number of items equal to length of leads.rag
   #     within the sample {1,2,...,T}.  (ragged=NULL if there are none.)
   #     Each element contains indices of vector components that are missing.
@@ -40,7 +58,7 @@ sigex.i2rag <- function(z)
   #      where at least one missing value (in-sample) occurs.
   #
   ####################################################################
- 
+
   N <- dim(z)[1]
   T <- dim(z)[2]
   all.series <- seq(1,N)
@@ -52,9 +70,9 @@ sigex.i2rag <- function(z)
   for(t in 1:length(cast.indices))
   {
     rag.series <- all.series[Im(z[,cast.indices[t]])==1,drop=FALSE]
-    if(length(rag.series)<=N) 
-    { 
-      ragged[[length(ragged)+1]] <- rag.series 
+    if(length(rag.series)<=N)
+    {
+      ragged[[length(ragged)+1]] <- rag.series
       leads.rag <- c(leads.rag,cast.indices[t])
     }
   }

@@ -1,3 +1,16 @@
+#' Computes -2*log(Gaussian likelihood) of model
+#'
+#' @param psi A vector of all the real hyper-parameters
+#' @param mdl The specified sigex model, a list object
+#' @param data.ts A T x N matrix ts object; any  values to be imputed
+#'			must be encoded with NA in that entry.  The NA is for missing value,
+#'     or an enforced imputation (e.g. extreme-value adjustment).
+#' @param debug Set to TRUE if lik values should be printed to screen
+#'
+#' @return Value of the divergence
+#' @export
+#'
+
 sigex.lik <- function(psi,mdl,data.ts,debug=TRUE)
 {
 
@@ -23,9 +36,9 @@ sigex.lik <- function(psi,mdl,data.ts,debug=TRUE)
 
 	################# Documentation #####################################
 	#
-	#	Purpose: computes -2*log(Gaussian likelihood) of model 
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Purpose: computes -2*log(Gaussian likelihood) of model
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
 	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
@@ -35,14 +48,14 @@ sigex.lik <- function(psi,mdl,data.ts,debug=TRUE)
 	#		beta ~ all regression parameters
 	#	Notes: handles missing values in data.ts, which are indicated by 1i
 	#	Inputs:
-	#		psi: see background. 
+	#		psi: see background.
 	#		mdl: the specified sigex model, a list object
   #		data.ts: a T x N matrix ts object; any  values to be imputed
   #			must be encoded with NA in that entry.  The NA is for missing value,
   #     or an enforced imputation (e.g. extreme-value adjustment).
   #   debug: set to TRUE if lik values should be printed to screen
   #	Outputs:
-	#		sum of quadratic form and log determinant terms in the 
+	#		sum of quadratic form and log determinant terms in the
 	#			Gaussian likelihood (see McElroy (2018, JTSA))
 	#			corresponding to model, for differenced time series,
 	#			with hyper-parameter psi. (A failure returns Inf.)
@@ -50,7 +63,7 @@ sigex.lik <- function(psi,mdl,data.ts,debug=TRUE)
 	#			mvar.midcast, sigex.acf
 	#
 	####################################################################
- 
+
 	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
@@ -61,7 +74,7 @@ sigex.lik <- function(psi,mdl,data.ts,debug=TRUE)
 	D.par <- mdl[[3]]
 	zeta.par <- vector("list",length(mdl[[3]]))
 	acf.mat <- matrix(0,nrow=N*(T+1),ncol=N)
-	
+
 	# get xi portion
 	ind <- 0
 	A.mat <- matrix(0,N,N)
@@ -83,7 +96,7 @@ sigex.lik <- function(psi,mdl,data.ts,debug=TRUE)
 
 	# get beta portion
 	beta.len <- 0
-	for(i in 1:N) 
+	for(i in 1:N)
 	{
 		beta.len <- beta.len + dim(mdl[[4]][[i]])[2]
 	}
@@ -95,7 +108,7 @@ sigex.lik <- function(psi,mdl,data.ts,debug=TRUE)
 	ind <- 0
 	for(i in 1:length(mdl[[3]]))
 	{
-		mdlType <- mdl[[2]][[i]]	
+		mdlType <- mdl[[2]][[i]]
 		delta <- mdl[[3]][[i]]
 		zetalen <- sigex.zetalen(mdlType,N)
 		if(zetalen > 0) {
@@ -105,11 +118,11 @@ sigex.lik <- function(psi,mdl,data.ts,debug=TRUE)
 		ind <- ind + zetalen
 
 		delta <- sigex.delta(mdl,i)
-		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T+1)		
+		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T+1)
 	}
 
 	x.acf <- array(acf.mat,dim=c(N,T+1,N))
-	reg.vec <- beta.par	
+	reg.vec <- beta.par
 
 	# subtract regression effects from available sample only
 	ind <- 0
@@ -125,6 +138,6 @@ sigex.lik <- function(psi,mdl,data.ts,debug=TRUE)
 	attempt <- try(mvar.midcast(x.acf,z,delta,debug),TRUE)
 	if(!inherits(attempt, "try-error")) {
 		lik.output <- attempt[[3]] } else lik.output <- Inf
-	
+
 	return(sum(lik.output))
 }

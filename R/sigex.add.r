@@ -1,3 +1,24 @@
+#' Build the model by adding on another latent component
+#'
+#' @param mdl The specified sigex model, a list object
+#' @param	vrank Vector of integers between 1 and N, corresponding
+#'			to indices of non-zero Schur complements in the GCD
+#'			of the innovations' covariance matrix for the new latent component
+#' @param	class Character string of t.s. model type for the new latent component
+#' @param	order Vector of model order bounds:
+#'      four numbers, gives bounds for rho and omega,
+#'			the cycle parameters of the new latent component
+#'			rho lies in (bounds[1],bounds[2])
+#'			omega lies in (bounds[3],bounds[4])
+#' @param	name Character string giving the latent component's name
+#' @param	delta Differencing polynomial (corresponds to delta(B) in Background)
+#'			written in format c(delta0,delta1,...,deltad)
+#'
+#' @return mdl: the updated sigex model, a list object
+#' @export
+#'
+
+
 sigex.add <- function(mdl,vrank,class,order,bounds,name,delta)
 {
 
@@ -24,16 +45,16 @@ sigex.add <- function(mdl,vrank,class,order,bounds,name,delta)
 	################# Documentation #####################################
 	#
 	#	Purpose: build the model by adding on another latent component
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
 	#			w_t = delta(B) y_t   is stationary.
 	#		We have a model for each w_t process, which is specified
 	#		through the ranks (indices of non-zero Schur complements,
-	#		cf. background for sigex.param2gcd) of the white noise 
-	#		covariance matrix; also there is the model type, which 
+	#		cf. background for sigex.param2gcd) of the white noise
+	#		covariance matrix; also there is the model type, which
 	#		denotes the specification of the t.s. model for w_t;
 	#		all the regressors, which are specified by individual time series
 	#		rather than by latent component, and must have length T;
@@ -53,7 +74,7 @@ sigex.add <- function(mdl,vrank,class,order,bounds,name,delta)
 	#			of the innovations' covariance matrix for the new latent component
 	#		class: character string of t.s. model type for the new latent component
 	#		order: vector of model order
-	#	      bounds: four numbers, gives bounds for rho and omega, 
+	#	      bounds: four numbers, gives bounds for rho and omega,
 	#			the cycle parameters of the new latent component
 	#			rho lies in (bounds[1],bounds[2])
 	#			omega lies in (bounds[3],bounds[4])

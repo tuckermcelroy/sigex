@@ -1,3 +1,14 @@
+#' Compute canonization of a given ARMA process
+#'
+#' @param ma.coef q coefficients of MA polynomial with unit constant coefficient
+#' @param ar.coef p coefficients (minus convention) of AR polynomial with
+#'   unit constant coefficient
+#'
+#' @return ma.stab: coefficients of MA polynomial (without a unit constant coefficient),
+#'			 the degree is max(p,q)
+#' @export
+#'
+
 sigex.canonize <- function(ma.coef,ar.coef)
 {
 
@@ -24,14 +35,14 @@ sigex.canonize <- function(ma.coef,ar.coef)
 	################# Documentation #####################################
 	#
 	#	Purpose: compute canonization of a given ARMA process
-	#	Background:	
+	#	Background:
 	#		An ARMA or ARIMA process X_t has form
 	#			X_t = theta(B)/phi(B) eps_t
 	#		where eps_t is white noise, and we allow phi(B) to have unit roots.
 	#		Canonization seeks a new theta*(B) such that the spectral density
 	#		corresponding to theta*(B)/phi(B) is non-invertible (i.e. has a zero).
 	#		The minimum value of the original spectrum is subtracted off to
-	#		get the canonized spectrum.	
+	#		get the canonized spectrum.
 	#	Inputs:
 	#		ma.coef: q coefficients of MA polynomial with unit constant coefficient
 	#		ar.coef: p coefficients (minus convention) of AR polynomial with unit constant coefficient
@@ -41,7 +52,7 @@ sigex.canonize <- function(ma.coef,ar.coef)
 	#	Requires: polymult, polysum, specFact
 	#
 	####################################################################
-	
+
 	q <- length(ma.coef)
 	p <- length(ar.coef)
 	r <- 2*(q+p)
@@ -79,7 +90,7 @@ sigex.canonize <- function(ma.coef,ar.coef)
 
 	# compute new MA polynomial
 	numer.acf <- polysum(polymult(theta.poly,rev(theta.poly)),-1*min.val*polymult(phi.poly,rev(phi.poly)))
- 	ma.stab <- Re(specFact(numer.acf))	
+ 	ma.stab <- Re(specFact(numer.acf))
 
 	return(ma.stab)
 }

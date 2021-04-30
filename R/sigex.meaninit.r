@@ -1,3 +1,20 @@
+#' Adds trend regressors to an existing model
+#'
+#' @param mdl  The specified sigex model, a list object.
+#'			mdl[[1]] is mdlK, gives ranks of white noise covariance matrix
+#'			mdl[[2]] is mdlType, a list giving t.s. model class, order, and bounds
+#'			mdl[[3]] is mdlDiff, gives delta differencing polynomials
+#'		  mdl[[4]] is list of regressors by individual series
+#' @param data.ts   A T x N matrix ts object
+#' @param	d  Order of time polynomial trend regressor desired, labeled as "Trend".
+#'  		However, if a trend component exists in the model,
+#'			then this d is ignored, and the number of unit roots
+#'			is instead used to determine d.
+#'
+#' @return 	mdl: the updated sigex model, a list object
+#' @export
+#'
+
 sigex.meaninit <- function(mdl,data.ts,d)
 {
 
@@ -40,9 +57,9 @@ sigex.meaninit <- function(mdl,data.ts,d)
 	#		time polynomial regressors, if desired.
 	#	Notes: always use this function when setting up the model.
 	#		First make all calls to sigex.add, then call sigex.meaninit,
-	#		and then add additional regressors (if needed) with sigex.reg.   
+	#		and then add additional regressors (if needed) with sigex.reg.
 	#	Inputs:
-	#		mdl: the specified sigex model, a list object. 
+	#		mdl: the specified sigex model, a list object.
 	#			mdl[[1]] is mdlK, gives ranks of white noise covariance matrix
 	#			mdl[[2]] is mdlType, a list giving t.s. model class, order, and bounds
 	#			mdl[[3]] is mdlDiff, gives delta differencing polynomials
@@ -63,7 +80,7 @@ sigex.meaninit <- function(mdl,data.ts,d)
 	mdlDiff <- mdl[[3]]
 	mdlReg <- mdl[[4]]
 
-	if(length(sigex.whichtrend(mdl))==1) 
+	if(length(sigex.whichtrend(mdl))==1)
 	{
 		delta <- mdl[[3]][[sigex.whichtrend(mdl)]]
 		d <- length(delta) - 1 - sum(abs(Arg(polyroot(delta))) > 10^(-8))
@@ -73,9 +90,9 @@ sigex.meaninit <- function(mdl,data.ts,d)
 	N <- dim(x)[1]
 	delta <- sigex.delta(mdl,0)
 	for(series in 1:N)
-	{ 
+	{
 		mdlReg[[series]] <- ts(as.matrix(seq(1,T)^d),start=start(data.ts),
-			frequency=frequency(data.ts),names="Trend") 
+			frequency=frequency(data.ts),names="Trend")
 		d.inc <- d
 		while(d.inc > 0)
 		{
@@ -83,8 +100,8 @@ sigex.meaninit <- function(mdl,data.ts,d)
 			reg <- ts(as.matrix(seq(1,T)^d.inc),start=start(data.ts),
 				frequency=frequency(data.ts),names="Trend")
 			reg.diff <- filter(reg,delta,method="convolution",
-				sides=1)[length(delta):T] 
-			if(sum(reg.diff^2) > 10^(-8)) 
+				sides=1)[length(delta):T]
+			if(sum(reg.diff^2) > 10^(-8))
 			{
 				mdlReg[[series]] <- ts(cbind(mdlReg[[series]],reg),
 					start=start(reg),frequency=frequency(reg),

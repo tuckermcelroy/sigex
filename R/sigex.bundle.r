@@ -1,3 +1,17 @@
+#' Bundles into a list object several features
+#'
+#' @param data.ts A T x N matrix ts object,
+#'			corresponding to N time series of length T
+#' @param	transform A character indicating an instantaneous
+#'			transformation to be applied; current options are
+#'			"none", "log", and "logistic"
+#' @param	mdl The specified sigex model, a list object
+#' @param psi A vector of all the real hyper-parameters
+#'
+#' @return analysis: a list object of the inputs
+#' @export
+#'
+
 sigex.bundle <- function(data.ts,transform,mdl,psi)
 {
 
@@ -25,18 +39,18 @@ sigex.bundle <- function(data.ts,transform,mdl,psi)
 	#
 	#	Purpose: bundles into a list object several features
 	#	Background:
-	#		param is the name for the model parameters entered into 
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
-	#		data.ts: a T x N matrix ts object, 
+	#		data.ts: a T x N matrix ts object,
 	#			corresponding to N time series of length T
-	#		transform: a character indicating an instantaneous 
+	#		transform: a character indicating an instantaneous
 	#			transformation to be applied; current options are
 	#			"none", "log", and "logistic"
  	#		mdl: the specified sigex model, a list object
-	#		psi: see background.  
+	#		psi: see background.
 	#	Outputs:
 	#		analysis: a list object of the inputs
 	#

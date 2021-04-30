@@ -1,3 +1,15 @@
+#' Computes signal extraction filter frequency response function
+#'
+#' @param data.ts A T x N matrix ts object
+#' @param	param The model parameters entered into a list object
+#' @param	mdl The specified sigex model, a list object
+#' @param sigcomps Indices of the latent components composing the signal
+#' @param	grid Desired number of frequencies for spectrum calculations
+#'
+#' @return frf.wk: array of dimension c(N,N,grid), with complex number entries
+#' @export
+#'
+
 sigex.frf <- function(data.ts,param,mdl,sigcomps,grid)
 {
 
@@ -24,8 +36,8 @@ sigex.frf <- function(data.ts,param,mdl,sigcomps,grid)
 	################# Documentation ############################################
 	#
 	#	Purpose: computes signal extraction filter frequency response function
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
@@ -35,10 +47,10 @@ sigex.frf <- function(data.ts,param,mdl,sigcomps,grid)
 	#		generating function (acgf) via gamma_w (B).
 	#		The signal extraction filter for y_t is determined from
 	#		this acgf and delta.
-	#		param is the name for the model parameters entered into 
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Notes: take grid >> len, else numerical issues arise
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object
@@ -47,7 +59,7 @@ sigex.frf <- function(data.ts,param,mdl,sigcomps,grid)
 	#		sigcomps: indices of the latent components composing the signal
 	#		grid: desired number of frequencies for spectrum calculations
 	#	Outputs:
-	#		frf.wk:  array of dimension c(N,N,grid), with complex number entries 
+	#		frf.wk:  array of dimension c(N,N,grid), with complex number entries
 	#	Requires: sigex.spectra, sigex.delta
 	#
 	####################################################################
@@ -90,23 +102,23 @@ sigex.frf <- function(data.ts,param,mdl,sigcomps,grid)
 				D.par <- param[[2]][[k]]
 				h.comp <- t(L.par) %*% solve(g.comp) %*% L.par %*% diag(exp(D.par),nrow=length(mdl[[1]][[k]]))
 				h.comp <- L.par %*% diag(exp(D.par),nrow=length(mdl[[1]][[k]])) %*%
-						solve(h.comp) %*% t(L.par) %*% solve(g.comp)			
+						solve(h.comp) %*% t(L.par) %*% solve(g.comp)
 				h.comp <- diag(N) - h.comp
 				for(l in sigcomps)
 				{
-					if(l == k) { sig.comp <- diag(N) - h.comp } else { 
+					if(l == k) { sig.comp <- diag(N) - h.comp } else {
 						L.par <- param[[1]][[l]]
 						D.par <- param[[2]][[l]]
 						delta <- sigex.delta(mdl,c(l,k))
-						f.comp <- sigex.spectra(L.par,D.par,mdl,l,param[[3]][[l]],delta,grid)[,,j]		
+						f.comp <- sigex.spectra(L.par,D.par,mdl,l,param[[3]][[l]],delta,grid)[,,j]
 						sig.comp <- f.comp %*% solve(g.comp) %*% h.comp
 					}
 					frf.wk[,,j] <- frf.wk[,,j] + sig.comp
 				}
-			}  
+			}
 		}
-	 	if(!flag.zero) { frf.wk[,,j] <- f.sig[,,j] %*% solve(f.all[,,j]) } 
-	}	
+	 	if(!flag.zero) { frf.wk[,,j] <- f.sig[,,j] %*% solve(f.all[,,j]) }
+	}
 
 	return(frf.wk)
 }

@@ -1,3 +1,23 @@
+#' Compute the autocovariance function of a differenced latent component
+#'
+#' @param L.par Unit lower triangular matrix in GCD of the component's
+#'			white noise covariance matrix.
+#' @param D.par Vector of logged entries of diagonal matrix in GCD
+#'			of the component's white noise covariance matrix.
+#' @param mdl The specified sigex model, a list object
+#' @param comp Index of the latent component
+#' @param mdlPar This is the portion of param
+#'			corresponding to mdl[[2]], cited as param[[3]]
+#' @param	delta Differencing polynomial (corresponds to eta(B) in Background)
+#'			written in format c(delta0,delta1,...,deltad)
+#' @param	maxlag Number of autocovariances required
+#' @param freqdom A flag, indicating whether frequency domain acf routine should be used.
+#'
+#' @return 	x.acf: matrix of dimension N x N*maxlag, consisting of autocovariance
+#'			matrices stacked horizontally
+#' @export
+#'
+
 sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
 {
 

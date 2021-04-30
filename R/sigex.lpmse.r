@@ -1,3 +1,23 @@
+#' Computes signal extraction mse arising from LP filtering
+#'		of trend-cycle, with low pass cutoff, for trend and cycle each.
+#'
+#' @param	param  model parameters entered into
+#'		a list object with an intuitive structure.
+#' @param	mdl The specified sigex model, a list object
+#' @param	trendcyclecomp  The (single) index of the trend-cycle component
+#' @param	sigcomps Provides indices of a desired component that
+#'			is disjoint from trend-cycle, so that MSEs of
+#'			trend+sigcomps and cycle+sigcomps are computed.
+#'		 	(Pass in sigcomps = NULL to just get trend and cycle MSEs.)
+#' @param	grid Desired number of frequencies for spectrum calculations
+#' @param	cutoff  A number between 0 and pi, with all frequencies < cutoff preserved
+#'
+#' @return 	list object with mse.trend and mse.cycle
+#'		mse.trend: N x N matrix, MSE of trend
+#'		mse.cycle: N x N matrix, MSE of cycle
+#' @export
+#'
+
 sigex.lpmse <- function(param,mdl,trendcyclecomp,sigcomps,grid,cutoff)
 {
 
@@ -25,8 +45,8 @@ sigex.lpmse <- function(param,mdl,trendcyclecomp,sigcomps,grid,cutoff)
 	#
 	#	Purpose: computes signal extraction mse arising from LP filtering
 	#		of trend-cycle, with low pass cutoff, for trend and cycle each.
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
@@ -36,19 +56,19 @@ sigex.lpmse <- function(param,mdl,trendcyclecomp,sigcomps,grid,cutoff)
 	#		generating function (acgf) via gamma_w (B).
 	#		The signal extraction filter for y_t is determined from
 	#		this acgf and delta.  The error spectral density calculations
-	#		are found in: 
+	#		are found in:
 	#		"Casting Vector Time Series: Algorithms for Forecasting,
 	#		Imputation, and Signal Extraction," McElroy (2018).
-	#		param is the name for the model parameters entered into 
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
 	#		param: see background.  Must have form specified by mdl
 	#		mdl: the specified sigex model, a list object
 	#		trendcyclecomp: is the (single) index of the trend-cycle component
 	#		sigcomps: provides indices of a desired component that
-	#			is disjoint from trend-cycle, so that MSEs of 
+	#			is disjoint from trend-cycle, so that MSEs of
 	#			trend+sigcomps and cycle+sigcomps are computed.
 	#		 	(Pass in sigcomps = NULL to just get trend and cycle MSEs.)
 	#		grid: desired number of frequencies for spectrum calculations
@@ -63,7 +83,7 @@ sigex.lpmse <- function(param,mdl,trendcyclecomp,sigcomps,grid,cutoff)
 
 quad <- function(z)
 {
-	# quadrature of z 
+	# quadrature of z
 	len <- length(z)
 	out <- (z[1]+z[len])/2 + sum(z[2:(len-1)])
 	return(out/len)
@@ -83,7 +103,7 @@ quad <- function(z)
 	frf.wksig <- sigex.wkmse(data,param,mdl,trendcyclecomp,grid)
 	frf.wksig <- matrix(frf.wksig,nrow=N)
 
-	# get terms of MSE 
+	# get terms of MSE
 	allcomps <- seq(1,length(mdl[[3]]))
  	seminoisecomps <- allcomps[!allcomps %in% c(trendcyclecomp,sigcomps)]
 	if(length(sigcomps)==0) { frf.wksig <- matrix(0,nrow=N,ncol=(N*(grid+1))) } else {

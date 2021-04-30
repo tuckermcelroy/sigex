@@ -1,6 +1,15 @@
+#' Generates lower triangular array for block Toeplitz matrix
+#'
+#' @param x.array Array of dimension N x N x H, where x.array[,,1] is gamma(0)
+#'
+#' @return x.toep: array of dimension N x H x N x H, where x.toep[,j,,k]
+#			corresponds to gamma(j-k) if j >= k and is zero otherwise
+#' @export
+#'
+
 sigex.blocktoep <- function(x.array)
 {
-	
+
 	##########################################################################
 	#
 	#	sigex.blocktoep
@@ -24,7 +33,7 @@ sigex.blocktoep <- function(x.array)
 	################# Documentation #####################################
 	#
 	#	Purpose: generates lower triangular array for block Toeplitz matrix
-	#	Background:	
+	#	Background:
 	#		Given a sequence of matrix gamma(0), gamma(1),...,gamma(k)
 	#		a block Toeplitz matrix has the form
 	#		[ gamma(0), t(gamma(1)),...,t(gamma(k)) ]
@@ -38,7 +47,7 @@ sigex.blocktoep <- function(x.array)
 	#			corresponds to gamma(j-k) if j >= k and is zero otherwise
 	#
 	####################################################################
-  
+
 	N <- dim(x.array)[1]
 	H <- dim(x.array)[3]
 

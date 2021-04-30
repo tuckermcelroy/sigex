@@ -1,3 +1,28 @@
+#' Compute signal extraction estimates with uncertainty
+#'		for trend and cycle, by combining WK filter for trend-cycle
+#'		(specified by trendcyclecomp) with LP filter of cutoff.
+#'
+#' @param mdl The specified sigex model, a list object
+#' @param	data.ts A T x N matrix ts object
+#' @param	trendcyclecomp  The (single) index of the trend-cycle component
+#' @param sigcomps  Provides indices of a desired component that
+#' 			is disjoint from trend-cycle, so that MSEs of
+#'			trend+sigcomps and cycle+sigcomps are computed.
+#'		 	(Pass in sigcomps = NULL to just get trend and cycle MSEs.)
+#' @param	psi A vector of all the real hyper-parameters
+#' @param	cutoff A number between 0 and pi, with all frequencies < cutoff preserved
+#' @param	grid Desired number of frequencies for spectrum calculations
+#' @param	window Maximum index of the filter coefficients
+#' @param	trunc Truncation index for LP filter
+#' @param	trendFlag  Boolean flag, TRUE for trend+signal, else get cycle+signal
+#'
+#' @return 	list object with lp.signal, upp, and low
+#'		lp.signal: T x N matrix of the signal estimates
+#'		upp: as lp.signal, plus twice the standard error
+#'		low: as lp.signal, minus twice the standard error
+#' @export
+#'
+
 sigex.lpfiltering <- function(mdl,data.ts,trendcyclecomp,sigcomps,psi,cutoff,grid,window,trunc,trendFlag)
 {
 

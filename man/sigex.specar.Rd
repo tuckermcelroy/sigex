@@ -2,23 +2,25 @@
 % Please edit documentation in R/sigex.specar.r
 \name{sigex.specar}
 \alias{sigex.specar}
-\title{plot AR spectrum of input time series}
+\title{Plot AR spectrum of input time series}
 \usage{
-sigex.specar(data.ts, diff = FALSE, subseries)
+sigex.specar(data.ts, diff = FALSE, subseries, period)
 }
 \arguments{
-\item{data.ts}{a T x N matrix ts object,
+\item{data.ts}{A T x N matrix ts object,
 corresponding to N time series of length T}
 
-\item{diff}{boolean, if TRUE difference the series
+\item{diff}{Boolean, if TRUE difference the series
 and plot Growth Rate, else in Levels}
 
-\item{subseries}{index between 1 and N, indicating which series
+\item{subseries}{Index between 1 and N, indicating which series
 to examine}
+
+\item{period}{Number of observations per cycle (e.g. a year or week)}
 }
 \value{
 NA
 }
 \description{
-plot AR spectrum of input time series
+Plot AR spectrum of input time series
 }

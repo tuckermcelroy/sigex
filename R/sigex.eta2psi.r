@@ -1,6 +1,18 @@
+#' Transform eta to psi
+#'
+#' @param eta free variables of real numbers.  Must have length given by
+#'     dim(constraint.mat)[2] - dim(constraint.mat)[1]
+#' @param	constraint Matrix of the form [Q , C], with C (constraint.mat)
+#'     the matrix of constraints and Q (constraint.vec) the vector
+#'     of constraint constants, such that C psi = Q.
+#'
+#' @return psi: a vector of all the real hyper-parameters.
+#' @export
+#'
+
 sigex.eta2psi <- function(eta,constraint)
 {
-  
+
   ##########################################################################
   #
   #	sigex.eta2psi
@@ -20,11 +32,11 @@ sigex.eta2psi <- function(eta,constraint)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation #####################################
   #
   #	Purpose: transform eta to psi
-  #	Background:	
+  #	Background:
   #		psi refers to a vector of real numbers containing all
   #		hyper-parameters (i.e., reals mapped bijectively to the parameter
   #		manifold), whereas eta consists of free variables of real numbers
@@ -32,7 +44,7 @@ sigex.eta2psi <- function(eta,constraint)
   #   vector of eta and nu.
   #	Notes: this is a functional inverse to sigex.psi2eta
   #	Inputs:
-  #		eta: see background.  Must have length given by 
+  #		eta: see background.  Must have length given by
   #     dim(constraint.mat)[2] - dim(constraint.mat)[1]
   #		constraint: matrix of the form [Q , C], with C (constraint.mat)
   #     the matrix of constraints and Q (constraint.vec) the vector
@@ -41,32 +53,31 @@ sigex.eta2psi <- function(eta,constraint)
   #		psi: see background.
   #
   ####################################################################
-  
+
   psi <- eta
-  if(length(constraint) > 0) 
+  if(length(constraint) > 0)
   {
     constraint.mat <- constraint[,-1,drop=FALSE]
     constraint.vec <- constraint[,1,drop=FALSE]
-  
+
     ## compute decomposition
     constraint.qr <- qr(constraint.mat)
     constraint.q <- qr.Q(constraint.qr)
     constraint.r <- qr.R(constraint.qr)
     constraint.pivot <- constraint.qr$pivot
     constraint.ipivot <- sort.list(constraint.pivot)
-  
+
     ## compute mapping from free variables
     fixed.dim <- dim(constraint.mat)[1]
-    free.dim <- dim(constraint.mat)[2] - fixed.dim 
+    free.dim <- dim(constraint.mat)[2] - fixed.dim
     trans.mat <- solve(constraint.r[,1:fixed.dim,drop=FALSE],
                        constraint.r[,(fixed.dim+1):(fixed.dim+free.dim),drop=FALSE])
     trans.vec <- solve(constraint.r[,1:fixed.dim,drop=FALSE]) %*% solve(constraint.q) %*% constraint.vec
     nu <- trans.vec - trans.mat %*% eta
     psi <- c(nu,eta)[constraint.ipivot]
   }
-  
+
   return(psi)
 }
 
-  
-  
+

@@ -1,3 +1,27 @@
+#' Computes signal extraction filter coefficients
+#'		for trend and cycle, by combining WK filter for trend-cycle
+#'		(specified by trendcyclecomp) with LP filter of cutoff.
+#'
+#' @param data.ts A T x N matrix ts object
+#' @param param  model parameters entered into
+#'		a list object with an intuitive structure.
+#' @param	mdl The specified sigex model, a list object
+#' @param	trendcyclecomp  The (single) index of the trend-cycle component
+#' @param	sigcomps Provides indices of a desired component that
+#'			is disjoint from trend-cycle, so that MSEs of
+#'			trend+sigcomps and cycle+sigcomps are computed.
+#'		 	(Pass in sigcomps = NULL to just get trend and cycle MSEs.)
+#' @param grid Desired number of frequencies for spectrum calculations
+#' @param	len  Max index of the filter coefficients
+#' @param	cutoff  A number between 0 and pi, with all frequencies < cutoff preserved
+#' @param	trunc  Truncation index for LP filter
+#'
+#' @return list object with psi.lpwk and psi.ilpwk
+#'		psi.lpwk: array of dimension c(N,N,2*trunc+1), filter coefficients for trend
+#'		psi.ilpwk: array of dimension c(N,N,2*trunc+1), filter coefficients for cycle
+#' @export
+#'
+
 sigex.lpwk <- function(data.ts,param,mdl,trendcyclecomp,grid,len,cutoff,trunc)
 {
 
@@ -26,8 +50,8 @@ sigex.lpwk <- function(data.ts,param,mdl,trendcyclecomp,grid,len,cutoff,trunc)
 	#	Purpose: computes signal extraction filter coefficients
 	#		for trend and cycle, by combining WK filter for trend-cycle
 	#		(specified by trendcyclecomp) with LP filter of cutoff.
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
@@ -36,8 +60,8 @@ sigex.lpwk <- function(data.ts,param,mdl,trendcyclecomp,grid,len,cutoff,trunc)
 	#		autocovariance function (acf), and denote its autocovariance
 	#		generating function (acgf) via gamma_w (B).
 	#		The signal extraction filter for y_t is determined from
-	#		this acgf and delta.  
-	#		param is the name for the model parameters entered into 
+	#		this acgf and delta.
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
 	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
@@ -48,7 +72,7 @@ sigex.lpwk <- function(data.ts,param,mdl,trendcyclecomp,grid,len,cutoff,trunc)
 	#		mdl: the specified sigex model, a list object
 	#		trendcyclecomp: is the (single) index of the trend-cycle component
 	#		sigcomps: provides indices of a desired component that
-	#			is disjoint from trend-cycle, so that MSEs of 
+	#			is disjoint from trend-cycle, so that MSEs of
 	#			trend+sigcomps and cycle+sigcomps are computed.
 	#		 	(Pass in sigcomps = NULL to just get trend and cycle MSEs.)
 	#		grid: desired number of frequencies for spectrum calculations
@@ -68,10 +92,10 @@ sigex.lpwk <- function(data.ts,param,mdl,trendcyclecomp,grid,len,cutoff,trunc)
 	target <- array(diag(N),c(N,N,1))
 	wkcoeff <- sigex.wk(data.ts,param,mdl,trendcyclecomp,target,FALSE,grid,len)
 	mid <- trunc+len
-	lpcoeff <- c(cutoff/pi,sin(cutoff*seq(1,mid))/(pi*seq(1,mid)))	
-	lpcoeff <- c(rev(lpcoeff),lpcoeff[-1]) 
-	ilpcoeff <- c(1-cutoff/pi,-sin(cutoff*seq(1,mid))/(pi*seq(1,mid)))	
-	ilpcoeff <- c(rev(ilpcoeff),ilpcoeff[-1]) 
+	lpcoeff <- c(cutoff/pi,sin(cutoff*seq(1,mid))/(pi*seq(1,mid)))
+	lpcoeff <- c(rev(lpcoeff),lpcoeff[-1])
+	ilpcoeff <- c(1-cutoff/pi,-sin(cutoff*seq(1,mid))/(pi*seq(1,mid)))
+	ilpcoeff <- c(rev(ilpcoeff),ilpcoeff[-1])
 
 	psi.lpwk <- matrix(wkcoeff[[1]],nrow=N) %*% (lpcoeff[(mid+1+len):(mid+1-len)] %x% diag(N))
 	psi.ilpwk <- matrix(wkcoeff[[1]],nrow=N) %*% (ilpcoeff[(mid+1+len):(mid+1-len)] %x% diag(N))

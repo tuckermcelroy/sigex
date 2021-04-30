@@ -1,3 +1,11 @@
+#' Wrapper for Shapiro-Wilks test of normality
+#'
+#' @param	resids A T x N matrix of residuals
+#'
+#' @return tests: output of shapiro.tests routine of R
+#' @export
+#'
+
 sigex.gausscheck <- function(resids)
 {
 
@@ -27,7 +35,7 @@ sigex.gausscheck <- function(resids)
 	#	Background:
 	#		model-fitting is an entropy maximizing transformation of
 	#		the data, producing residuals that should resemble
-	#		Gaussian white noise.  We can test whether the 
+	#		Gaussian white noise.  We can test whether the
 	#		marginal distribution is normal with Shapiro-Wilks.
 	#	Inputs:
 	#		resids: a T x N matrix of residuals
@@ -35,7 +43,7 @@ sigex.gausscheck <- function(resids)
 	#		tests: output of shapiro.tests routine of R
 	#
 	####################################################################
-	
+
 	x <- t(resids)
 	N <- dim(x)[1]
 	T <- dim(x)[2]

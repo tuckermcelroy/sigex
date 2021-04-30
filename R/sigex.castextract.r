@@ -1,6 +1,30 @@
+#' Formats cast estimates with two standard errors
+#'
+#' @param  data.ts A T x N matrix ts object; any  values to be imputed
+#'			must be encoded with NA in that entry.  The NA is for missing value,
+#'     or an enforced imputation (e.g. extreme-value adjustment).
+#' @param data.casts A list containing casts.x and casts.var
+#' @param	casts.x N x H matrix of forecasts, midcasts, aftcasts, where H
+#'		  	is the total number of time indices with missing values,
+#'			  given by cardinality( leads setminus {1,2,...,T} )
+#' @param casts.var NH x NH matrix of covariances of casting errors.
+#'			  note that casts.var.array <- array(casts.var,c(N,H,N,H))
+#'	  		corresponds to cast.var.array[,j,,k] equal to the
+#'		  	covariance between the jth and kth casting errors
+#' @param	mdl The specified sigex model, a list object
+#' @param castspan A non-negative integer horizon giving number of fore- and aft-casts
+#' @param	param Must have form specified by mdl
+#'
+#' @return list object extract.casts with cast, upp, and low
+#'		  cast: T x N matrix of the data or casts
+#'		  upp: as cast, plus twice the standard error
+#' 		  low: as cast, minus twice the standard error
+#' @export
+#'
+
 sigex.castextract <- function(data.ts,data.casts,mdl,castspan,param)
 {
-  
+
   ##########################################################################
   #
   #	sigex.castextract
@@ -20,24 +44,24 @@ sigex.castextract <- function(data.ts,data.casts,mdl,castspan,param)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation ############################################
   #
   #	Purpose: formats cast estimates with two standard errors
-  #	Background:	
+  #	Background:
   #		psi refers to a vector of real numbers containing all
   #		hyper-parameters (i.e., reals mapped bijectively to the parameter manifold)
   #	Inputs:
   #		data.ts: a T x N matrix ts object; any  values to be imputed
   #			must be encoded with NA in that entry.  The NA is for missing value,
   #     or an enforced imputation (e.g. extreme-value adjustment).
-  #   data.casts: a list containing casts.x and casts.var 
+  #   data.casts: a list containing casts.x and casts.var
   #	  	casts.x: N x H matrix of forecasts, midcasts, aftcasts, where H
   #		  	is the total number of time indices with missing values,
-  #			  given by cardinality( leads setminus {1,2,...,T} )	
+  #			  given by cardinality( leads setminus {1,2,...,T} )
   #		  casts.var: NH x NH matrix of covariances of casting errors.
-  #			  note that casts.var.array <- array(casts.var,c(N,H,N,H)) 
-  #	  		corresponds to cast.var.array[,j,,k] equal to the 
+  #			  note that casts.var.array <- array(casts.var,c(N,H,N,H))
+  #	  		corresponds to cast.var.array[,j,,k] equal to the
   #		  	covariance between the jth and kth casting errors
   #		mdl: the specified sigex model, a list object
   #   castspan: an non-negative integer horizon giving number of fore- and aft-casts
@@ -47,14 +71,14 @@ sigex.castextract <- function(data.ts,data.casts,mdl,castspan,param)
   #		  cast: T x N matrix of the data or casts
   #		  upp: as cast, plus twice the standard error
   # 		low: as cast, minus twice the standard error
-  # 
+  #
   ####################################################################
-  
+
   x <- t(data.ts)
   N <- dim(x)[1]
   T <- dim(x)[2]
   tol <- 1e-10
-  
+
   leads.fore <- NULL
   leads.aft <- NULL
   if(castspan > 0)
@@ -65,12 +89,12 @@ sigex.castextract <- function(data.ts,data.casts,mdl,castspan,param)
   if(length(leads.fore)>0) { x <- cbind(x,matrix(NA,nrow=N,ncol=length(leads.fore))) }
   if(length(leads.aft)>0) { x <- cbind(matrix(NA,nrow=N,ncol=length(leads.aft)),x) }
   TH <- dim(x)[2]
-  
+
   times.na <- NULL
   for(k in 1:N)
   { times.na <- union(times.na,seq(1,TH)[is.na(x)[k,]]) }
   times.na <- sort(times.na)
-  
+
   reg.trend <- ts(mdl[[4]][[1]][,1])
   d <- 0
   diff.flag <- TRUE
@@ -80,8 +104,8 @@ sigex.castextract <- function(data.ts,data.casts,mdl,castspan,param)
     if(sum(reg.trend^2)==0) { diff.flag <- FALSE } else { d <- d+1 }
   }
   reg.trend <- t(param[[4]]) %x% seq(1-castspan,T+castspan)^d
- 
-  x.casts <- data.casts[[1]] 
+
+  x.casts <- data.casts[[1]]
   se.casts <- matrix(sqrt(tol+diag(data.casts[[2]])),nrow=N)
   extract.casts <- list()
   extract.casts[[1]] <- t(x) - reg.trend
@@ -93,6 +117,6 @@ sigex.castextract <- function(data.ts,data.casts,mdl,castspan,param)
   extract.casts[[3]] <- t(x) - reg.trend
   extract.casts[[3]][times.na,] <- t(x.casts) - 2*t(se.casts)
   extract.casts[[3]] <- extract.casts[[3]] + reg.trend
-  
+
   return(extract.casts)
 }

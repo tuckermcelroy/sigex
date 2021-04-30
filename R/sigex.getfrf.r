@@ -1,3 +1,17 @@
+#' Computes frequency response function for desired signal and plots it
+#'
+#' @param data.ts A T x N matrix ts object
+#' @param	param The model parameters entered into a list object
+#' @param	mdl The specified sigex model, a list object
+#' @param sigcomps Indices of the latent components composing the signal
+#' @param plotit Boolean flag for whether frf should be plotted;
+#'			only plots if N <= 3
+#' @param	grid Desired number of frequencies for spectrum calculations
+#'
+#' @return frf.comp:  array of dimension c(N,N,grid), with complex number entries
+#' @export
+#'
+
 sigex.getfrf <- function(data.ts,param,mdl,sigcomps,plotit=TRUE,grid)
 {
 
@@ -24,8 +38,8 @@ sigex.getfrf <- function(data.ts,param,mdl,sigcomps,plotit=TRUE,grid)
 	################# Documentation ############################################
 	#
 	#	Purpose: computes frf for desired signal and plots it
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
@@ -35,10 +49,10 @@ sigex.getfrf <- function(data.ts,param,mdl,sigcomps,plotit=TRUE,grid)
 	#		generating function (acgf) via gamma_w (B).
 	#		The signal extraction filter for y_t is determined from
 	#		this acgf and delta.
-	#		param is the name for the model parameters entered into 
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Notes: take grid >> len, else numerical issues arise
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object
@@ -49,7 +63,7 @@ sigex.getfrf <- function(data.ts,param,mdl,sigcomps,plotit=TRUE,grid)
 	#			only plots if N <= 3
 	#		grid: desired number of frequencies for spectrum calculations
 	#	Outputs:
-	#		frf.comp:  array of dimension c(N,N,grid), with complex number entries 
+	#		frf.comp:  array of dimension c(N,N,grid), with complex number entries
 	#	Requires: sigex.frf
 	#
 	####################################################################
@@ -61,7 +75,7 @@ sigex.getfrf <- function(data.ts,param,mdl,sigcomps,plotit=TRUE,grid)
 
 	if(plotit && (N <= 4)) {
 	par(mfrow = c(N,N))
-	for(i in 1:N) 
+	for(i in 1:N)
 	{
 		for(j in 1:N)
 		{

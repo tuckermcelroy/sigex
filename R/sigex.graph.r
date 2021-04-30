@@ -1,6 +1,25 @@
+#' Adds signal extraction estimates, with shaded bands,
+#'		to an existing time series plot
+#'
+#' @param extract T x N matrix of the signal estimates, e.g. output of sigex.extract
+#' @param	reg A T x N matrix of fixed effects, to be added to extraction.
+#'			Note: only the column of reg corresponding to "series" is utilized.
+#'			(To incorporate multiple reg effects, add these all up before hand.)
+#' @param	start.date Date of first time obersvation; the
+#'			 format is c(year,season)
+#' @param	period Number of seasons per year
+#' @param series Index of the particular series under consideration
+#' @param	displace Gives a vertical shift to the plot
+#' @param color Given as a number in the range of colors()
+#' @param	fade Gives shading proportion for uncertainty (NULL if none)
+#'
+#' @return NA
+#' @export
+#'
+
 sigex.graph <- function(extract,reg=NULL,start.date,period,series,displace,color,fade)
 {
-	
+
 	##########################################################################
 	#
 	#	sigex.graph
@@ -23,10 +42,10 @@ sigex.graph <- function(extract,reg=NULL,start.date,period,series,displace,color
 
 	################# Documentation ############################################
 	#
-	#	Purpose: adds signal extraction estimates, with shaded bands, 
+	#	Purpose: adds signal extraction estimates, with shaded bands,
 	#		to an existing time series plot
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
@@ -51,7 +70,7 @@ sigex.graph <- function(extract,reg=NULL,start.date,period,series,displace,color
 	#	Outputs: none
 	#
 	####################################################################
- 
+
 	T <- dim(extract[[1]])[1]
 	rgbCol <- col2rgb(color)
 	hexCol <- rgb(rgbCol[1,1],rgbCol[2,1],rgbCol[3,1],maxColorValue=255)
@@ -65,4 +84,4 @@ sigex.graph <- function(extract,reg=NULL,start.date,period,series,displace,color
 	polygon(c(time,rev(time)),c(extract[[3]][,series]+rep(displace,T)+reg.shift,
 		rev(extract[[2]][,series]+rep(displace,T)+reg.shift)),
 		col=paste(hexCol,fade,sep=""),border=NA) }
-}	
+}

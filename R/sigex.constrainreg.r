@@ -1,6 +1,25 @@
+#' Determines constraint matrix for regressors
+#'
+#' @param	mdl The specified sigex model, a list object
+#' @param	data.ts A T x N matrix ts object (with no missing values)
+#'			corresponding to N time series of length T
+#' @param regindex A list object of N elements, containing indices J_i
+#'     for i=1,...,N of the regressors for the ith series involved.
+#' @param combos A vector of linear combinations, the subvectors have length
+#'     J_i corresponding to regindex, and a first element which is Q
+#'     BUT: if set to NULL, then all regressors in regindex are constrained
+#'       to have the same value.
+#'
+#' @return constraint: row vector of the form [Q , C], with C (constraint.mat)
+#'     the vector of constraints and Q (constraint.vec) the
+#'     constraint constant, such that C psi = Q.
+#'     When combos=NULL, constraint will be a matrix
+#' @export
+#'
+
 sigex.constrainreg <- function(mdl,data.ts,regindex,combos)
 {
-  
+
   ##########################################################################
   #
   #	sigex.constrainreg
@@ -20,14 +39,14 @@ sigex.constrainreg <- function(mdl,data.ts,regindex,combos)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation #####################################
   #
   #	Purpose: determines constraint matrix for regressors
   #	Inputs:
   #		mdl: the specified sigex model, a list object
   #		data.ts: a T x N matrix ts object
-  #   regindex: a list object of N elements, containing indices J_i 
+  #   regindex: a list object of N elements, containing indices J_i
   #     for i=1,...,N of the regressors for the ith series involved.
   #   combos: a vector of linear combinations, the subvectors have length
   #     J_i corresponding to regindex, and a first element which is Q
@@ -35,23 +54,23 @@ sigex.constrainreg <- function(mdl,data.ts,regindex,combos)
   #       to have the same value.
   #	Outputs:
   #		constraint: row vector of the form [Q , C], with C (constraint.mat)
-  #     the vector of constraints and Q (constraint.vec) the  
+  #     the vector of constraints and Q (constraint.vec) the
   #     constraint constant, such that C psi = Q.
   #     When combos=NULL, constraint will be a matrix
   #	Requires: sigex.default, sigex.par2psi
   #
   ####################################################################
-  
+
   par.mle <- sigex.default(mdl,data.ts,NULL)
   psi.mle <- sigex.par2psi(par.mle,mdl)
   psi.index <- NULL
-  mark <- length(psi.mle) - length(par.mle[[4]]) 
+  mark <- length(psi.mle) - length(par.mle[[4]])
   for(i in 1:N)
   {
     psi.index <- c(psi.index,mark + regindex[[i]])
     mark <- mark + dim(mdl[[4]][[i]])[2]
   }
-  if(length(combos)>0) 
+  if(length(combos)>0)
   {
     constraint <- rep(0,length(psi.mle))
     constraint[psi.index] <- combos[-1]
@@ -64,11 +83,11 @@ sigex.constrainreg <- function(mdl,data.ts,regindex,combos)
     {
       constraint.new <- rep(0,length(psi.mle))
       constraint.new[psi.one] <- 1
-      constraint.new[psi.index[k]] <- -1 
+      constraint.new[psi.index[k]] <- -1
       constraint.new <- c(0,constraint.new)
       constraint <- rbind(constraint,constraint.new)
     }
   }
-  
+
   return(constraint)
 }

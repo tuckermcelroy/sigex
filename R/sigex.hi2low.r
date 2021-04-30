@@ -1,6 +1,23 @@
+#' Embeds a given high frequency filter as a low frequency filter
+#'     for a vector embedding
+#'
+#' @param filter.hi Given scalar high frequency filter of length L
+#' @param hi.freq  Sampling frequency of high frequency time series
+#' @param low.freq Sampling frequency of low frequency time series
+#' @param shift.hi  The integer offset for the high frequency filter:
+#'     filter coefficients have indices -shift.hi,...,0,...,L-1-shift.hi
+#'     set shift.hi = 0 for a causal filter
+#'
+#' @return filter.low: array s x s x M,
+#'     where s = hi.freq/low.freq (must be an integer)
+#'     and M is length, which depends on s, L, and shift.hi
+#'   shift.low: integer offset for the low frequency filter
+#' @export
+#'
+
 sigex.hi2low <- function(filter.hi,hi.freq,low.freq,shift.hi)
 {
-  
+
   ##########################################################################
   #
   #	sigex.hi2low
@@ -20,14 +37,14 @@ sigex.hi2low <- function(filter.hi,hi.freq,low.freq,shift.hi)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation #####################################
   #
   #	Purpose: embeds a given high frequency filter as a low frequency filter
   #     for a vector embedding
   #	Background:	a scalar high frequency filter acts on a high frequency time series
   #     by convolution.  If we embed as a low frequency time series, the
-  #     corresponding filter is now a matrix filter.  
+  #     corresponding filter is now a matrix filter.
   #	Inputs:
   #  filter.hi is given scalar high frequency filter of length L
   #  hi.freq is sampling frequency of high frequency time series
@@ -37,11 +54,11 @@ sigex.hi2low <- function(filter.hi,hi.freq,low.freq,shift.hi)
   #     set shift.hi = 0 for a causal filter
   #	outputs:
   #   filter.low is array s x s x M,
-  #     where s = hi.freq/low.freq (must be an integer) 
+  #     where s = hi.freq/low.freq (must be an integer)
   #     and M is length, which depends on s, L, and shift.hi
   #   shift.low is integer offset for the low frequency filter
   ##############################################################
-  
+
   s.embed <- hi.freq/low.freq
   len.hi <- length(filter.hi)
   if(shift.hi %% s.embed == 0) { left.pad <- NULL } else {
@@ -61,7 +78,7 @@ sigex.hi2low <- function(filter.hi,hi.freq,low.freq,shift.hi)
   filter.low <- array(filter.embed,c(s.embed,len.low,s.embed))
   filter.low <- aperm(filter.low,c(1,3,2))
   shift.low <- (length(left.pad) + shift.hi)/s.embed
-  
+
   return(list(filter.low,shift.low))
 }
 
