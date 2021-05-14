@@ -1,3 +1,16 @@
+#' Utility that takes a real vector and inserts as
+#'   	entries of a unit lower triangular matrix
+#'
+#' @param L.psi  A vector of reals of length <= N(N-1)/2
+#' @param	N  Dimension of the time series
+#' @param	vrank  Vector of integers between 1 and N, corresponding
+#'			to indices of non-zero Schur complements in the GCD
+#'
+#' @return 	L.mat: unit lower	triangular matrix of dimension N x length(vrank)
+#'		with entries given by L.psi
+#' @export
+#'
+
 sigex.param2gcd <- function(L.psi,N,vrank)
 {
 
@@ -38,7 +51,7 @@ sigex.param2gcd <- function(L.psi,N,vrank)
 	#		vrank: vector of integers between 1 and N, corresponding
 	#			to indices of non-zero Schur complements in the GCD
 	#	Outputs:
-	#		L.mat: unit lower	triangular matrix of dimension N x length(vrank) 
+	#		L.mat: unit lower	triangular matrix of dimension N x length(vrank)
 	#		with entries given by L.psi
 	#
 	####################################################################
@@ -55,7 +68,7 @@ sigex.param2gcd <- function(L.psi,N,vrank)
 		fill <- c(fill,new)
 		ind <- ind + N - j
 	}
-	L.mat <- matrix(fill,nrow=N,ncol=length(vrank)) 
+	L.mat <- matrix(fill,nrow=N,ncol=length(vrank))
 	}
 
 	return(L.mat)

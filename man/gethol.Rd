@@ -2,23 +2,23 @@
 % Please edit documentation in R/gethol.r
 \name{gethol}
 \alias{gethol}
-\title{generates holiday regressors from holiday dates}
+\title{Generates holiday regressors from holiday dates}
 \usage{
 gethol(hol.dates, hol.fore, hol.aft, start.date, end.date)
 }
 \arguments{
-\item{hol.dates}{list of dates in month-day-year format;
+\item{hol.dates}{List of dates in month-day-year format;
 this is a matrix with one row for each holiday date,
 and 3 columns for month, day in month, and year}
 
-\item{hol.fore}{number of days before holiday, where effect begins}
+\item{hol.fore}{Number of days before holiday, where effect begins}
 
-\item{hol.aft}{number of days after holiday, where effect ends}
+\item{hol.aft}{Number of days after holiday, where effect ends}
 
-\item{start.date}{start date of time series in month-day-year format,
+\item{start.date}{Start date of time series in month-day-year format,
 a 3-element vector}
 
-\item{end.date}{end date of time series in month-day-year format,
+\item{end.date}{End date of time series in month-day-year format,
 a 3-element vector}
 }
 \value{
@@ -27,5 +27,5 @@ subset.hol.reg: regressors corresponding to the holiday effect,
 		and at dates between start.date and end.date
 }
 \description{
-generates holiday regressors from holiday dates
+Generates holiday regressors from holiday dates
 }

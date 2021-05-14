@@ -1,3 +1,38 @@
+#' Compute multi-step imputations and predictors of a multivariate process
+#'		via Levinson-Durbin algorithm with  missing values
+#'
+#' @param x.acf Array of dimension N x T x N of autocovariances for process w_t,
+#'			where there are N series, of total length T each.
+#' @param	z Differenced data as N x (T+H) matrix, with missing values at
+#'			various time points.  Presumes first T observations are not missing,
+#'			and latter H observations are missing, being encoded
+#'			with 1i in that entry.  That is,
+#'			Im(z[,t]) = rep(1i,N) encodes missing values.
+#' @param	delta Differencing polynomial (corresponds to delta(B) in Background)
+#'			written in format c(delta0,delta1,...,deltad)
+#' @param debug Set to TRUE if lik values should be printed to screen
+#'
+#' @return 	list containing casts.x, casts.var, c(Qseq,logdet), and eps
+#'		casts.x: N x H matrix of backcasts, midcasts, aftcasts, where H
+#'			is the total number of time indices with missing values.
+#'			So if times.na is a subset of seq(1,T) corresponding to indices
+#'			with missing values, we can fill in all NAs via	z[,times.na] <- casts.x.
+#'     If a subset is missing at some time t, casts.x for that time t contains
+#'     the casts together with the known values.
+#'		casts.var: NH x NH matrix of covariances of casting errors.
+#'			note that casts.var.array <- array(casts.var,c(N,H,N,H))
+#'			corresponds to cast.var.array[,j,,k] equal to the
+#'			covariance between the jth and kth casting errors.
+#'     If a subset is missing at some time t, the corresponding block of casts.var
+#'     will have zeros corresponding to the known values.
+#'		Qseq: quadratic form portion of the Gaussian divergence based on
+#'			missing value formulation (McElroy and Monsell, 2015 JASA)
+#'		logdet: log determinant portion of the Gaussian divergence
+#'		eps: residuals from casting recursions, defined in the manner
+#'			discussed in Casting paper.  Dimension is N x T-(H+d)
+#' @export
+#'
+
 mvar.midcast <- function(x.acf,z,delta,debug=FALSE)
 {
 

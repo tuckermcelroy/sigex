@@ -1,3 +1,24 @@
+#' Compute multi-step forecasts and predictors of a multivariate process
+#'		via Levinson-Durbin algorithm
+#'
+#' @param x.acf Array of dimension N x T x N of autocovariances for process w_t,
+#'			where there are N series, of total length T each.
+#' @param	z Differenced data as N x (T+H) matrix, with missing values at
+#'			various time points.  Presumes first T observations are not missing,
+#'			and latter H observations are missing, being encoded
+#'			with 1i in that entry.  That is,
+#'			Im(z[,t]) = rep(1i,N) encodes missing values.
+#' @param	needMSE A binary flag, with 1 indicating that forecast MSE should be computed;
+#'			else with a 0 this will be skipped (runs faster in this mode).
+#'
+#' @return 	list containing preds.x and pred.stack
+#'		preds.x: N x (T+H) matrix of data with forecasts, where H
+#'			is the total number of time indices with missing values.
+#'		pred.stack: NT x H matrix of predictors, which can be used to
+#'			obtain uncertainty.
+#' @export
+#'
+
 mvar.forecast <- function(x.acf,z,needMSE)
 {
 
@@ -25,21 +46,21 @@ mvar.forecast <- function(x.acf,z,needMSE)
 	#
 	#	Purpose: compute multi-step forecasts and predictors of a multivariate process
 	#		via Levinson-Durbin algorithm
-	#	Background:	
+	#	Background:
 	#		A multivariate difference-stationary process x_t with
-	#			w_t = delta(B) x_t 
+	#			w_t = delta(B) x_t
 	#		may be observed with missing values, and one wants to compute
 	#		Gaussian conditional expectations of missing values (midcasts),
 	#		or future values (forecasts), or past values (aftcasts).
 	#		Also of interest is the Gaussian likelihood resulting from
-	#		such a sample, and the residuals.  
+	#		such a sample, and the residuals.
 	#	Inputs:
 	#		x.acf: array of dimension N x T x N of autocovariances for process w_t,
 	#			where there are N series, of total length T each.
 	#		z: differenced data as N x (T+H) matrix, with missing values at
-	#			various time points.  Presumes first T observations are not missing, 
+	#			various time points.  Presumes first T observations are not missing,
 	#			and latter H observations are missing, being encoded
-	#			with 1i in that entry.  That is, 
+	#			with 1i in that entry.  That is,
 	#			Im(z[,t]) = rep(1i,N) encodes missing values.
 	#		needMSE: a binary flag, with 1 indicating that forecast MSE should be computed;
 	#			else with a 0 this will be skipped (runs faster in this mode).
@@ -48,7 +69,7 @@ mvar.forecast <- function(x.acf,z,needMSE)
 	#		preds.x: N x (T+H) matrix of data with forecasts, where H
 	#			is the total number of time indices with missing values.
 	#		pred.stack: NT x H matrix of predictors, which can be used to
-	#			obtain uncertainty...
+	#			obtain uncertainty.
 	#	Notes: running this code with needMSE=1 makes it slower, but yields
 	#		pred.stack, however the routine mvar.midcast is preferred for
 	#		obtaining any casts with uncertainty.  I think the pred.stack feature
@@ -56,7 +77,7 @@ mvar.forecast <- function(x.acf,z,needMSE)
  	#		remove it in case another application comes up.
 	#
 	####################################################################
-		
+
 	thresh <- 10^(-16)
 	N <- dim(z)[1]
 	TH <- dim(z)[2]
@@ -78,7 +99,7 @@ mvar.forecast <- function(x.acf,z,needMSE)
 	gam.Flip <- x.acf[,2,]
 	c.mat <- x.acf[,1,] - t(gam.Flip) %*% u.seq
 	d.mat <- x.acf[,1,] - gam.Seq %*% l.seq
-	
+
 	# looping
 	t.star <- T
 	for(t in 1:(TH-2))
@@ -97,8 +118,8 @@ mvar.forecast <- function(x.acf,z,needMSE)
 			c.mat <- x.acf[,1,] - t(gam.Flip) %*% u.seq
 			d.mat <- x.acf[,1,] - gam.Seq %*% l.seq
 		}
-		if((sqrt(sum(diag(l.factor %*% t(l.factor)))) < thresh) && (t < T-1)) 
-		{ 
+		if((sqrt(sum(diag(l.factor %*% t(l.factor)))) < thresh) && (t < T-1))
+		{
 			t.star <- min(t.star,t+1)
 		}
 		if(t==(T-1))
@@ -113,7 +134,7 @@ mvar.forecast <- function(x.acf,z,needMSE)
 				preds.x <- cbind(preds.x,pred.x)
 			}
 		}
-		if(t > (T-1)) 
+		if(t > (T-1))
 		{
 			if(needMSE) {
 				t.len <- dim(l.seq)[1]/N
@@ -133,7 +154,7 @@ mvar.forecast <- function(x.acf,z,needMSE)
 		x.cast <- t(pred.stack) %*% matrix(Re(z[,(T-t.star+1):T]),ncol=1)
 		x.cast <- matrix(x.cast,nrow=N)
 		preds.x <- cbind(Re(z[,1:T,drop=FALSE]),x.cast)
-	} 
-	
-	return(list(preds.x,pred.stack)) 
+	}
+
+	return(list(preds.x,pred.stack))
 }

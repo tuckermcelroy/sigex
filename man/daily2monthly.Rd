@@ -2,17 +2,17 @@
 % Please edit documentation in R/daily2monthly.r
 \name{daily2monthly}
 \alias{daily2monthly}
-\title{converts a daily time series to a monthly time series}
+\title{Converts a daily time series to a monthly time series}
 \usage{
 daily2monthly(daily.series, start.date, dayofweek)
 }
 \arguments{
-\item{daily.series}{the input daily time series}
+\item{daily.series}{The input daily time series}
 
-\item{start.date}{beginning date in month-day-year format,
+\item{start.date}{Beginning date in month-day-year format,
 a 3-element vector}
 
-\item{dayofweek}{day of the week, 1 through 7}
+\item{dayofweek}{Day of the week, 1 through 7}
 }
 \value{
 monthly.series: each monthly value is the aggregate of
@@ -20,5 +20,5 @@ monthly.series: each monthly value is the aggregate of
 		day of the week
 }
 \description{
-converts a daily time series to a monthly time series
+Converts a daily time series to a monthly time series
 }

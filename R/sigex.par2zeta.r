@@ -1,3 +1,15 @@
+#' Transform param to zeta
+#'
+#' @param mdlPar This is the portion of param
+#'			corresponding to mdlType
+#' @param mdlType This is a component of mdl (the specified sigex model),
+#'			 cited as mdl[[2]]
+#'
+#' @return 	zeta: portion of psi pre-parameter vector that corresponds to
+#'      all hyper-parameters for t.s. models
+#' @export
+#'
+
 sigex.par2zeta <- function(mdlPar,mdlType)
 {
 

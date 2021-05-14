@@ -83,7 +83,14 @@ sigex.meaninit <- function(mdl,data.ts,d)
 	if(length(sigex.whichtrend(mdl))==1)
 	{
 		delta <- mdl[[3]][[sigex.whichtrend(mdl)]]
-		d <- length(delta) - 1 - sum(abs(Arg(polyroot(delta))) > 10^(-8))
+#		d <- length(delta) - 1 - sum(abs(Arg(polyroot(delta))) > 10^(-8))
+		d <- 0
+		delta.temp <- delta
+		for(k in 1:length(delta))
+		{
+		  if(sum(delta.temp)==0) { d <- d + 1 }
+		  delta.temp <- delta.temp[-1]*seq(1,length(delta.temp)-1)
+		}
 	}
 	x <- t(data.ts)
 	T <- dim(x)[2]

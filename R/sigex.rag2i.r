@@ -1,6 +1,9 @@
+#' Read multivariate time series and insert 1i for indicated missing values
+
+
 sigex.rag2i <- function(leads.rag,ragged,z)
 {
-  
+
   ##########################################################################
   #
   #	sigex.rag2i
@@ -20,13 +23,13 @@ sigex.rag2i <- function(leads.rag,ragged,z)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation #####################################
   #
   #	Purpose:  read multivariate time series and insert 1i for indicated missing values
   #	Inputs:
   #		leads.rag: an integer sequence of indices that have at least one missing value
-  #			These integers are a subset of {1,2,...,T}.  
+  #			These integers are a subset of {1,2,...,T}.
   #   ragged: a list with number of items equal to length of leads.rag
   #     within the sample {1,2,...,T}.  (ragged=NULL if there are none.)
   #     Each element contains indices of vector components that are missing.
@@ -34,25 +37,24 @@ sigex.rag2i <- function(leads.rag,ragged,z)
   #      where at least one missing value (in-sample) occurs.
   #		z: raw data as N x T matrix with missing values at various time points.
   #			Missing values are at any 1 <= t <= T, and occur for some of the N series
-  #     (the ragged case), and are denoted with a 1i.  That is, 
+  #     (the ragged case), and are denoted with a 1i.  That is,
   #			Im(z[,t]) = rep(1i,N) or subset thereof encodes missing values.
   #	Outputs:
   #		z: like z, but with additional 1i inserted where indicated by ragged
   #
   ####################################################################
-  
+
   N <- dim(z)[1]
   T <- dim(z)[2]
-  if(length(leads.rag)>0) 
-  { 
+  if(length(leads.rag)>0)
+  {
     for(t in 1:length(leads.rag))
     {
       raggeds <- ragged[[t]]
-      z[raggeds,leads.rag[t]] <- rep(1i,length(raggeds)) 
+      z[raggeds,leads.rag[t]] <- rep(1i,length(raggeds))
     }
   }
-  
+
   return(z)
 }
 
-  

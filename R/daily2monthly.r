@@ -1,9 +1,9 @@
-#' converts a daily time series to a monthly time series
+#' Converts a daily time series to a monthly time series
 #'
-#' @param daily.series the input daily time series
-#' @param start.date beginning date in month-day-year format,
+#' @param daily.series The input daily time series
+#' @param start.date Beginning date in month-day-year format,
 #'			a 3-element vector
-#' @param dayofweek day of the week, 1 through 7
+#' @param dayofweek Day of the week, 1 through 7
 #'
 #' @return monthly.series: each monthly value is the aggregate of
 #'			all daily values in that month, of the specified

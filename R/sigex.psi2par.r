@@ -1,3 +1,15 @@
+#' Transform psi to param
+#'
+#' @param psi A vector of all the real hyper-parameters
+#' @param mdl The specified sigex model, a list object
+#' @param	data.ts A T x N matrix ts object (with no missing values)
+#'			corresponding to N time series of length T
+#'
+#' @return param:  model parameters entered into
+#'		a list object with an intuitive structure.
+#' @export
+#'
+
 sigex.psi2par <- function(psi,mdl,data.ts)
 {
 
@@ -24,8 +36,8 @@ sigex.psi2par <- function(psi,mdl,data.ts)
 	################# Documentation #####################################
 	#
 	#	Purpose: transform psi to param
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
 	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
@@ -35,9 +47,9 @@ sigex.psi2par <- function(psi,mdl,data.ts)
 	#		zeta ~ all hyper-parameters for t.s. models
 	#		beta ~ all regression parameters
 	#	Inputs:
-	#		psi: see background. 
+	#		psi: see background.
 	#		mdl: the specified sigex model, a list object
-	#		data.ts: a T x N matrix ts object, 
+	#		data.ts: a T x N matrix ts object,
 	#			corresponding to N time series of length T
 	#	Outputs:
 	#		param: see background.  Will have form specified by mdl
@@ -70,10 +82,10 @@ sigex.psi2par <- function(psi,mdl,data.ts)
 		L.par[[i]] <- L.mat
 		D.par[[i]] <- D.psi
 	}
-	
+
 	# get beta portion
 	beta.len <- 0
-	for(i in 1:N) 
+	for(i in 1:N)
 	{
 		beta.len <- beta.len + dim(mdl[[4]][[i]])[2]
 	}
@@ -92,7 +104,7 @@ sigex.psi2par <- function(psi,mdl,data.ts)
 			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,N)
 		}
 		ind <- ind + zetalen
-	} 
+	}
 
 	return(list(L.par,D.par,zeta.par,beta.par))
 }

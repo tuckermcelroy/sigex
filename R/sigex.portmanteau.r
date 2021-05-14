@@ -1,3 +1,16 @@
+#' Computes the portmanteau statistic for residuals
+#'
+#' @param resids A T x N matrix of residuals
+#' @param	lag Number of autocorrelation lags used in the statistic
+#' @param nump Number of parameters that are estimated
+#'
+#' @return port and pval
+#'  	port: value of the portmanteau test statistic
+#'		pval: p-value of port, based on chi square with nump
+#'			degrees of freedom
+#' @export
+#'
+
 sigex.portmanteau <- function(resids,lag,nump)
 {
 
@@ -27,7 +40,7 @@ sigex.portmanteau <- function(resids,lag,nump)
 	#	Background:
 	#		model-fitting is an entropy maximizing transformation of
 	#		the data, producing residuals that should resemble
-	#		Gaussian white noise.  We can test whether there is  
+	#		Gaussian white noise.  We can test whether there is
 	#		serial autocorrelation via the portmanteau statistic
 	#	Inputs:
 	#		resids: a T x N matrix of residuals
@@ -35,11 +48,11 @@ sigex.portmanteau <- function(resids,lag,nump)
 	#		nump: number of parameters that are estimated
 	#	Outputs:
 	#		port: value of the portmanteau test statistic
-	#		pval: p-value of port, based on chi square with nump 
-	#			degrees of freedom 
+	#		pval: p-value of port, based on chi square with nump
+	#			degrees of freedom
 	#
 	####################################################################
- 
+
 	x <- t(resids)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
@@ -51,12 +64,12 @@ sigex.portmanteau <- function(resids,lag,nump)
 	port <- 0
 	for(h in 1:lag)
 	{
-		port <- port + sum(diag(acf.sample[h+1,,] %*% varinv %*% 
+		port <- port + sum(diag(acf.sample[h+1,,] %*% varinv %*%
 			t(acf.sample[h+1,,]) %*% varinv))
 	}
 	port <- T*port
 	pval <- 1-pchisq(port,df= dof)
-	
+
 	return(c(port,pval))
 }
 

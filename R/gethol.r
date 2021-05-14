@@ -1,13 +1,13 @@
-#' generates holiday regressors from holiday dates
+#' Generates holiday regressors from holiday dates
 #'
-#' @param hol.dates list of dates in month-day-year format;
+#' @param hol.dates List of dates in month-day-year format;
 #'			this is a matrix with one row for each holiday date,
 #'			and 3 columns for month, day in month, and year
-#' @param hol.fore number of days before holiday, where effect begins
-#' @param hol.aft number of days after holiday, where effect ends
-#' @param start.date start date of time series in month-day-year format,
+#' @param hol.fore Number of days before holiday, where effect begins
+#' @param hol.aft Number of days after holiday, where effect ends
+#' @param start.date Start date of time series in month-day-year format,
 #'  		a 3-element vector
-#' @param end.date end date of time series in month-day-year format,
+#' @param end.date End date of time series in month-day-year format,
 #'			a 3-element vector
 #'
 #' @return subset.hol.reg: regressors corresponding to the holiday effect,

@@ -1,3 +1,17 @@
+#' Computes initial parameter estimates by method of moments
+#'
+#' @param data.ts A T x N matrix ts object; any missing values
+#'			must be encoded with 1i in that entry
+#' @param	param  model parameters entered into
+#'		a list object with an intuitive structure.
+#'    This is an initial specification to
+#'			start the nonlinear optimization routines
+#' @param	mdl  The specified sigex model, a list object
+#'
+#' @return 	par.new: type param, with the estimated covariance parameters filled in
+#' @export
+#'
+
 sigex.momfit <- function(data.ts,param,mdl)
 {
 
@@ -88,7 +102,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 		mdlOrder <- mdlType[[2]]
 		mdlBounds <- mdlType[[3]]
 		mdlPar <- param[[3]][[i]]
-		
+
 		# Default
 		ar.poly <- 1
 		ma.poly <- delta.poly

@@ -2,7 +2,7 @@
 % Please edit documentation in R/date2day.r
 \name{date2day}
 \alias{date2day}
-\title{converts month-day-year date, and returns day index}
+\title{Converts month-day-year date, and returns day index}
 \usage{
 date2day(month, day, year)
 }
@@ -17,5 +17,5 @@ date2day(month, day, year)
 day.count: day index within a year of the given date, from 1 to 366
 }
 \description{
-converts month-day-year date, and returns day index
+Converts month-day-year date, and returns day index
 }

@@ -1,4 +1,4 @@
-#' converts month-day-year date, and returns day index
+#' Converts month-day-year date, and returns day index
 #'
 #' @param month 1 through 12, corresponding to the date's month
 #' @param day 1 through 31, corresponding to the date's day

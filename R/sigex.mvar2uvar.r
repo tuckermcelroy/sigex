@@ -1,3 +1,19 @@
+#' Transform multivariate parameters to implied univariate form
+#'
+#' @param data.ts A T x N matrix ts object; any missing values
+#'			must be encoded with 1i in that entry
+#' @param	param  Model parameters entered into
+#'		a list object with an intuitive structure.
+#'    This is an initial specification to
+#'			start the nonlinear optimization routines
+#' @param	mdl  The specified sigex model, a list object
+#'
+#' @return list with mdl.uni and univ.param
+#'   	mdl.uni: output univariate model
+#'		univ.param: param for univariate model
+#' @export
+#'
+
 sigex.mvar2uvar <- function(data.ts,param,mdl)
 {
 
@@ -24,11 +40,11 @@ sigex.mvar2uvar <- function(data.ts,param,mdl)
 	################# Documentation #####################################
 	#
 	#	Purpose: transform multivariate parameters to implied univariate form
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object
 	#		param: see background
@@ -39,7 +55,7 @@ sigex.mvar2uvar <- function(data.ts,param,mdl)
 	#	Requires: sigex.default
 	#
 	####################################################################
- 
+
 	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
@@ -54,7 +70,7 @@ sigex.mvar2uvar <- function(data.ts,param,mdl)
 		D.psi <- param[[2]][[i]]
 		k.order <- length(D.psi)
 	 	S.mat <- L.psi %*% diag(exp(D.psi),nrow=k.order) %*% t(L.psi)
-		univ.param[[2]][[i]] <- log(diag(S.mat))				
+		univ.param[[2]][[i]] <- log(diag(S.mat))
 		univ.param[[1]][[i]] <- default.param[[1]][[i]]
 	}
 
