@@ -1,3 +1,20 @@
+#' Determine a reduced rank model from a given fitted model
+#'
+#' @param data.ts   A T x N matrix ts object
+#' @return param:  model parameters entered into
+#'		a list object with an intuitive structure.
+#' @param mdl The specified sigex model, a list object
+#' @param thresh Lower bound on Schur complements
+#' @param modelflag When TRUE, small Schur complements imply rank reduction
+#'			in the new model.  When modelFlag is FALSE, small Schur
+#'			complements are replaced by exp(thresh)
+#'
+#' @return 	list of mdl.red and par.red
+#'    mdl.red: the new sigex model, a list object
+#'		par.red: the new param for the new model
+#' @export
+#'
+
 sigex.reduce <- function(data.ts,param,mdl,thresh,modelflag)
 {
 

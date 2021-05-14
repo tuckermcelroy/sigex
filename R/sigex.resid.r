@@ -1,3 +1,20 @@
+#' Computes residuals from Gaussian likelihood of model
+#'
+#' @param psi A vector of all the real hyper-parameters
+#' @param mdl The specified sigex model, a list object
+#' @param data.ts A T x N matrix ts object; any  values to be imputed
+#'			must be encoded with NA in that entry.  The NA is for missing value,
+#'     or an enforced imputation (e.g. extreme-value adjustment).
+#'
+#' @return  A list with two elements
+#'		resids: a N x (T-d) matrix of residuals, where d is
+#'			the order of the full differencing polynomial.
+#'			(A failure returns Inf.)
+#'    x.acf: an array of dimension N x (T+1) x N of the autocovariances
+#'      of the differenced model for lags 0 through T, corresponding to psi.
+#' @export
+#'
+
 sigex.resid <- function(psi,mdl,data.ts,debug=FALSE)
 {
 

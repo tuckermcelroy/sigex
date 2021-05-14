@@ -1,3 +1,15 @@
+#' Adds regressors to an existing model
+#'
+#' @param mdl The specified sigex model, a list object
+#' @param series Integer between 1 and N, the index of the individual series for
+#'			which regressors are being added.
+#' @param reg A one-column matrix of time series regressors, of length T.
+#'      Should have names attribute, as well as start and frequency.
+#'
+#' @return mdl: the updated sigex model, a list object
+#' @export
+#'
+
 sigex.reg <- function(mdl,series,reg)
 {
 

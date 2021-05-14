@@ -1,6 +1,19 @@
+#' Modifies a covariance matrix so that it is pd
+#'
+#' @param L.mat  Rectangular, lower Cholesky factor
+#' @param	D.mat  Vector of diagonal entries in Cholesky decomposition
+#' @param	thresh A threshold for condition numbers.  The new
+#'			covariance matrix has a modified D matrix, such
+#'			that the condition numbers (with the same L.mat)
+#'			are bounded below by thresh.
+#'
+#' @return 	conds.new: new condition numbers
+#' @export
+#'
+
 sigex.renderpd <- function(L.mat,D.mat,thresh)
 {
-	
+
 	##########################################################################
 	#
 	#	sigex.renderpd
@@ -35,7 +48,7 @@ sigex.renderpd <- function(L.mat,D.mat,thresh)
 	#	Inputs:
 	#		L.mat: rectangular, lower Cholesky factor
 	#		D.mat: vector of diagonal entries in Cholesky decomposition
-	#		thresh: a threshold for condition numbers.  The new 
+	#		thresh: a threshold for condition numbers.  The new
 	#			covariance matrix has a modified D matrix, such
 	#			that the condition numbers (with the same L.mat)
 	#			are bounded below by thresh.

@@ -352,7 +352,7 @@ fade <- 60
 plot(dataONE.ts,xlab="Year")
 sigex.graph(sa.hi.daily,reg.trend,start(sa.hi.daily[[1]]),
             period,1,0,trendcol,fade)
-sigex.graph(td.hi.daily,reg.trend,start(td.low.daily[[1]]),
+sigex.graph(td.hi.daily,reg.trend,start(td.hi.daily[[1]]),
             period,1,0,sacol,fade)
 dev.off()
 

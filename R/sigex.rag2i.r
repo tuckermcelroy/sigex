@@ -1,5 +1,20 @@
 #' Read multivariate time series and insert 1i for indicated missing values
-
+#'
+#' @param leads.rag An integer sequence of indices that have at least one missing value.
+#'			These integers are a subset of {1,2,...,T}.
+#' @param ragged A list with number of items equal to length of leads.rag
+#'     within the sample {1,2,...,T}.  (ragged=NULL if there are none.)
+#'     Each element contains indices of vector components that are missing.
+#'     Note: ragged[[j]] must be non-empty, where leads[j] is the time
+#'      where at least one missing value (in-sample) occurs.
+#' @param z Raw data as N x T matrix with missing values at various time points.
+#'			Missing values are at any 1 <= t <= T, and occur for some of the N series
+#'     (the ragged case), and are denoted with a 1i.  That is,
+#'			Im(z[,t]) = rep(1i,N) or subset thereof encodes missing values.
+#'
+#' @return z: like the input z, but with additional 1i inserted where indicated by ragged
+#' @export
+#'
 
 sigex.rag2i <- function(leads.rag,ragged,z)
 {
