@@ -1,0 +1,435 @@
+---
+title: 'Ecce Signum: Illustration'
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, setup, include=FALSE}
+knitr::opts_knit$set(root.dir = 'C:/Users/neide/Documents/GitHub/sigex')
+```
+ 
+# Airline
+
+We  examine the "International Airline Passengers" data from Box and Jenkins' book,
+ referred to as *airline* for short. The data covers a span from January 1949 through December 1960, and exhibits trend and seasonality.
+  
+## Loading Packages 
+
+This code loads the code, and the data into a variable named **airline**.
+
+```{r}
+## wipe
+rm(list=ls())
+library(devtools)
+library(Rcpp)
+
+load_all(".")
+root.dir <- getwd()
+
+airline <- 	c(112, 118, 132, 129, 121, 135, 148, 148, 136, 119, 104, 118,
+	115, 126, 141, 135, 125, 149, 170, 170, 158, 133, 114, 140,
+	145, 150, 178, 163, 172, 178, 199, 199, 184, 162, 146, 166,
+	171, 180, 193, 181, 183, 218, 230, 242, 209, 191, 172, 194,
+	196, 196, 236, 235, 229, 243, 264, 272, 237, 211, 180, 201,
+	204, 188, 235, 227, 234, 264, 302, 293, 259, 229, 203, 229,
+	242, 233, 267, 269, 270, 315, 364, 347, 312, 274, 237, 278,
+	284, 277, 317, 313, 318, 374, 413, 405, 355, 306, 271, 306,
+	315, 301, 356, 348, 355, 422, 465, 467, 404, 347, 305, 336,
+	340, 318, 362, 348, 363, 435, 491, 505, 404, 359, 310, 337,
+	360, 342, 406, 396, 420, 472, 548, 559, 463, 407, 362, 405,
+	417, 391, 419, 461, 472, 535, 622, 606, 508, 461, 390, 432)
+```
+
+## Enter Metadata
+
+- We perform a univariate analysis by fitting a SARIMA model.
+- First enter metadata, including starting date and frequency.
+
+```{r}
+start.time = c(1949,1)
+period <- 12
+```
+
+- Next enter names of the series.
+- The last argument of **sigex.load** generates a time series plot.
+
+```{r}
+dataALL.ts <- sigex.load(as.matrix(airline),start.time,period,
+                         c("Airline"),TRUE)
+```
+
+- On the basis of this plot, we decide (below) to utilize a log transformation for the data.
+    
+## Select Spans and Transforms
+
+- We have the choice of either log or no log.
+- The *aggregate* option will sum across the indicated series, in case we want to analyze an aggregate.  Here we set it to FALSE.
+- We can also select a subcomponent of series with *subseries*.
+- The *range* argument of **sigex.prep** will select a subset of dates for the time series to be analyzed.
+
+```{r}
+transform <- "log"
+aggregate <- FALSE
+subseries <- 1
+range <- NULL
+end.time <- end(dataALL.ts)
+data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
+```
+    
+## Spectral Exploratory Analysis
+
+- In order to get an idea about model specification, we can examine spectral estimates,
+using **sigex.specar**.
+- We can look at raw data or differenced data (growth rates).
+
+```{r}
+# raw data
+par(mfrow=c(1,1))
+for(i in 1:length(subseries))
+{
+  sigex.specar(data.ts,FALSE,i,period)
+}
+dev.off()
+```
+
+```{r}
+# growth rates
+par(mfrow=c(1,1))
+for(i in 1:length(subseries))
+{
+  sigex.specar(data.ts,TRUE,i,period)
+}
+dev.off()
+```
+    
+- This indicates that seasonal differencing is appropriate.    
+    
+##  Model Declaration
+
+- Now we want to define our SARMA model.
+- We begin by defining dimension $N$ and sample size $T$.
+
+```{r}
+N <- dim(data.ts)[2]
+T <- dim(data.ts)[1]
+```
+
+- To get *trading day* (TD) and Easter regressors, we must compute calendar dates in month-day-year format, using **date2day**.
+- We do this for the beginning and end of the series, i.e., the first day of the first month and the last day of the last month.  
+
+```{r}
+start.date <- c(start.time[2],1,start.time[1])
+if(end.time[2] == 12) { end.day <- 31 } else
+{ end.day <- date2day(end.time[2]+1,1,end.time[1]) - date2day(end.time[2],1,end.time[1]) }
+end.date <- c(end.time[2],end.day,end.time[1])
+```
+
+- To specify TD, we count the number of days-of-week falling in each month, using **daily2monthly**.
+- We discard any months occurring at times greater than $T$.
+- We subtract the number of Sundays from each of the counts for the other days-of-week.
+
+```{r}
+td.weights <- NULL
+for(i in 1:7) 
+{
+  td.weights <- cbind(td.weights,daily2monthly(rep(1,T*35),start.date,i)[,1])
+}
+td.weights <- td.weights[1:T,2:7] - td.weights[1:T,1]
+```
+
+- To specify the Easter regressor, one supplies an ASCI file  whose every row contains a calendar date for the relevant holiday, covering a broad range of years.
+- Regressors can simply be created as a daily time series by **gethol**, and then later converted to a weekly regressor.  
+- We use a window of $7$ days before and $0$ days after, so that the holiday effects are presumed to constitute eight days. This like the "Easter[8]" of X-13ARIMA-SEATS.
+- In the calls to **gethol**,  both *start.date* and *end.date* are required.
+   
+```{r}
+easter.dates <- read.table(paste(root.dir,"/data/easter500.txt",sep=""))
+easter.reg <- gethol(easter.dates,1,0,start.date,end.date)
+```
+
+- The daily regressors are converted to monthly flow regressors by using **daily2monthly**, which computes the sum of the regressors for each day-of-week that fall in a particular month.
+- By summing over the days-of-week, we obtain the sum of all regressors falling in each month.
+
+```{r}
+easter.regs <- NULL
+for(i in 1:7) 
+{ 
+  easter.regs <- cbind(easter.regs,daily2monthly(easter.reg,start.date,i)[,1]) 
+}
+easter.regs <- rowSums(easter.regs)
+```
+     
+## Model Construction and Fitting
+  
+- The model incorporates TD and Easter with a SARIMA specification.
+
+```{r}
+delta.seas <- c(1,-1,rep(0,period-2),-1,1)
+mdl <- NULL
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(0,1,0,1,12),NULL,"process",delta.seas)
+mdl <- sigex.meaninit(mdl,data.ts,0)
+mdl <- sigex.reg(mdl,1,ts(td.weights[,1,drop=FALSE],start=start.time,
+                          frequency=period,names="TD Monday"))
+mdl <- sigex.reg(mdl,1,ts(td.weights[,2,drop=FALSE],start=start.time,
+                          frequency=period,names="TD Tuesday"))
+mdl <- sigex.reg(mdl,1,ts(td.weights[,3,drop=FALSE],start=start.time,
+                          frequency=period,names="TD Wednesday"))
+mdl <- sigex.reg(mdl,1,ts(td.weights[,4,drop=FALSE],start=start.time,
+                          frequency=period,names="TD Thursday"))
+mdl <- sigex.reg(mdl,1,ts(td.weights[,5,drop=FALSE],start=start.time,
+                          frequency=period,names="TD Friday"))
+mdl <- sigex.reg(mdl,1,ts(td.weights[,6,drop=FALSE],start=start.time,
+                          frequency=period,names="TD Saturday"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(easter.regs),start=start.time,
+                          frequency=period,names="Easter"))
+``` 
+ 
+- The model is fitted next.
+- We consider the weekday-weekend contrast trading day, accomplished by constraining the first five regressors to have the same coefficient.  This is managed through using **sigex.constrainreg**.
+  
+```{r}  
+constraint <- NULL
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(seq(2,6)),NULL))
+par.mle <- sigex.default(mdl,data.ts,constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl)
+fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=FALSE)
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+```
+
+- This yields a divergence of `r sigex.lik(psi.mle,mdl,data.ts)`.
+- We can also examine the Hessian matrix,  and compute the t statistics for pre-parameters.
+
+```{r}
+print(eigen(hess)$values)
+```
+
+- We obtain, format, and store the residuals.
+- Then we compute the autocorrelations, and plot.
+
+```{r}
+resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*period,plot=TRUE)$acf
+```
+
+- There is some residual correlation, possibly due to over-differencing.
+- If we are content with this model, we can store our results in a single list object.
+
+```{r}
+analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
+```
+
+## SEATS Signal Extraction
+
+- We can obtain a canonical decomposition of the fitted airline model, and use the resulting implied latent process models for trend and seasonal to do Wiener-Kolmogorov signal extraction.
+
+### Canonical Decomposition
+
+- We begin by loading a specialized function that computes this decomposition.
+
+```{r}
+airlineDecomp <- function(theta)
+{
+	#		function to compute canonical decomposition for given airline model
+	#		input: theta has nonseasonal theta and seasonal theta, in Box-Jenkins notation
+	#		output: trendirreg is two moving average parameters,
+  #             and innovation variance for nonseasonal
+	#				    seasonal is eleven moving average parameters,
+  #             and innovation variance for seasonal
+  # Requires: polymult.r, specFact.r
+
+	temp <- polymult(c(1,-1*theta[1]),c(1,rep(0,11),-1*theta[2]))			
+	gamma <- polymult(temp,rev(temp))[14:27]
+																						 	
+	# Compute partial fraction decomposition
+	Amat <- matrix(0,nrow=14,ncol=14)
+	Amat[,1] <- c(12,11,10,9,8,7,6,5,4,3,2,1,0,0)
+	Amat[,2] <- c(22,22,20,18,16,14,12,10,8,6,4,2,1,0)
+	Amat[,3] <- c(6,-4,1,rep(0,11))
+	Amat[,4] <- c(-8,7,-4,1,rep(0,10))
+	Amat[,5] <- c(2,-4,6,-4,1,rep(0,9))
+	Amat[,6] <- c(0,1,-4,6,-4,1,rep(0,8))
+	Amat[,7] <- c(0,0,1,-4,6,-4,1,rep(0,7))
+	Amat[,8] <- c(rep(0,3),1,-4,6,-4,1,rep(0,6))
+	Amat[,9] <- c(rep(0,4),1,-4,6,-4,1,rep(0,5))
+	Amat[,10] <- c(rep(0,5),1,-4,6,-4,1,rep(0,4))
+	Amat[,11] <- c(rep(0,6),1,-4,6,-4,1,rep(0,3))
+	Amat[,12] <- c(rep(0,7),1,-4,6,-4,1,rep(0,2))
+	Amat[,13] <- c(rep(0,8),1,-4,6,-4,1,0)
+	Amat[,14] <- c(4,-2,rep(0,9),1,-2,1)
+	Ainv <- solve(Amat)
+	pfrac <- Ainv %*% gamma
+		
+	# Define spectra functions for seasonal and nonseasonal, to be minimized.
+	# Lambda is a frequency between 0 and 1.
+	seasFunc <- function(lambda,varP)
+	{
+		cosvec <- cbind(cos(pi*lambda),cos(pi*2*lambda),cos(pi*3*lambda),
+		                cos(pi*4*lambda),cos(pi*5*lambda),cos(pi*6*lambda),
+		                cos(pi*7*lambda),cos(pi*8*lambda),cos(pi*9*lambda),cos(pi*10*lambda))
+		numer <- varP[3] + 2*varP[4:13]%*%t(cosvec)
+		denom <- abs(12 + 2*(12-seq(1:11))%*%t(cbind(cosvec,cos(pi*11*lambda))))
+		return(numer/denom)
+	}
+	trendFunc <- function(lambda,varP)
+	{
+		numer <- varP[1] + 2*varP[2]*cos(pi*lambda)
+		denom <- 6 - 8*cos(pi*lambda) + 2*cos(pi*2*lambda)
+		return(numer/denom)
+	}
+
+	# Compute minima of these functions
+	lambVec <- seq(1,10000)/10000
+	tol <- 0
+	Smin <- min(seasFunc(lambVec,pfrac))
+	Smin <- Smin - tol
+	Tmin <- min(trendFunc(lambVec,pfrac))
+
+	# Compute new spectra
+	irrVar <- pfrac[14] + Smin + Tmin
+	seasACF <- c(pfrac[3:13],0) -1*Smin*(13-seq(1:12))
+	trendACF <- c(pfrac[1:2],0) -1*Tmin*c(6,-4,1)
+	saACF <- trendACF + c(6,-4,1)*irrVar
+
+	# Compute spectral decompositions
+	seasMA <- specFact(c(rev(seasACF),seasACF[-1]))
+	trendMA <- specFact(c(rev(trendACF),trendACF[-1]))
+	saMA <- specFact(c(rev(saACF),saACF[-1]))
+	seasMA <- c(seasMA[-1]/seasMA[1],seasMA[1]^2)
+	trendMA <- c(trendMA[-1]/trendMA[1],trendMA[1]^2)
+	saMA <- c(saMA[-1]/saMA[1],saMA[1]^2)
+
+	return(list(Re(trendMA),Re(seasMA),Re(irrVar),Re(saMA)))
+}	
+
+air.out <- airlineDecomp(par.mle[[3]][[1]])
+```
+
+- Next, we define a new model.
+
+```{r}
+mdl2 <- NULL
+mdl2 <- sigex.add(mdl2,seq(1,N),"arma",c(0,2),NULL,"trend",c(1,-2,1))
+mdl2 <- sigex.add(mdl2,seq(1,N),"arma",c(0,11),NULL,"seasonal",rep(1,12))
+mdl2 <- sigex.add(mdl2,seq(1,N),"arma",c(0,0),NULL,"irregular",1)
+mdl2 <- sigex.meaninit(mdl2,data.ts,0)
+mdl2 <- sigex.reg(mdl2,1,ts(td.weights[,1,drop=FALSE],start=start.time,
+                          frequency=period,names="TD Monday"))
+mdl2 <- sigex.reg(mdl2,1,ts(td.weights[,2,drop=FALSE],start=start.time,
+                          frequency=period,names="TD Tuesday"))
+mdl2 <- sigex.reg(mdl2,1,ts(td.weights[,3,drop=FALSE],start=start.time,
+                          frequency=period,names="TD Wednesday"))
+mdl2 <- sigex.reg(mdl2,1,ts(td.weights[,4,drop=FALSE],start=start.time,
+                          frequency=period,names="TD Thursday"))
+mdl2 <- sigex.reg(mdl2,1,ts(td.weights[,5,drop=FALSE],start=start.time,
+                          frequency=period,names="TD Friday"))
+mdl2 <- sigex.reg(mdl2,1,ts(td.weights[,6,drop=FALSE],start=start.time,
+                          frequency=period,names="TD Saturday"))
+mdl2 <- sigex.reg(mdl2,1,ts(as.matrix(easter.regs),start=start.time,
+                          frequency=period,names="Easter"))
+```
+
+- We define the parameters of this new model from the airline decomposition.
+- The innovation variances for the three latent processes are computed in terms of a data process innovation variance equal to one.  So to get the correct innovation variances, we must multiply them by the data process innovation variance.
+
+```{r}
+constraint <- NULL
+constraint <- rbind(constraint,sigex.constrainreg(mdl2,data.ts,list(seq(2,6)),NULL))
+par.mle2 <- sigex.default(mdl2,data.ts,constraint)
+par.mle2[[2]][[1]] <- air.out[[1]][3]*exp(par.mle[[2]][[1]])
+par.mle2[[2]][[2]] <- air.out[[2]][12]*exp(par.mle[[2]][[1]])
+par.mle2[[2]][[3]] <- air.out[[3]][1]*exp(par.mle[[2]][[1]])
+par.mle2[[3]][[1]] <- matrix(air.out[[1]][1:2],nrow=1,ncol=2)
+par.mle2[[3]][[2]] <- matrix(air.out[[2]][1:11],nrow=1,ncol=11)
+par.mle2[[4]] <- par.mle[[4]]
+psi.mle2 <- sigex.par2psi(par.mle2,mdl2)
+```
+
+### Direct Matrix Approach
+
+- Here we focus on three latent processes: trend, seasonal, and seasonal adjustment.  
+- The function **sigex.signal** defines the matrix filters for each type of component.
+- Since the  seasonal process is composed of the second latent process, *sigcomps* equals 2. 
+- Similarly, the setting is c(1,3) for the seasonal adjustment.
+
+```{r}
+signal.trend <- sigex.signal(data.ts,par.mle2,mdl2,1)
+signal.seas <- sigex.signal(data.ts,par.mle2,mdl2,2)
+signal.sa <- sigex.signal(data.ts,par.mle2,mdl2,c(1,3))
+```
+
+- The second step is to compute the extractions using **sigex.extract**.
+- The output is a list object, with first item corresponding to a $T \times 1$ matrix
+  of signal extractions.  The second and third items of the list give upper and lower bounds of confidence intervals,  based on $\pm 2$ square root signal extraction MSE.    
+
+```{r}
+extract.trend <- sigex.extract(data.ts,signal.trend,mdl2,par.mle2)
+extract.seas <- sigex.extract(data.ts,signal.seas,mdl2,par.mle2)
+extract.sa <- sigex.extract(data.ts,signal.sa,mdl2,par.mle2)
+```
+
+- Next, it is important to re-integrate fixed regression effects using **sigex.fixed**.
+
+```{r}
+reg.trend <- sigex.fixed(data.ts,mdl2,1,par.mle2,"Trend")
+reg.mon <- sigex.fixed(data.ts,mdl2,1,par.mle2,"TD Monday")
+reg.tue <- sigex.fixed(data.ts,mdl2,1,par.mle2,"TD Tuesday")
+reg.wed <- sigex.fixed(data.ts,mdl2,1,par.mle2,"TD Wednesday")
+reg.thu <- sigex.fixed(data.ts,mdl2,1,par.mle2,"TD Thursday")
+reg.fri <- sigex.fixed(data.ts,mdl2,1,par.mle2,"TD Friday")
+reg.sat <- sigex.fixed(data.ts,mdl2,1,par.mle2,"TD Saturday")
+reg.easter <- sigex.fixed(data.ts,mdl2,1,par.mle2,"Easter")
+reg.seas <- reg.mon + reg.tue + reg.wed + reg.thu + reg.fri + reg.sat + reg.easter
+```
+
+- Next, we generate displays with a call to **sigex.graph**.
+- Blue is the seasonal adjustment and green is the seasonal.
+- Shading around each value of the extraction indicates the upper and lower bounds for confidence intervals. The bounds are large because the of large extraction MSE.
+
+```{r}
+trendcol <- "tomato"
+seascol <- "seagreen"
+sacol <- "navyblue"
+fade <- 40
+par(mfrow=c(2,1))
+plot(data.ts[,1],xlab="Year",ylab="",ylim=c(min(data.ts[,1]),max(data.ts[,1])),lwd=1)
+sigex.graph(extract.sa,reg.trend,start.time,period,1,0,sacol,fade)
+plot(ts(rep(NA,T),start=start.time,frequency=12),xlab="Year",ylab="",ylim=c(-5,5),lwd=1)
+sigex.graph(extract.seas,reg.seas,start.time,period,1,0,seascol,fade)
+dev.off()
+```
+
+- Next, we can examine a spectral density estimate of the seasonal adjustment.
+ 
+```{r}
+## spectral diagnostics: sa
+sigex.specar(ts(extract.sa[[1]],frequency=period,names=colnames(data.ts)),FALSE,1,period)
+dev.off()
+```
+
+### Filter Analysis
+
+- We can examine filter coefficients and frequency response functions through  **sigex.getfrf**,    which can also plot the real portions.
+- The *grid* argument corresponds to a mesh of frequencies in $[0, \pi]$,  and the fourth argument of **sigex.getfrf** indicates the combination of components desired. 
+- We the seasonal adjustment filter.
+
+```{r}
+grid <- 200
+frf.sa <- sigex.getfrf(data.ts,par.mle2,mdl2,c(1,3),TRUE,grid)
+dev.off()
+```
+
+- We can also examine the filter coefficients, using **sigex.wk**.
+- The *target* argument indicates that no linear combination of the signal is being considered here.
+- *len* is set to $50$, so that the indices of the filter run from $-50$ up to $50$.
+     
+```{r}
+len <- 50
+target <- array(diag(N),c(N,N,1))
+wk.sa <- sigex.wk(data.ts,par.mle2,mdl2,c(1,3),target,TRUE,grid,len)
+dev.off()
+```
+

@@ -1,0 +1,581 @@
+---
+title: 'Ecce Signum: Illustration'
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, setup, include=FALSE}
+knitr::opts_knit$set(root.dir = 'C:/Users/neide/Documents/GitHub/sigex')
+```
+ 
+# Housing Starts
+
+This illustration examines monthly New Residential Construction (1964-2012), Housing Units Started, Single Family Units. (The four series are   from
+   the Survey of Construction of the U.S. Census Bureau, available at
+    http://www.census.gov/construction/nrc/how_the_data_are_collected/soc.html.)
+ We refer to the series as *starts* for short.
+  The data   corresponds to the four regions of  South, West, NorthEast, and MidWest.
+    This example illustrates modeling a multivariate series with $8$ components, estimated
+    with both MOM and MLE methods, and the extraction of signals
+    with two methods (direct matrix and
+     truncated Wiener-Kolmogorov).  We also show how functions of a signal, 
+     such as growth rates, can be obtained.
+
+## Loading Packages 
+
+This code loads the data into a variable named **starts**.
+   	
+```{r}
+## wipe
+rm(list=ls())
+library(devtools)
+library(Rcpp)
+
+load_all(".")
+root.dir <- getwd()
+```
+
+## Enter Metadata
+
+- We perform a four-variate analysis by fitting a structural model.
+- First enter metadata, including starting date and frequency.
+
+```{r}
+start.date = c(1964,1)
+period <- 12
+```
+
+- Next enter names of the series.
+- The last argument of **sigex.load** generates a time series plot.
+
+```{r}
+dataALL.ts <- sigex.load(starts,start.date,period,
+                         c("South","West","NE","MW"),TRUE)
+```
+
+- On the basis of this plot, we decide (below) to utilize no transformation for the data.
+  
+## Select Spans and Transforms
+
+- We have the choice of either log or no log.
+- The *aggregate* option will sum across the indicated series, in case we want to analyze an aggregate.  Here we set it to FALSE.
+- We can also select a subcomponent of series with *subseries*.
+- The *range* argument of **sigex.prep** will select a subset of dates for the time series to be analyzed.
+
+```{r}
+transform <- "none"
+aggregate <- FALSE
+subseries <- c(1,2,3,4)
+begin.date <- start.date
+end.date <- end(dataALL.ts)
+range <- list(begin.date,end.date)
+data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
+```
+
+## Spectral Exploratory Analysis
+
+- In order to get an idea about model specification, we can examine spectral estimates,
+using **sigex.specar**.
+- We can look at raw data or differenced data (growth rates).
+
+```{r}
+# raw data
+par(mfrow=c(2,2))
+for(i in subseries) {	sigex.specar(data.ts,FALSE,i,period) }
+dev.off()
+```
+
+- From the raw data, it seems that trend differencing is appropriate.
+
+```{r}
+# growth rates
+par(mfrow=c(2,2))
+for(i in subseries) {	sigex.specar(data.ts,TRUE,i,period) }
+dev.off()
+```
+
+- From both sets of spectral plots, there seems to be strong seasonality.
+- The degree of seasonal persistence appears to be different at the six seasonal frequencies.
+
+##  Model Declaration
+
+- Exploratory analysis indicates we should consider a model with trend and seasonal effects.
+- To model the differing strengths of seasonality, we use six latent atomic seasonal processes.
+- We begin by defining dimension $N$ and sample size $T$.
+
+```{r}
+N <- dim(data.ts)[2]
+T <- dim(data.ts)[1]
+```
+ 
+- Next, we define the latent components.
+
+```{r}
+mdl <- NULL
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"trend",c(1,-2,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"first seasonal",c(1,-sqrt(3),1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"second seasonal",c(1,-1,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"third seasonal",c(1,0,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"fourth seasonal",c(1,1,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"fifth seasonal",c(1,sqrt(3),1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"sixth seasonal",c(1,1))
+mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"irregular",1)
+```
+
+- Each of the eight latent processes is labeled, and has a distinct differencing polynomial,
+ whose application produces a full-rank white noise.
+- The multiple calls to **sigex.add** adds each latent process consecutively into the existing model. 
+- The second argument indicates the rank configuration; setting  *vrank* equal to  seq(1,N) ensures a full rank covariance matrix.
+- The third argument  gives the model type as  *arma*; the order $p=0$, $q=0$ indicates a white noise. 
+- The sixth argument associates a label.
+- The last argument is for the scalar differencing operator
+   $\delta^{(k)} (z)$, expressed as a vector of coefficients.
+   
+```{r}
+mdl <- sigex.meaninit(mdl,data.ts,0)
+```
+
+- There are no regressors specified, but we still need to call **sigex.meaninit** so that the time trend polynomial is set up correctly.  
+- The last argument gives the order of this time trend polynomial. In this case it will be automatically determined from the various differencing operators  $\delta^{(k)} (z)$ of the latent processes. 
+
+## Model Estimation
+
+- Now we will fit the model, and check the fit.
+- The first step is to construct pilot estimates via the Method-of-Moments (MOM).
+ 
+### MOM Fitting   
+ 
+- First, we define a new model object *mdl.mom*.
+- The MOM estimates are obtained through **sigex.momfit**.
+
+```{r} 
+mdl.mom <- mdl
+constraint <- NULL
+par.default <- sigex.default(mdl.mom,data.ts,constraint)
+par.mom <- sigex.momfit(data.ts,par.default,mdl.mom)
+psi.mom <- sigex.par2psi(par.mom,mdl.mom)
+```
+
+- The value of the divergence is `r sigex.lik(psi.mom,mdl.mom,data.ts,FALSE)`.
+
+### MOM Residual Analysis
+
+- Next, we can examine the residuals.
+
+```{r}
+resid.mom <- sigex.resid(psi.mom,mdl.mom,data.ts)[[1]]
+resid.mom <- sigex.load(t(resid.mom),start(data.ts),
+                        frequency(data.ts),colnames(data.ts),TRUE)
+resid.acf <- acf(resid.mom,lag.max=4*period,plot=TRUE)$acf
+```
+
+- A substantial degree of serial dependence remains.   
+
+### Reduced Rank Analysis
+
+- We can examine the condition numbers.
+
+```{r}
+log(sigex.conditions(data.ts,psi.mom,mdl.mom))
+```
+
+- All six seasonal latent processes seem to have
+   reduced rank covariance matrices, indicating various types of seasonal co-integration.   
+- We can modify the initial model to one that has
+  reduced rank components, by using **sigex.reduce**.
+
+```{r}
+thresh <- -6.22
+reduced.mom <- sigex.reduce(data.ts,par.mom,mdl.mom,thresh,TRUE)
+mdl.mom <- reduced.mom[[1]]
+par.mom <- reduced.mom[[2]]
+psi.mom <- sigex.par2psi(par.mom,mdl.mom)
+```
+
+- Here the threshold $-6.22$ and the updated model is stored in *reduced.mom*, a list object.
+- The first item in the list contains the updated information for the model, viz., the new rank configurations.
+- The new reduced rank model has divergence `r sigex.lik(psi.mom,mdl.mom,data.ts,FALSE)`.
+
+### Further Residual Analysis
+
+- We check the residuals of the reduced rank model.
+
+```{r}
+resid.mom <- sigex.resid(psi.mom,mdl.mom,data.ts)[[1]]
+resid.mom <- sigex.load(t(resid.mom),start(data.ts),
+                        frequency(data.ts),colnames(data.ts),TRUE)
+resid.acf <- acf(resid.mom,lag.max=4*period,plot=TRUE)$acf
+```
+
+- Also the new condition numbers can be checked.
+
+```{r}
+log(sigex.conditions(data.ts,psi.mom,mdl.mom))
+```
+
+- Portmanteau and normality tests are also provided.
+
+```{r}
+sigex.portmanteau(resid.mom,4*period,length(psi.mom))
+sigex.gausscheck(resid.mom)
+```
+
+- Finally, we bundle this initial fit away.
+
+```{r}
+analysis.mom <- sigex.bundle(data.ts,transform,mdl.mom,psi.mom)
+```
+
+### MLE Fitting
+
+- Now we consider fitting the model via MLE, using the MOM as initial estimates.
+- The model and initial parameters are obtained from the MOM bundle.
+
+```{r}
+data.ts <- analysis.mom[[1]]
+mdl <- analysis.mom[[3]]
+psi.mom <- analysis.mom[[4]]
+par.mom <- sigex.psi2par(psi.mom,mdl,data.ts)
+```
+
+- Next, we set up the constraints (there are none).
+
+```{r}
+constraint <- NULL
+psi.mle <- sigex.par2psi(par.mom,mdl)
+```
+
+- Fitting this reduced rank model can take a substantial amount of time, because 
+ there are $67$  pre-parameters to be estimated. 
+- Therefore this part is commented out, because the calculations can take several hours.  Instead, we load *psi.mle* computed previously.
+
+```{r}
+#fit.mle <- sigex.mlefit(data.ts,par.mom,constraint,mdl,"bfgs",debug=TRUE)
+psi.mle <- c(0.430604758988307, 0.138843971938441, 0.211034753655249, 0.122497565015475,
+             0.273961955347927, 0.83829841362335, -2.19718581249183, -4.85906104866881,
+             -6.69696771334971, -6.13282806492413, 1.12175825784647, 0.289882305425559,
+             0.873677616319397, -0.745293003402034, -0.754732471766407, -0.498376140705462,
+             -2.42443529609759, -4.72941611158525, -6.52941280216317, 0.459400674188665,
+             0.208306224143506, 1.24487637498583, -1.388883213613, -0.526433078980047,
+             -3.90916616951099, -5.82829964996699, -0.169794036259361, 0.22214398081366,
+             0.152889428361731, -0.00908575947899202, -0.00318543112970812,
+             0.0884748269673841, -2.73579660752933, -3.66216778737483, -4.49261642825817,
+             -0.112193904428172, -0.203557855469594, -0.164528907998198, -0.680285482020193,
+             0.244662042202419, -3.28673706196714, -6.93954034182091, 1.05554783833862,
+             -0.16328976555996, 0.311473085983565, -4.85381927837337, -0.244998596862816,
+             0.0508029104468634, 0.194372016161389, 1.14475061810928, -0.253386348374559,
+             -3.61493340437869, -6.83641878016894, 0.0921157226442518, 0.0283709627836627,
+             -0.0389611692363272, 0.0109437749519264, 0.0358792010736619,
+             0.245040148693726, 2.69734505562902, 1.07979552299194, -0.0671443528547337,
+             0.302809384452077, 0.000724801053757517, 0.000779888484070904,
+             -2.68663079304438e-05, 0.000373610017630947)
+par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
+```
+
+- The value of the divergence is `r sigex.lik(psi.mle,mdl,data.ts,FALSE)`.
+- This divergence is substantially better than that of the MOM estimate, cf. `r sigex.lik(psi.mom,mdl.mom,data.ts,FALSE)`.
+
+### MLE Residual Analysis
+
+- Next, we can examine the residuals.  Much of the correlation is gone.
+
+```{r}
+resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),
+                        frequency(data.ts),colnames(data.ts),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*period,plot=TRUE)$acf
+```
+
+- We can also examine the   condition numbers.  We see values of $-\infty$ (or very large negative values)  corresponding to the complement of the rank configuration.
+
+```{r}
+log(sigex.conditions(data.ts,psi.mle,mdl))
+```
+
+- Further model checking via Portmanteau and Shapiro-Wilks shows improved fit over the MOM.
+
+```{r}
+sigex.portmanteau(resid.mle,4*period,length(psi.mle))
+sigex.gausscheck(resid.mle)
+```
+
+- Finally, we bundle the results.
+
+```{r}
+analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
+```
+
+
+## Signal Extraction
+
+- The next stage of analysis is signal extraction, and both the matrix method and the WK method are illustrated.
+- First we load up the MLE bundle.
+
+```{r}
+data.ts <- analysis.mle[[1]]
+mdl <- analysis.mle[[3]]
+psi <- analysis.mle[[4]]
+param <- sigex.psi2par(psi,mdl,data.ts)
+```
+
+### Direct Matrix Approach
+
+- Here we focus on three latent processes: trend, seasonal, and seasonal adjustment.  
+- The function **sigex.signal** defines the matrix filters for each type of component.
+- Since the  seasonal process is composed of the six atomic seasonals that occur at indices two through seven, *sigcomps* equals c(2,7).  
+- Similarly, the setting is c(1,8) for the seasonal adjustment.
+
+```{r}
+signal.trend <- sigex.signal(data.ts,param,mdl,1)
+signal.seas <- sigex.signal(data.ts,param,mdl,seq(2,7))
+signal.sa <- sigex.signal(data.ts,param,mdl,c(1,8))
+```
+
+- The second step is to compute the extractions using **sigex.extract**.
+- The output is a list object, with first item corresponding to a $T \times N$ matrix
+  of signal extractions.  The second and third items of the list give upper and lower bounds of confidence intervals,  based on $\pm 2$ square root signal extraction MSE.    
+
+```{r}
+extract.trend <- sigex.extract(data.ts,signal.trend,mdl,param)
+extract.seas <- sigex.extract(data.ts,signal.seas,mdl,param)
+extract.sa <- sigex.extract(data.ts,signal.sa,mdl,param)
+```
+
+- Next, it is important to re-integrate fixed regression effects using **sigex.fixed**.
+
+```{r}
+reg.trend <- NULL
+for(i in 1:N) {
+  reg.trend <- cbind(reg.trend,sigex.fixed(data.ts,mdl,i,param,"Trend")) }
+```
+
+- Next, we generate displays with a call to **sigex.graph**.
+- Blue is the seasonal adjustment, red is the trend, and green is the seasonal.
+- In the display we illustrate how the seasonal component can be plotted with a vertical displacement.
+- Shading around each value of the extraction indicates the upper and lower bounds for confidence intervals.
+
+```{r}
+trendcol <- "tomato"
+seascol <- "seagreen"
+sacol <- "navyblue"
+fade <- 60
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+  plot(data.ts[,i],xlab="Year",ylab="",ylim=c(min(data.ts[,i])-25,max(data.ts[,i])),lwd=1)
+  sigex.graph(extract.sa,reg.trend,begin.date,period,i,0,sacol,fade)
+  sigex.graph(extract.trend,reg.trend,begin.date,period,i,0,trendcol,fade)
+  sigex.graph(extract.seas,NULL,begin.date,period,i,min(data.ts[,i])-10,seascol,fade)
+}
+dev.off()
+```
+
+- Next, we can examine spectral density estimates of the extractions.
+
+```{r}
+## spectral diagnostics: trend
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+  sigex.specar(ts(extract.trend[[1]],frequency=period,names=colnames(data.ts)),FALSE,i,period)
+}
+dev.off()
+```
+
+```{r}
+## spectral diagnostics: sa
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+  sigex.specar(ts(extract.sa[[1]],frequency=period,names=colnames(data.ts)),FALSE,i,period)
+}
+dev.off()
+```
+
+### Filter Analysis
+
+- We can examine filter coefficients and frequency response functions through  **sigex.getfrf**,    which can also plot the real portions.
+- The *grid* argument corresponds to a mesh of frequencies in $[0, \pi]$,  and the fourth argument of **sigex.getfrf** indicates the combination of components desired. 
+- We examine the trend, seasonal, and seasonal adjustment.
+
+```{r}
+grid <- 200
+par(mfrow=c(4,4))
+frf.trend <- sigex.getfrf(data.ts,param,mdl,1,TRUE,grid)
+dev.off()
+```
+
+```{r}
+par(mfrow=c(4,4))
+frf.seas <- sigex.getfrf(data.ts,param,mdl,seq(2,7),TRUE,grid)
+dev.off()
+```
+
+```{r}
+par(mfrow=c(4,4))
+frf.sa <- sigex.getfrf(data.ts,param,mdl,c(1,8),TRUE,grid)
+dev.off()
+```
+
+- We can also examine the filter coefficients, using **sigex.wk**.
+- The *target* argument indicates that no linear combination of the signal is being considered here.
+- *len* is set to $50$, so that the indices of the filter run from $-50$ up to $50$.
+     
+```{r}
+len <- 50
+target <- array(diag(N),c(N,N,1))
+par(mfrow=c(4,4))
+wk.trend <- sigex.wk(data.ts,param,mdl,1,target,TRUE,grid,len)
+dev.off()
+```
+
+```{r}
+par(mfrow=c(4,4))
+wk.seas <- sigex.wk(data.ts,param,mdl,seq(2,7),target,TRUE,grid,len)
+dev.off()
+```
+
+```{r}
+par(mfrow=c(4,4))
+wk.sa <- sigex.wk(data.ts,param,mdl,c(1,8),target,TRUE,grid,len)
+dev.off()
+```
+
+### Cast Extension Approach to Signal Extraction
+
+- Now we consider a second method for signal extraction, based on forecast and aftcast extension of the time series, using the function **sigex.wkextract**.
+- We set the *grid* parameter to   determine the number of     mesh points in the interval $[-\pi,\pi]$ used as a Riemann approximation of the integral (in the frequency response function). 
+- *window* specifies that the filter will be truncated to length $101$ (equal to twice *window* plus one) at the sample boundaries -- only $50$ forecasts and aftcasts will be generated.   
+- The *horizon* parameter corresponds to the number of desired aftcasts and forecasts of the signal used in the application.  Here we set to $0$, because we don't want to forecast the signal outside the sample span.
+- *target* is the array storing the coefficients used to construct other linear combinations of the signal.  
+  
+```{r}
+grid <- 7000
+window <- 50
+horizon <- 0
+target <- array(diag(N),c(N,N,1))
+```
+
+- We will generate extractions for trend, seasonal, and seasonal adjustment, and compare to results from the matrix method above.
+- The fourth argument in these function calls is  *sigcomps*, and parallels the prior calls of **sigex.signal**.
+- Note that in the matrix approach we used two calls in succession (**sigex.signal** followed by **sigex.extract**), but here there is a single call with output in the same list format as that provided by **sigex.extract**.
+
+```{r}
+extract.trend2 <- sigex.wkextract(psi,mdl,data.ts,1,target,grid,window,horizon,TRUE)
+extract.seas2 <- sigex.wkextract(psi,mdl,data.ts,seq(2,7),target,grid,window,horizon,TRUE)
+extract.sa2 <- sigex.wkextract(psi,mdl,data.ts,c(1,8),target,grid,window,horizon,TRUE)
+```
+
+- One method of comparison is looking at signal extraction MSEs.
+- We examine the trend and seasonal adjustment components in turn: the casted trend extraction MSE is red, and the casted seasonal adjustment is blue.
+
+```{r}
+par(mfrow=c(2,2))
+for(subseries in 1:N)
+{
+  ex.true <- (extract.trend[[1]][,subseries]-extract.trend[[3]][,subseries])/2
+  ex.approx <- (extract.trend2[[1]][,subseries]-extract.trend2[[3]][,subseries])/2
+  plot(ts(ex.true,start=begin.date,frequency=period),ylab="Root MSE",xlab="Year",ylim=c(0,max(ex.true)))
+  lines(ts(ex.approx,start=begin.date,frequency=period),col=trendcol)
+}
+dev.off()
+```
+
+```{r}
+par(mfrow=c(2,2))
+for(subseries in 1:N)
+{
+  ex.true <- (extract.sa[[1]][,subseries]-extract.sa[[3]][,subseries])/2
+  ex.approx <- (extract.sa2[[1]][,subseries]-extract.sa2[[3]][,subseries])/2
+  plot(ts(ex.true,start=begin.date,frequency=period),ylab="Root MSE",xlab="Year",ylim=c(0,max(ex.true)))
+  lines(ts(ex.approx,start=begin.date,frequency=period),col=sacol)
+}
+dev.off()
+```
+
+### Trend Growth Rate
+
+- Finally, we examine extraction of the trend growth rate.
+- The first code block extracts the trend growth rate and MSE directly from the output of **sigex.signal**  stored in *signal.trend*.
+- The growth rate polynomial *gr.poly* is set to c(1,-1).
+
+```{r}
+gr.poly <- c(1,-1)
+p <- length(gr.poly)-1
+gr.mat <- t(rev(gr.poly)) %x% diag(N)
+mse.trend <- array(signal.trend[[2]],c(N,T,N,T))
+mse.trend.gr <- array(0,c(N,N,T-p))
+trend.gr <- array(0,c(T-p,N))
+trend.est <- extract.trend[[1]] + reg.trend
+for(t in (p+1):T)
+{
+  trend.gr[t-p,] <- gr.mat %*% matrix(t(trend.est[(t-p):t,]),ncol=1)
+  mse.trend.gr[,,t-p] <- gr.mat %*% matrix(mse.trend[,(t-p):t,,(t-p):t],c(N*(p+1),N*(p+1))) %*% t(gr.mat)
+}
+trend.gr <- ts(rbind(array(NA,c(p,N)),trend.gr),
+               start=begin.date,frequency=period,names=colnames(data.ts))
+extract.trendgr <- list(trend.gr,trend.gr,trend.gr)
+for(k in 1:N)
+{
+  extract.trendgr[[2]][,k] <- extract.trendgr[[2]][,k] + 2*sqrt(c(rep(NA,p),mse.trend.gr[k,k,]))
+  extract.trendgr[[3]][,k] <- extract.trendgr[[3]][,k] - 2*sqrt(c(rep(NA,p),mse.trend.gr[k,k,]))
+}
+```
+
+- This is the trend growth rate based on the matrix filter, and the results are plotted.
+
+```{r}
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+  plot(data.ts[,i],xlab="Year",ylab="",ylim=c(min(extract.trendgr[[3]][,i],na.rm=TRUE),
+                                              max(extract.trendgr[[2]][,i],na.rm=TRUE)),lwd=1,col=0)
+  sigex.graph(extract.trendgr,NULL,begin.date,period,i,0,trendcol,fade)
+}
+dev.off()
+```
+
+- Next, we do the calculation another way using the casted trend extraction. 
+ 
+```{r} 
+grid <- 70000	  # need large grid value to get accuracy
+window <- 100
+horizon <- 0
+gr.array <- array(t(gr.poly) %x% diag(N),c(N,N,p+1))
+reg.gr <- array(0,c(T,N))
+for(k in 1:N) { reg.gr[,k] <- filter(reg.trend[,k],gr.poly,method="convolution",sides=1) }
+```
+
+- We first compute and plot the trend growth rate.
+
+```{r}
+extract.trendgr2 <- sigex.wkextract(psi,mdl,data.ts,1,gr.array,grid,window,horizon,TRUE)
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+  plot(data.ts[,i],xlab="Year",ylab="",ylim=c(min(extract.trendgr2[[3]][,i]+reg.gr[,i],na.rm=TRUE),
+                                              max(extract.trendgr2[[2]][,i]+reg.gr[,i],na.rm=TRUE)),lwd=1,col=0)
+  sigex.graph(extract.trendgr2,reg.gr,begin.date,period,i,0,trendcol,fade)
+}
+dev.off()
+```
+
+- Then we compute and plot the seasonal adjustment growth rate.
+
+```{r}
+extract.sagr2 <- sigex.wkextract(psi,mdl,data.ts,c(1,8),gr.array,grid,window,horizon,TRUE)
+par(mfrow=c(2,2))
+for(i in 1:N)
+{
+  plot(data.ts[,i],xlab="Year",ylab="",ylim=c(min(extract.sagr2[[3]][,i]+reg.gr[,i],na.rm=TRUE),
+                                              max(extract.sagr2[[2]][,i]+reg.gr[,i],na.rm=TRUE)),lwd=1,col=0)
+  sigex.graph(extract.sagr2,reg.gr,begin.date,period,i,0,sacol,fade)
+}
+dev.off()
+```
+
+- We observe that both techniques produce comparable growth rate extractions.
+- The uncertainty is appropriately calculated, and indicated with shading.  
+
+  
