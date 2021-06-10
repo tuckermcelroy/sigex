@@ -1,3 +1,22 @@
+#' Computes model-based signal extraction diagnostics
+#'
+#' @param signal A T x N matrix ts object of the extracted signal
+#' @param 	param  model parameters entered into
+#'		a list object with an intuitive structure.
+#' @param	mdl The specified sigex model, a list object
+#' @param sigcomps Indices of the latent components composing the signal
+#' @param lagall Each signal diagnostic has a lag argument.  They are all
+#'			computed, from lags one through lagall
+#'
+#' @return diagnostics: Complex matrix with lagall rows and N columns, one
+#'			column for each series.  The real part is the diagnostic
+#'			value, given by sample autocorrelation at various lags of
+#'			the estimated signal.  The imaginary part is the t statistic
+#'			of the diagnostic: statistic minus null mean, divided by
+#'			standard error.
+#' @export
+#'
+
 sigex.signalcheck <- function(signal,param,mdl,sigcomps,lagall)
 {
 
@@ -24,8 +43,8 @@ sigex.signalcheck <- function(signal,param,mdl,sigcomps,lagall)
 	################# Documentation ############################################
 	#
 	#	Purpose: computes model-based signal extraction diagnostics
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
@@ -40,10 +59,10 @@ sigex.signalcheck <- function(signal,param,mdl,sigcomps,lagall)
 	#		to their expected variability.  Blakely and McElroy (2017 Econometric Reviews)
 	#		discusses the theory in generality; this version does
 	#		not take parameter uncertainty into account.
-	#		param is the name for the model parameters entered into 
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
 	#		signal: a T x N matrix ts object of the extracted signal
 	#		param: see background.  Must have form specified by mdl
@@ -61,7 +80,7 @@ sigex.signalcheck <- function(signal,param,mdl,sigcomps,lagall)
 	#	Requires: sigex.delta, sigex.acf
 	#
 	####################################################################
- 
+
 	x <- t(signal)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
@@ -81,13 +100,13 @@ sigex.signalcheck <- function(signal,param,mdl,sigcomps,lagall)
 		D.par[[i]] <- param[[2]][[i]]
 		mdlType <- mdl[[2]][i]
 		delta <- sigex.delta(mdl,c(noisecomps,i))
-		acfsignal.mat <- acfsignal.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,TdiffSig)		
+		acfsignal.mat <- acfsignal.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,TdiffSig)
 	}
 	signal.acf <- array(acfsignal.mat,dim=c(N,TdiffSig,N))
 
 	dsig <- filter(signal,delta.signal,method="convolution",sides=1)[length(delta.signal):T,]
  	acf.sample <- acf(dsig,type="correlation",lag.max=TdiffSig,plot=FALSE)$acf
-	
+
 	L <- TdiffSig-1
 	diagnostics <- NULL
 	for(i in 1:N)
@@ -98,13 +117,13 @@ sigex.signalcheck <- function(signal,param,mdl,sigcomps,lagall)
 		auto.corr <- c(rev(auto.corr),auto.corr[-1])
 		all.w <- NULL
 
-		for(h in 1:lagall) 
+		for(h in 1:lagall)
 		{
 			new.w <- sum((auto.corr[(L+1+1+h):(L+1+L)] + auto.corr[(L+1+1-h):(L+1+L-2*h)] -
 				2*auto.corr[L+1+h]*auto.corr[(L+1+1):(L+1+L-h)])^2)
 			all.w <- c(all.w,new.w)
 		}
-		ses <- sqrt(abs(all.w)/TdiffSig)	
+		ses <- sqrt(abs(all.w)/TdiffSig)
 		diagnostics <- cbind(diagnostics,est.corrs + 1i*(est.corrs - sig.corrs)/ses)
 	}
 

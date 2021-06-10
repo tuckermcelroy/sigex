@@ -1,6 +1,15 @@
+#' Generates x11 trend, seasonal, and seasonal adjustment filters.
+#'
+#' @param period  Possibly non-integer period of seasonality
+#' @param p.seas  Integer number of seasonal moving averages
+#'
+#' @return  List of arrays for trend.filter, seas.filter, and sa.filter
+#' @export
+#'
+
 x11filters <- function(period,p.seas)
 {
-  
+
   ##########################################################################
   #
   #	x11filters
@@ -20,19 +29,19 @@ x11filters <- function(period,p.seas)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation #####################################
   #
   #	Purpose: generates x11 trend, seasonal, and seasonal adjustment filters.
-  #	Inputs:	
+  #	Inputs:
   #   period: possibly non-integer period of seasonality
   #   p.seas: integer number of seasonal moving averages
-  #	Outputs: 
+  #	Outputs:
   #	  list of arrays for trend.filter, seas.filter, and sa.filter
   # Requires: ubgenerator, polymult
   #
   ##########################################################################################
-  
+
   half.len <- floor(period/2)
   p.seas <- 1
   trend.filter <- ubgenerator(period,NULL,1000)
@@ -60,6 +69,6 @@ x11filters <- function(period,p.seas)
   trend.filter <- array(trend.filter,c(1,1,length(trend.filter)))
   seas.filter <- array(seas.filter,c(1,1,length(seas.filter)))
   sa.filter <- array(sa.filter,c(1,1,length(sa.filter)))
-  
+
   return(list(trend.filter,seas.filter,sa.filter))
 }

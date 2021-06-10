@@ -1,3 +1,22 @@
+#' Computes scalar part of spectrum of a differenced latent
+#'		multivariate component process
+#'
+#' @param L.par  Unit lower triangular matrix in GCD of the component's
+#'			white noise covariance matrix.
+#' @param D.par  Vector of logged entries of diagonal matrix in GCD
+#'			of the component's white noise covariance matrix.
+#' @param mdl The specified sigex model, a list object
+#' @param comp  Index of the latent component
+#' @param mdlPar  This is the portion of param
+#'			corresponding to mdl[[2]], cited as param[[3]]
+#' @param delta  Differencing polynomial written in format c(delta0,delta1,...,deltad)
+#' @param	grid  Desired number of frequencies for output spectrum
+#'
+#' @return f.spec: array of dimension N x N x (grid+1), consisting of spectrum
+#'			at frequencies pi*j/grid for 0 <= j <= grid
+#' @export
+#'
+
 sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 {
 

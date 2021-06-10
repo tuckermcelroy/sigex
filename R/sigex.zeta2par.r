@@ -1,3 +1,16 @@
+#' Transform zeta to param
+#'
+#' @param zeta This is the portion of the psi vector that
+#'			corresponds to t.s. models, such as cycles
+#' @param mdlType  This is a component of mdl (the specified sigex model),
+#'			 cited as mdl[[2]]
+#' @param N Cross-section dimension
+#'
+#' @return zeta.par: This is a portion of the full
+#'			param list, corresponding to param[[3]]
+#' @export
+#'
+
 sigex.zeta2par <- function(zeta,mdlType,N)
 {
 

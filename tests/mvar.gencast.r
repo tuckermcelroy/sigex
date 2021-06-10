@@ -42,10 +42,12 @@ mvar.gencast <- function(x.acf,z,C.mat,delta,debug=FALSE)
   #	Inputs:
   #		x.acf: array of dimension N x T x N of autocovariances for process w_t,
   #			where there are N series, of total length T each.
-  #		z: input data is a list of length N,
-  #     each list element is a length M_k time series with no NA
+  #		z: raw data as N x T matrix with missing values at various time points.
+  #			Missing values are at any 1 <= t <= T, and occur for some of the N series
+  #     (the ragged case), and are denoted with a 1i.  That is,
+  #			Im(z[,t]) = rep(1i,N) or subset thereof encodes missing values.
   #   C.mat: list of length N of information matrices,
-  #     each list element is a M_k x T dimensional lo-tri matrix
+  #     each list element is a q_k x T dimensional lo-tri matrix
   #		delta: differencing polynomial (corresponds to delta(B) in Background)
   #			written in format c(delta0,delta1,...,deltad)
   #   debug: set to TRUE if lik values should be printed to screen
@@ -71,37 +73,34 @@ mvar.gencast <- function(x.acf,z,C.mat,delta,debug=FALSE)
   T <- dim(x.acf)[2]
 
   # Obtain updated Z and C matrix
+  C.array <- array(0,c(N,T,N,T))
   for(k in 1:N)
   {
     C.tilde <- C.mat[[k]]
-    col.inds <- NULL
-    for(t in 1:dim(C.tilde)[1])
-    {
-      col.inds <- c(col.inds,max(which(C.tilde[t,] != 0)))
-    }
-    z.tilde <- rep(1i,T)
-    z.tilde[col.inds] <- z[[k]]
-
-
+    C.tilde <- rbind(matrix(0,nrow=(T-dim(C.tilde)[1]),ncol=T),C.tilde)
+    C.array[k,,k,,drop=FALSE] <- C.tilde
+#    col.inds <- NULL
+#    for(t in 1:dim(C.tilde)[1])
+#    {
+#      col.inds <- c(col.inds,max(which(C.tilde[t,] != 0)))
+#    }
   }
 
-
-
-  all.series <- seq(1,N)
-  all.indices <- seq(1,T)
-  full.indices <- all.indices[colSums(Im(z)==1)==0]
-  cast.indices <- setdiff(all.indices,full.indices)
-  ragged <- list()
-  leads.rag <- NULL
-  for(t in 1:length(cast.indices))
-  {
-    rag.series <- all.series[Im(z[,cast.indices[t]])==1,drop=FALSE]
-    if(length(rag.series)<=N)
-    {
-      ragged[[length(ragged)+1]] <- rag.series
-      leads.rag <- c(leads.rag,cast.indices[t])
-    }
-  }
+#  all.series <- seq(1,N)
+#  all.indices <- seq(1,T)
+#  full.indices <- all.indices[colSums(Im(z)==1)==0]
+  cast.indices <- seq(1,T)
+#  ragged <- list()
+#  leads.rag <- NULL
+#  for(t in 1:length(cast.indices))
+#  {
+#    rag.series <- all.series[Im(z[,cast.indices[t]])==1,drop=FALSE]
+#    if(length(rag.series)<=N)
+#    {
+#      ragged[[length(ragged)+1]] <- rag.series
+#      leads.rag <- c(leads.rag,cast.indices[t])
+#    }
+#  }
   d <- length(delta) - 1
 
   # This version does not presume that the first d values are not missing
@@ -137,26 +136,29 @@ mvar.gencast <- function(x.acf,z,C.mat,delta,debug=FALSE)
     if(t.hash < T-d) {
       for(t in (t.hash+d+1):T)
       {
-        # determine whether full info, or partial/completely missing
-        #  base case: full info
-        select.mat <- diag(N)
-        omit.mat <- NULL
-        raggeds <- NULL
-        rags.ind <- leads.rag %in% t
-        if(sum(rags.ind)>0) # partial/completely missing
-        {
-          raggeds <- ragged[[seq(1,length(leads.rag))[rags.ind]]]
-          if(length(raggeds)<N) # partial missing
-          {
-            select.mat <- diag(N)[-raggeds,,drop=FALSE]
-            omit.mat <- diag(N)[raggeds,,drop=FALSE]
-          } else # completely missing
-          {
-            select.mat <- NULL
-            omit.mat <- diag(N)
-          }
-        }
-        non.raggeds <- setdiff(seq(1,N),raggeds)
+        # determine information matrix
+        info.mat <- matrix(C.array[,t,,(t.hash+d+1):t,drop=FALSE],
+                             nrow=N,ncol=(t-t.hash-d)*N)
+
+        # #  base case: full info
+        # select.mat <- diag(N)
+        # omit.mat <- NULL
+        # raggeds <- NULL
+        # rags.ind <- leads.rag %in% t
+        # if(sum(rags.ind)>0) # partial/completely missing
+        # {
+        #   raggeds <- ragged[[seq(1,length(leads.rag))[rags.ind]]]
+        #   if(length(raggeds)<N) # partial missing
+        #   {
+        #     select.mat <- diag(N)[-raggeds,,drop=FALSE]
+        #     omit.mat <- diag(N)[raggeds,,drop=FALSE]
+        #   } else # completely missing
+        #   {
+        #     select.mat <- NULL
+        #     omit.mat <- diag(N)
+        #   }
+        # }
+        # non.raggeds <- setdiff(seq(1,N),raggeds)
 
         #  get casts and covars of observations t.hash+1:t based on sigma-field_{t.hash+1:t}
         # first, construct preds.x from known (unstored) entries and stored casts;
@@ -191,14 +193,20 @@ mvar.gencast <- function(x.acf,z,C.mat,delta,debug=FALSE)
         #   appending E [ x_t | F_t ] if partially/completely missing
         if(cast.len>0)  # at least one cast within t.len time points
         {
-          if(length(raggeds)<N)  # update only if full info or partially missing (do nothing if fully missing)
-          {
-            new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen)
-            update <- matrix(new.covar %*% t(select.mat) %*% solve(select.mat %*% new.var %*% t(select.mat)) %*%
-                               (Re(z[non.raggeds,t,drop=FALSE]) - select.mat %*% new.pred),nrow=N)
+         if(sum(info.mat^2)>0)  # update if info matrix is non-zero
+         {
+            if(t == (t.hash+d+1)) { factor <- t(pred.tlen) %*% t(info.mat) } else {
+              factor <- cbind(diag((t-t.hash-d-1)*N),t(l.pred.tlen)) %*% t(info.mat) }
+            new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% factor
+            update <- matrix(new.covar %*% solve(t(factor) %*% new.covar +
+                              C.array[,t,,t] %*% v.pred %*% t(C.array[,t,,t])) %*%
+                              t(factor) %*% t(Re(z[,(t.hash+d+1):t,drop=FALSE]) - casts.x),nrow=N)
             casts.x <- casts.x + update
           }
         }
+
+        #HERE
+
         if(length(raggeds)>0)   # add new cast E [ x_t | F_t ] if partially/completely missing
         {
           new.cast <- Re(z[,t,drop=FALSE])

@@ -1,3 +1,17 @@
+#' Computes autocovariances of VARMA
+#'
+#' @param phi  Array of dimension m x m x p of VAR coefficients, e.g.,
+#'			phi <- array(cbind(phi1,phi2,...,phip),c(m,m,p))
+#' @param	theta  Array of dimension m x m x q of VMA coefficients, e.g.,
+#'			theta <- array(cbind(theta1,theta2,...,thetaq),c(m,m,q))
+#' @param	sigma  An m x m covariance matrix of white noise
+#' @param maxlag   Final lag of autocovariance needed.
+#'
+#' @return 	The autocovariances at lags 0 through maxlag,
+#'    as array of dimension m x m x (maxlag+1)
+#' @export
+#'
+
 VARMAauto <- function(phi,theta,sigma,maxlag)
 {
 
@@ -34,6 +48,7 @@ VARMAauto <- function(phi,theta,sigma,maxlag)
 	#		theta: array of dimension m x m x q of VMA coefficients, e.g.,
 	#			theta <- array(cbind(theta1,theta2,...,thetaq),c(m,m,q))
 	#		sigma: m x m covariance matrix of white noise
+  #   maxlag: final lag of autocovariance needed.
 	#	Outputs:
 	#		autocovariances at lags 0 through maxlag, as array of dimension m x m x (maxlag+1)
 	#

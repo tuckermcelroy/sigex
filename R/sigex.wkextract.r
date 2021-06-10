@@ -1,3 +1,30 @@
+#' Computes signal extractions and MSE via WK method
+#'
+#' @param psi A vector of all the real hyper-parameters
+#' @param mdl The specified sigex model, a list object
+#' @param data.ts A T x N matrix ts object; any  values to be imputed
+#'			must be encoded with NA in that entry.  The NA is for missing value,
+#'      or an enforced imputation (e.g. extreme-value adjustment).
+#' @param	sigcomps  Indices of the latent components composing the signal S_t
+#' @param target  Array of dimension c(N,N,p+1) for degree p matrix polynomial
+#'     phi (B) such that target signal is phi (B) S_t.
+#'     normal usage is target <- array(diag(N),c(N,N,1))
+#' @param grid  Desired number of frequencies for spectrum calculations
+#' @param window  Max index of the WK filter coefficients
+#' @param horizon  A positive integer indicating how many forecasts and
+#'			aftcasts of the signal should be generated
+#' @param needMSE  A binary flag, set to 1 if you want MSE based on casting error,
+#'			or if there are any missing values; else (with value 0) the routine
+#'			runs faster and returns only WK portion of MSE.
+#'
+#' @return list object of extract.sig, upp, and low
+#'		extract.sig: (T+H) x N matrix of the signal estimates, where H is
+#'			twice the length of horizon
+#'		upp: as extract.sig, plus twice the standard error
+#'		low: as extract.sig, minus twice the standard error
+#' @export
+#'
+
 sigex.wkextract <- function(psi,mdl,data.ts,sigcomps,target,grid,window,horizon,needMSE)
 {
 
@@ -24,8 +51,8 @@ sigex.wkextract <- function(psi,mdl,data.ts,sigcomps,target,grid,window,horizon,
 	################# Documentation ############################################
 	#
 	#	Purpose: computes signal extractions and MSE via WK method
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
@@ -35,18 +62,18 @@ sigex.wkextract <- function(psi,mdl,data.ts,sigcomps,target,grid,window,horizon,
 	#		generating function (acgf) via gamma_w (B).
 	#		The signal extraction filter for y_t is determined from
 	#		this acgf and delta.
-	#		param is the name for the model parameters entered into 
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter manifold)
 	#	Notes:
-	#		method does midcasts for specified time indices, 
+	#		method does midcasts for specified time indices,
 	#		applies WK filter for signal (given by sigcomps),
 	#		based on grid for Riemann integration,
 	#		truncated to length given by 2*window + 1;
 	#		generates signal at all time points t in seq(1-horizon,T+horizon).
 	#	Inputs:
-	#		psi: see background.  
+	#		psi: see background.
 	#		mdl: the specified sigex model, a list object
   #		data.ts: a T x N matrix ts object; any  values to be imputed
   #			must be encoded with NA in that entry.  The NA is for missing value,
@@ -81,7 +108,7 @@ sigex.wkextract <- function(psi,mdl,data.ts,sigcomps,target,grid,window,horizon,
 	wk.filter <- wk.out[[1]]
 	wk.mse <- wk.out[[2]]
 	wk.len <- 2*window+1
-	
+
 	leads.mid <- NULL
 	for(k in 1:N) { leads.mid <- union(leads.mid,seq(1,T)[is.na(data.ts)[,k]]) }
 	leads.aft <- seq(1-horizon-window,0)
@@ -111,7 +138,7 @@ sigex.wkextract <- function(psi,mdl,data.ts,sigcomps,target,grid,window,horizon,
 		casts.all <- sigex.midcast(psi,mdl,data.ts,horizon+window)
 		casts.var <- array(casts.all[[2]],c(N,len.all,N,len.all))
 		data.ext <- data.demean
-		if(len.mid>0) data.ext[leads.mid,] <- 
+		if(len.mid>0) data.ext[leads.mid,] <-
 			t(casts.all[[1]][,(len.aft+1):(len.aft+len.mid)])
 		data.ext <- rbind(t(casts.all[[1]][,1:len.aft,drop=FALSE]),data.ext,
 			t(casts.all[[1]][,(len.aft+len.mid+1):len.all,drop=FALSE]))
@@ -123,7 +150,7 @@ sigex.wkextract <- function(psi,mdl,data.ts,sigcomps,target,grid,window,horizon,
 			len.t <- length(range.t)
 			if(len.t==0) { cast.mse[,,t+horizon] <- 0*diag(N) } else {
       wk.coefs <- wk.filter[,,window+1+t-range.t,drop=FALSE]
-			cast.mse[,,t+horizon] <- matrix(wk.coefs,c(N,N*len.t)) %*% 
+			cast.mse[,,t+horizon] <- matrix(wk.coefs,c(N,N*len.t)) %*%
 				matrix(casts.var[,seq(0,len.t-1)+t.start,,seq(0,len.t-1)+t.start,drop=FALSE],c(len.t*N,len.t*N)) %*%
 				t(matrix(wk.coefs,c(N,N*len.t))) }
 			if(is.element(t-window,leads.all)) { t.start <- t.start + 1 }
@@ -133,10 +160,10 @@ sigex.wkextract <- function(psi,mdl,data.ts,sigcomps,target,grid,window,horizon,
 		data.ext <- t(sigex.cast(psi,mdl,data.ts,leads.all))
 	}
 
-	extract.sig <- NULL 
+	extract.sig <- NULL
 	upp <- NULL
 	low <- NULL
-	for(j in 1:N) 
+	for(j in 1:N)
 	{
 		output.j <- rep(0,T+2*horizon)
 		for(k in 1:N)
@@ -150,7 +177,7 @@ sigex.wkextract <- function(psi,mdl,data.ts,sigcomps,target,grid,window,horizon,
 		extract.sig <- cbind(extract.sig,output.j)
 		upp <- cbind(upp,output.j + 2*sqrt(mse))
 		low <- cbind(low,output.j - 2*sqrt(mse))
-	}	
+	}
 
 	return(list(extract.sig,upp,low))
 }

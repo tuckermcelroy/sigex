@@ -1,3 +1,19 @@
+#' Simulate a stochastic process
+#'
+#' @param psi A vector of all the real hyper-parameters
+#' @param	mdl The specified sigex model, a list object
+#' @param simlen  Length of the simulation
+#' @param burnin  Initial stretch of simulation, later discarded
+#' @param dof  Innovations of simulation are student t with dof
+#'			degrees of freedom, set dof=Inf to get Gaussian
+#' @param init  Initial values for process, should have length d,
+#'			where d is the order of the full differencing polynomial
+#'
+#' @return sims: matrix of dimension simlen x N of simulated stochastic process
+#'			corresponding to mdl with parameter psi.
+#' @export
+#'
+
 sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 {
 

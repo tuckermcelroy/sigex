@@ -1,3 +1,21 @@
+#' Computes signal extraction matrix and error covariance matrix
+#'
+#' @param data.ts A T x N matrix ts object
+#' @param 	param  model parameters entered into
+#'		a list object with an intuitive structure.
+#' @param	mdl The specified sigex model, a list object
+#' @param sigcomps Indices of the latent components composing the signal
+#'
+#' @return 	list object of f.mat and v.mat
+#'		f.mat: array of dimension c(T,N,T,N), where f.mat[,j,,k]
+#'			is the signal extraction matrix that utilizes input series k
+#'			to generate the signal estimate for series j.
+#'		v.mat:  array of dimension c(T,N,T,N), where v.mat[,j,,k]
+#'			is the error covariance matrix arising from input series k
+#'			used to generate the signal estimate for series j.
+#' @export
+#'
+
 sigex.signal <- function(data.ts,param,mdl,sigcomps)
 {
 
@@ -24,8 +42,8 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 	################# Documentation ############################################
 	#
 	#	Purpose: computes signal extraction matrix and error covariance matrix
-	#	Background:	
-	#		A sigex model consists of process x = sum y, for 
+	#	Background:
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
@@ -35,10 +53,10 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 	#		generating function (acgf) via gamma_w (B).
 	#		The signal extraction filter for y_t is determined from
 	#		this acgf and delta.
-	#		param is the name for the model parameters entered into 
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object
 	#		param: see background.  Must have form specified by mdl
@@ -55,7 +73,7 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 	#	Requires: sigex.delta, sigex.blocktoep, sigex.acf
 	#
 	####################################################################
- 
+
 	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
@@ -69,31 +87,31 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 	delta.data <- array(t(delta.data %x% diag(N)),c(N,N,length(delta.data)))
 	Tdiff <- T - dim(delta.data)[3] + 1
 	delta.signal <- sigex.delta(mdl,noisecomps)
-	delta.signal <- array(t(delta.signal %x% diag(N)),c(N,N,length(delta.signal)))	
+	delta.signal <- array(t(delta.signal %x% diag(N)),c(N,N,length(delta.signal)))
 	TdiffSig <- T - dim(delta.signal)[3] + 1
 	delta.noise <- sigex.delta(mdl,sigcomps)
-	delta.noise <- array(t(delta.noise %x% diag(N)),c(N,N,length(delta.noise)))	
+	delta.noise <- array(t(delta.noise %x% diag(N)),c(N,N,length(delta.noise)))
 	TdiffNoise <- T - dim(delta.noise)[3] + 1
 
 	delta.data2 <- array(0,c(N,N,T))
 	delta.data2[,,1:dim(delta.data)[3]] <- delta.data[,,1:dim(delta.data)[3]]
 	delta.data.mat <- sigex.blocktoep(delta.data2)[,dim(delta.data)[3]:T,,]
 	delta.data.mat <- matrix(delta.data.mat,ncol=N*T)
- 
+
 	delta.signal2 <- array(0,c(N,N,T))
 	delta.signal2[,,1:dim(delta.signal)[3]] <- delta.signal[,,1:dim(delta.signal)[3]]
 	delta.signal.bigmat <- sigex.blocktoep(delta.signal2)[,dim(delta.signal)[3]:T,,]
 	delta.signal.bigmat <- matrix(delta.signal.bigmat,ncol=N*T)
 	delta.signal.smallmat <- sigex.blocktoep(delta.signal2)[,dim(delta.data)[3]:T,,dim(delta.noise)[3]:T]
 	delta.signal.smallmat <- matrix(delta.signal.smallmat,nrow=N*Tdiff)
- 
+
 	delta.noise2 <- array(0,c(N,N,T))
 	delta.noise2[,,1:dim(delta.noise)[3]] <- delta.noise[,,1:dim(delta.noise)[3]]
 	delta.noise.bigmat <- sigex.blocktoep(delta.noise2)[,dim(delta.noise)[3]:T,,]
 	delta.noise.bigmat <- matrix(delta.noise.bigmat,ncol=N*T)
 	delta.noise.smallmat <- sigex.blocktoep(delta.noise2)[,dim(delta.data)[3]:T,,dim(delta.signal)[3]:T]
 	delta.noise.smallmat <- matrix(delta.noise.smallmat,nrow=N*Tdiff)
- 
+
 	######################################
 	# compute autocovariances
 
@@ -105,7 +123,7 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 		L.par[[i]] <- param[[1]][[i]]
 		D.par[[i]] <- param[[2]][[i]]
 		delta <- sigex.delta(mdl,i)
-		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,T)		
+		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,T)
 	}
 	x.acf <- array(acf.mat,dim=c(N,T,N))
 
@@ -113,7 +131,7 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 	for(i in sigcomps)
 	{
 		delta <- sigex.delta(mdl,c(noisecomps,i))
-		acfsignal.mat <- acfsignal.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,TdiffSig)		
+		acfsignal.mat <- acfsignal.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,TdiffSig)
 	}
 	signal.acf <- array(acfsignal.mat,dim=c(N,TdiffSig,N))
 
@@ -121,7 +139,7 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 	for(i in noisecomps)
 	{
 		delta <- sigex.delta(mdl,c(sigcomps,i))
-		acfnoise.mat <- acfnoise.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,TdiffNoise)		
+		acfnoise.mat <- acfnoise.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,param[[3]][[i]],delta,TdiffNoise)
 	}
 	noise.acf <- array(acfnoise.mat,dim=c(N,TdiffNoise,N))
 
@@ -154,7 +172,7 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 		newa <- aseq - bseq %*% afact
 		bseq <- rbind(bfact,newb)
 		aseq <- rbind(newa,afact)
-	} 
+	}
 	gamSeq <- cbind(x.acf[,Tdiff,],gamSeq)
 	gamFlip <- rbind(gamFlip,x.acf[,Tdiff,])
 	rhot <- gamSeq %*% aseq
@@ -163,7 +181,7 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 	Ominv <- solve(Om)
 	Gaminv <- rbind(cbind(Ominv, -1*Ominv %*% t(aseq)),
 		cbind(-1*aseq %*% Ominv, Gaminv + aseq %*% Ominv %*% t(aseq)))
-	
+
 	signal.acf2 <- array(0,c(dim(signal.acf)[1],dim(signal.acf)[3],dim(signal.acf)[2]))
 	signal.acf2 <- aperm(signal.acf,c(1,3,2))
 	signal.acf2[,,1] <- signal.acf[,1,]/2
@@ -183,7 +201,7 @@ sigex.signal <- function(data.ts,param,mdl,sigcomps)
 	m.inv <- solve(m.mat)
 	f.mat <- t(delta.noise.bigmat) %*% delta.noise.bigmat + p.mat %*% Gaminv %*% delta.data.mat
 	f.mat <- m.inv %*% f.mat
-	v.mat <- t(delta.noise.bigmat) %*% noise.toep %*% delta.noise.bigmat + 
+	v.mat <- t(delta.noise.bigmat) %*% noise.toep %*% delta.noise.bigmat +
 			t(delta.signal.bigmat) %*% signal.toep %*% delta.signal.bigmat
 	v.mat <- v.mat - p.mat %*% Gaminv %*% t(p.mat)
 	v.mat <- m.inv %*% v.mat %*% m.inv

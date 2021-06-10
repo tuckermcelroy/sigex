@@ -1,6 +1,21 @@
+#' De-embeds a weekly time series as a daily time series
+#'
+#' @param data.ts  A T x 7 matrix ts object; any  values to be imputed
+#'			must be encoded with NA in that entry.  The NA is for missing value,
+#'     or an enforced imputation (e.g. extreme-value adjustment).
+#' @param first.day  A number between 1 and 7 that indicates what day of the week
+#'     should correspond to the first component of the 7-vector.
+#'     So 1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday,
+#'       5 = Thursday, 6 = Friday, 7 = Sunday.
+#'
+#' @return data.ts: a T x 1 matrix ts object; any  values to be imputed
+#'			are marked with NA in that entry.  The NA is for missing value.
+#' @export
+#'
+
 sigex.weekly2daily <- function(data.ts,first.day)
 {
-  
+
   ##########################################################################
   #
   #	sigex.weekly2daily
@@ -20,7 +35,7 @@ sigex.weekly2daily <- function(data.ts,first.day)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation #####################################
   #
   #	Purpose: de-embeds a weekly time series as a daily time series
@@ -30,7 +45,7 @@ sigex.weekly2daily <- function(data.ts,first.day)
   #     or an enforced imputation (e.g. extreme-value adjustment).
   #   first.day is a number between 1 and 7 that indicates what day of the week
   #     should correspond to the first component of the 7-vector.
-  #     So 1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday, 
+  #     So 1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday,
   #       5 = Thursday, 6 = Friday, 7 = Sunday.
   #	outputs:
   #   data.ts: a T x 1 matrix ts object; any  values to be imputed
@@ -38,7 +53,7 @@ sigex.weekly2daily <- function(data.ts,first.day)
   # Requires: day2week, date2day, sigex.load
   #
   ##############################################################
-  
+
   start.year <- start(data.ts)[1]
   start.week <- start(data.ts)[2]
 
@@ -54,7 +69,7 @@ sigex.weekly2daily <- function(data.ts,first.day)
   #start.date <- day2date(day.index,c(1,1,year.index))
   data.ts <- matrix(t(data.ts),ncol=1)
   data.ts <- sigex.load(data.ts,c(year.index,day.index),365,"",FALSE)
-  
+
   return(data.ts)
 }
 

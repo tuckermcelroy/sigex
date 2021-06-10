@@ -1,9 +1,18 @@
+#' Generates a stable dimension N VAR(p) process
+#'
+#' @param param  A N x N x p array,
+#'		  where p is the VAR order and N is the dimension of the process
+#'
+#' @return psi: vector of real numbers, of length p*N^2
+#' @export
+#'
+
 var2.par2pre <- function(param)
 {
-  
+
   ##########################################################################
   #
-  #	var2.par2pre.r  
+  #	var2.par2pre.r
   # 	    Copyright (C) 2020  Tucker McElroy
   #       (Original code by Anindya Roy, adapted by Tucker McElroy)
   #
@@ -21,30 +30,30 @@ var2.par2pre <- function(param)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation #####################################
   #
   #	Purpose: generates a stable dimension N VAR(p) process
-  #	Background:	
-  #		param is the name for the model parameters entered into 
+  #	Background:
+  #		param is the name for the model parameters entered into
   #		an array object with a more intuitive structure, whereas
   #		psi refers to a vector of real numbers containing all
-  #		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+  #		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
   #		Algorithm is that of Roy, McElroy, and Linton (2019)
   #	Notes: only for use with N > 1 and p > 0
   #	Inputs:
   #		param: N x N x p array,
   #		  where p is the VAR order and N is the dimension of the process
   #	Outputs:
-  #		psi: vector of real numbers, of length p*N^2  
-  # Requires: VARMAauto.r 
+  #		psi: vector of real numbers, of length p*N^2
+  # Requires: VARMAauto.r
   #   (the msqrt function is borrowed from MTS package, but this need not be loaded)
   #
   ####################################################################
-  
-  msqrt <- function (M) 
+
+  msqrt <- function (M)
   {
-    if (!is.matrix(M)) 
+    if (!is.matrix(M))
       M = as.matrix(M)
     n1 = nrow(M)
     if (n1 == 1) {
@@ -63,7 +72,7 @@ var2.par2pre <- function(param)
     }
     msqrt <- list(mtxsqrt = Mh, invsqrt = Mhinv)
   }
-  
+
   N <- dim(param)[1]
   p <- dim(param)[3]
   u <- VARMAauto(param,NULL,diag(N),p)

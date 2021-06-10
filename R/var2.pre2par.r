@@ -1,3 +1,13 @@
+#' Generates a stable dimension N VAR(p) process
+#'
+#' @param psi  Vector of real numbers, of length p*N^2
+#' @param	p  The VAR order p
+#' @param	N  Dimension of the process
+#'
+#' @return param: N x N x p array
+#' @export
+#'
+
 var2.pre2par <- function(psi,p,N)
 {
 

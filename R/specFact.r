@@ -1,3 +1,12 @@
+#' Compute the spectral factorization of a given p.d. sequence
+#'
+#' @param poly  A symmetric vector of coefficients, which is p.d.
+#'
+#' @return theta: the spectral factorization, such that
+#'	poly(z,z^{-1}) = theta(z) * theta(z^{-1})
+#' @export
+#'
+
 specFact <- function(poly)
 {
 
@@ -27,13 +36,13 @@ specFact <- function(poly)
 	#	Background: any symmetric sequence has real-valued Fourier transform.
 	#		If this is positive as well, the sequence is positive definite (p.d.),
 	#		and can be factored as the magnitude squared of the Fourier transform
-	#		of a causal power series, called the spectral factorization.  
-	#		In the case that the p.d. sequence has finitely many terms, 
+	#		of a causal power series, called the spectral factorization.
+	#		In the case that the p.d. sequence has finitely many terms,
 	#		it corresponds to the acf of an MA process and the MA polynomial
 	#		is proportional to the spectral factorization.
-	#	Inputs:	
+	#	Inputs:
 	#		poly: a symmetric vector of coefficients, which is p.d.
-	#	Outputs: 
+	#	Outputs:
 	#		theta: the spectral factorization, such that
 	#		poly(z,z^{-1}) = theta(z) * theta(z^{-1})
 	#	Requires: polymult
@@ -52,7 +61,7 @@ specFact <- function(poly)
 			theta <- polymult(theta,c(1,-roots[i]))
 			prod <- prod/(-roots[i])
 		} else {
-		if (Mod(roots[i]) <= 1) 
+		if (Mod(roots[i]) <= 1)
 		{
 			if(Arg(roots[i]) < 0)
 			{
@@ -60,7 +69,7 @@ specFact <- function(poly)
 				prod <- prod/(-roots[i])
 			} else {
 			if((Arg(roots[i]) == 0) && (toggle == 1))
-			{	
+			{
 				theta <- polymult(theta,c(1,-roots[i]))
 				prod <- prod/(-roots[i])
 				toggle <- -1*toggle
@@ -70,4 +79,3 @@ specFact <- function(poly)
 	theta <- Re(theta)*sqrt(Re(prod))
 	return(theta)
 }
-		  

@@ -1,3 +1,18 @@
+#' Computes t statistics for parameter estimates
+#'
+#' @param mdl The specified sigex model, a list object
+#' @param psi A vector of all the real hyper-parameters
+#' @param hess Hessian matrix, which can be obtained from output of sigex.mlefit
+#' @param constraint  Matrix of the form [Q , C], with C (constraint.mat)
+#'     the matrix of constraints and Q (constraint.vec) the vector
+#'     of constraint constants, such that C psi = Q.
+#'     Use NULL if there are no constraints
+#'
+#' @return tstats: vector of psi mles divided by standard error.  If a parameter
+#'			constraints are used, this is taken into account.
+#' @export
+#'
+
 sigex.tstats <- function(mdl,psi,hess,constraint)
 {
 

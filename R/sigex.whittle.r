@@ -1,3 +1,16 @@
+#' Computes Whittle likelihood of model
+#'
+#' @param psi A vector of all the real hyper-parameters
+#' @param mdl The specified sigex model, a list object
+#' @param data.ts A T x N matrix ts object; any missing values
+#'			must be encoded with NA in that entry
+#'
+#' @return Returns Whittle likelihood, evaluated at Fourier frequencies
+#'			corresponding to model, for differenced time series,
+#'			with hyper-parameter psi.
+#' @export
+#'
+
 sigex.whittle <- function(psi,mdl,data.ts)
 {
 
@@ -23,31 +36,31 @@ sigex.whittle <- function(psi,mdl,data.ts)
 
 	################# Documentation #####################################
 	#
-	#	Purpose: computes Whittle likelihood of model 
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Purpose: computes Whittle likelihood of model
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
-	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Format: psi has three portions, psi = [xi,zeta,beta]
 	#		xi ~ all hyper-parameters for covariance matrices
 	#		zeta ~ all hyper-parameters for t.s. models
 	#		beta ~ all regression parameters
 	#	Notes: does not yet handle missing values in data.ts!!!
 	#	Inputs:
-	#		psi: see background. 
+	#		psi: see background.
 	#		mdl: the specified sigex model, a list object
-	#		data.ts: a T x N matrix ts object; any missing values 
+	#		data.ts: a T x N matrix ts object; any missing values
 	#			must be encoded with NA in that entry
 	#	Outputs:
 	#		returns Whittle likelihood, evaluated at Fourier frequencies
 	#			corresponding to model, for differenced time series,
-	#			with hyper-parameter psi. 
+	#			with hyper-parameter psi.
 	#	Requires: sigex.zetalen, sigex.zeta2par, sigex.param2gcd, sigex.delta,
 	#			sigex.acf, sigex.spectra, sigex.psi2par
 	#
 	####################################################################
- 
+
 	x <- t(data.ts)
 	N <- dim(x)[1]
 	T <- dim(x)[2]
@@ -59,7 +72,7 @@ sigex.whittle <- function(psi,mdl,data.ts)
 	D.par <- mdl[[3]]
 	zeta.par <- vector("list",length(mdl[[3]]))
 	acf.mat <- matrix(0,nrow=N*T,ncol=N)
-	
+
 	# get xi portion
 	ind <- 0
 	A.mat <- matrix(0,N,N)
@@ -81,7 +94,7 @@ sigex.whittle <- function(psi,mdl,data.ts)
 
 	# get beta portion
 	beta.len <- 0
-	for(i in 1:N) 
+	for(i in 1:N)
 	{
 		beta.len <- beta.len + dim(mdl[[4]][[i]])[2]
 	}
@@ -93,7 +106,7 @@ sigex.whittle <- function(psi,mdl,data.ts)
 	ind <- 0
 	for(i in 1:length(mdl[[3]]))
 	{
-		mdlType <- mdl[[2]][[i]]	
+		mdlType <- mdl[[2]][[i]]
 		delta <- mdl[[3]][[i]]
 		zetalen <- sigex.zetalen(mdlType,N)
 		if(zetalen > 0) {
@@ -103,11 +116,11 @@ sigex.whittle <- function(psi,mdl,data.ts)
 		ind <- ind + zetalen
 
 		delta <- sigex.delta(mdl,i)
-		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T)		
+		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T)
 	}
 
 	x.acf <- array(acf.mat,dim=c(N,T,N))
-	reg.vec <- beta.par	
+	reg.vec <- beta.par
 
 	# subtract regression effects from available sample only
 	ind <- 0
@@ -145,14 +158,14 @@ sigex.whittle <- function(psi,mdl,data.ts)
 	{
 		x.dft <- rbind(x.dft,fft(x.diff[i,1:(grid+1)])*exp(-1i*(seq(1,grid+1)+T.m)/grid)/sqrt(grid+1))
 	}
-	
+
 	whittle.lik <- 0
 	for(l in 1:(grid+1))
 	{
 		whittle.lik <- whittle.lik + t(Conj(x.dft[,l])) %*% solve(f.all[,,l]) %*% x.dft[,l] +
 			+ sum(log(Re(eigen(f.all[,,l])$values)))
 	}
-	whittle.lik <- Re(whittle.lik)/(grid+1)	
+	whittle.lik <- Re(whittle.lik)/(grid+1)
 	print(whittle.lik)
 
 	return(whittle.lik)

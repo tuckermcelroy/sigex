@@ -1,3 +1,12 @@
+#' Computes the length of zeta
+#'
+#' @param mdlType  This is a component of mdl (the specified sigex model),
+#'			 cited as mdl[[2]]
+#' @param N Cross-section dimension
+#'
+#' @return zetalen: the length of zeta
+#' @export
+
 sigex.zetalen <- function(mdlType,N)
 {
 
@@ -24,8 +33,8 @@ sigex.zetalen <- function(mdlType,N)
 	################# Documentation #####################################
 	#
 	#	Purpose: computes the length of zeta
-	#	Background:	
-	#		param is the name for the model parameters entered into 
+	#	Background:
+	#		param is the name for the model parameters entered into
 	#		a list object with a more intuitive structure, whereas
 	#		psi refers to a vector of real numbers containing all
 	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
@@ -45,14 +54,14 @@ sigex.zetalen <- function(mdlType,N)
 	mdlClass <- mdlType[[1]]
 	mdlOrder <- mdlType[[2]]
 
-	# ARMA 
+	# ARMA
 	if(mdlClass %in% c("arma")) zeta.len <- sum(mdlOrder)*N
 	if(mdlClass %in% c("arma.stab")) zeta.len <- sum(mdlOrder)
-	
-	# SARMA 
+
+	# SARMA
 	if(mdlClass %in% c("sarma")) zeta.len <- sum(mdlOrder[1:4])*N
 	if(mdlClass %in% c("sarma.stab")) zeta.len <- sum(mdlOrder[1:4])
-	
+
 	# VARMA
 	if(mdlClass %in% c("varma")) zeta.len <- sum(mdlOrder)*N^2
 
@@ -60,7 +69,7 @@ sigex.zetalen <- function(mdlType,N)
 	if(mdlClass %in% c("svarma")) zeta.len <- sum(mdlOrder[1:4])*N^2
 
 	# cycles
-	if(mdlClass %in% c("bw","bw.stab","bal","bal.stab")) zeta.len <- 2 
+	if(mdlClass %in% c("bw","bw.stab","bal","bal.stab")) zeta.len <- 2
 
 	# damped trend
 	if(mdlClass %in% c("damped")) zeta.len <- 1

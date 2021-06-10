@@ -1,3 +1,15 @@
+#' Determines which component (index) corresponds to trend
+#'
+#' @param mdl The specified sigex model, a list object
+#'	  mdl[[1]] is mdlK, gives ranks of white noise covariance matrix
+#'		mdl[[2]] is mdlType, a list giving t.s. model class, order, and bounds
+#'		mdl[[3]] is mdlDiff, gives delta differencing polynomials
+#'    mdl[[4]] is list of regressors by individual series
+#'
+#' @return 	trendcomp: index of the latent component that has a stochastic trend
+#' @export
+#'
+
 sigex.whichtrend <- function(mdl)
 {
 
@@ -25,7 +37,7 @@ sigex.whichtrend <- function(mdl)
 	#
 	#	Purpose: determines which component (index) corresponds to trend
 	#	Background:
-	#		A sigex model consists of process x = sum y, for 
+	#		A sigex model consists of process x = sum y, for
 	#		stochastic components y.  Each component process y_t
 	#		is either stationary or is reduced to stationarity by
 	#		application of a differencing polynomial delta(B), i.e.
@@ -38,7 +50,7 @@ sigex.whichtrend <- function(mdl)
 	#		at least contains some unit roots, and hence is designated
 	#		as the trend component.)
 	#	Inputs:
-	#		mdl: the specified sigex model, a list object. 
+	#		mdl: the specified sigex model, a list object.
 	#			mdl[[1]] is mdlK, gives ranks of white noise covariance matrix
 	#			mdl[[2]] is mdlType, a list giving t.s. model class, order, and bounds
 	#			mdl[[3]] is mdlDiff, gives delta differencing polynomials
