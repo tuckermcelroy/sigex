@@ -9,7 +9,7 @@ library(devtools)
 library(Rcpp)
 
 # suppose directory is set to where sigex is located, e.g.
-#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
+setwd("C:\\Users\\neide\\OneDrive\\Documents\\GitHub\\sigex")
 load_all(".")
 root.dir <- getwd()
 setwd(paste(root.dir,"/tests/BFS",sep=""))

@@ -258,8 +258,8 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
       ma.poly <- polymulMat(madiff.array,mas.array)
       ma.coef <- matrix(ma.poly[,,-1],nrow=N)
       psi.acf <- VARMA_auto(cbind(ar.coef,ma.coef,xi.mat),
-                            p.order+dim(ars.coef.stretch)[2],
-                            q.order+d.delta-1+dim(mas.coef.stretch)[2],
+                            dim(ar.poly)[3]-1,
+                            dim(ma.poly)[3]-1,
                             maxlag)[,,1:maxlag,drop=FALSE]
     }
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
