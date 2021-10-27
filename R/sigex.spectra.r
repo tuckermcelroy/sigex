@@ -78,7 +78,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 	#		f.spec: array of dimension N x N x (grid+1), consisting of spectrum
 	#			at frequencies pi*j/grid for 0 <= j <= grid
 	#	Requires: polymult, polysum, polymulMat
-	#		specFact, specFactmvar, sigex.getcycle, sigex.canonize
+	#		specFact, specFactmvar, sigex.getcycle, sigex.canonize, ubgenerator
 	#
 	####################################################################
 
