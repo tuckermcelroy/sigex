@@ -265,6 +265,79 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
 	}
 
+  # Fractional SARMA of JDemetra+; need ps, qs <= 1
+  if(mdlClass == "sarmaf")
+  {
+    p.order <- mdlOrder[1]
+    q.order <- mdlOrder[2]
+    ps.order <- mdlOrder[3]
+    qs.order <- mdlOrder[4]
+    s.period <- mdlOrder[5]
+    s.div <- floor(s.period)
+    s.frac <- s.period - s.div
+    
+    ar.coef <- NULL
+    ma.coef <- NULL
+    ars.coef <- NULL
+    mas.coef <- NULL
+    ars.coef.stretch <- NULL
+    mas.coef.stretch <- NULL
+    freqdom <- FALSE  # we can only compute acf by time domain method
+    if(p.order > 0)
+    {
+      for(j in 1:p.order)
+      {
+        ar.coef <- cbind(ar.coef,diag(mdlPar[,j],nrow=N))
+      }
+    }
+    if(q.order > 0)
+    {
+      for(j in 1:q.order)
+      {
+        ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.order],nrow=N))
+      }
+    }
+    if(ps.order > 0) # then ps.order = 1 for this model
+    {
+      for(k in 1:N)
+      {
+        rho.s <- mdlPar[k,1+p.order+q.order]
+        sar.op <- c(1,rep(0,s.div-1),(s.frac-1)*rho.s,-1*s.frac*rho.s) 
+        ars.coef.stretch <- rbind(ars.coef.stretch,-1*sar.op[-1])
+      }
+    }
+    if(qs.order > 0) # then qs.order = 1 for this model
+    {
+      for(k in 1:N)
+      {
+        rho.s <- mdlPar[k,1+p.order+q.order+ps.order]
+        sma.op <- c(1,rep(0,s.div-1),(s.frac-1)*rho.s,-1*s.frac*rho.s)
+        mas.coef.stretch <- rbind(mas.coef.stretch,-1*sma.op[-1])
+      }
+    }
+    
+    delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
+    madiff.array <- polymulMat(delta.array,array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1)))
+  
+      ar.array <- array(cbind(diag(N),-1*ar.coef),c(N,N,p.order+1))
+      ars.array <- cbind(diag(N),-1*ars.coef.stretch)
+      ars.array <- array(ars.array,c(N,N,dim(ars.array)[2]))
+      ar.poly <- polymulMat(ar.array,ars.array)
+      ar.coef <- matrix(-1*ar.poly[,,-1],nrow=N)
+      mas.array <- cbind(diag(N),-1*mas.coef.stretch)
+      mas.array <- array(mas.array,c(N,N,dim(mas.array)[2]))
+      ma.poly <- polymulMat(madiff.array,mas.array)
+      ma.coef <- matrix(ma.poly[,,-1],nrow=N)
+      psi.acf <- VARMA_auto(cbind(ar.coef,ma.coef,xi.mat),
+                            dim(ar.poly)[3]-1,
+                            dim(ma.poly)[3]-1,
+                            maxlag)[,,1:maxlag,drop=FALSE]
+
+    x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
+    
+  }
+  
+  
 	# Stabilized SARMA model
 	if(mdlClass == "sarma.stab")
 	{

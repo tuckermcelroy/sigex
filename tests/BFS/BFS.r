@@ -194,7 +194,7 @@ par.mle <- fit.mle[[2]]
 
 # model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(2,1,0,1,52),NULL,"process",delta.full)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(2,1,0,1,365.25/7),NULL,"process",delta.full)
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
 # add regressors
@@ -249,7 +249,7 @@ dataNA.ts[AO.times] <- NA
 
 # model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(3,1,0,1,52),NULL,"process",delta.full)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(2,0,0,1,365.25/7),NULL,"process",delta.full)
 mdl <- sigex.meaninit(mdl,dataNA.ts,0)
 
 # add regressors
@@ -261,7 +261,7 @@ par.mle <- sigex.default(mdl,dataNA.ts,constraint)
 psi.mle <- sigex.par2psi(par.mle,mdl)
 
 ## run fitting:
-fit.mle <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+fit.mle <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE,thresh=20)
 
 ## manage output
 psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
