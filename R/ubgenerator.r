@@ -70,7 +70,7 @@ ubgenerator <- function(period,trunc.len,m,rho)
 
   for(ell in 1:m)
   {
-    ceps[ell] <- -2*sum(cos(2*pi*ell*seq(1,trunc.len)/period))/(ell*rho^ell)
+    ceps[ell] <- -2*(rho^ell)*sum(cos(2*pi*ell*seq(1,trunc.len)/period))/ell
   }
   wolds <- ceps2wold(ceps,2*trunc.len)
 
