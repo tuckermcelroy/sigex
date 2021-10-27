@@ -44,7 +44,7 @@ x11filters <- function(period,p.seas)
 
   half.len <- floor(period/2)
   p.seas <- 1
-  trend.filter <- ubgenerator(period,NULL,1000)
+  trend.filter <- ubgenerator(period,NULL,1000,1)
   trend.filter <- trend.filter/sum(trend.filter)
   detrend.filter <- c(rep(0,half.len),1,rep(0,half.len)) - trend.filter
   seas.filter <- 0
@@ -52,7 +52,7 @@ x11filters <- function(period,p.seas)
   {
     periodj <- j*period
     half.lenj <- floor(periodj/2)
-    seas.filterj <- ubgenerator(periodj,half.lenj-1,1000)
+    seas.filterj <- ubgenerator(periodj,half.lenj-1,1000,1)
     seas.filterj <- polymult(seas.filterj,c(1,0,-1))
     seas.filter <- c(seas.filter,rep(0,length(seas.filterj)-length(seas.filter)))
     seas.filter <- seas.filter + seas.filterj

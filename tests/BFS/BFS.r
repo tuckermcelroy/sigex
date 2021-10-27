@@ -161,7 +161,7 @@ black.reg <- rowSums(black.reg)/7
 ###########################################
 ### PART IV: Model Construction and Fitting
 
-delta.s <- ubgenerator(365.25/7,NULL,1000)
+delta.s <- ubgenerator(365.25/7,NULL,1000,1)
 delta.full <- polymult(c(1,-1),delta.s)
 
 ## (a) Initial Model: no holidays

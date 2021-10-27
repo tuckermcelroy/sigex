@@ -84,7 +84,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
 	#			matrices stacked horizontally, i.e.
 	#			x.acf = [ gamma(0), gamma(1), ..., gamma(maxlag-1)]
 	#	Requires: polymult, polysum, polymulMat, ARMAauto, VARMAauto, specFact,
-	#		specFactmvar, sigex.getcycle, sigex.canonize
+	#		specFactmvar, sigex.getcycle, sigex.canonize, ubgenerator
 	#
 	####################################################################
 
@@ -167,7 +167,9 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
 		ps.order <- mdlOrder[3]
 		qs.order <- mdlOrder[4]
 		s.period <- mdlOrder[5]
-		stretch <- c(rep(0,s.period-1),1)
+		s.div <- floor(s.period)
+		s.frac <- s.period - s.div
+		
 		ar.coef <- NULL
 		ma.coef <- NULL
 		ars.coef <- NULL
@@ -188,22 +190,54 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
 		    ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.order],nrow=N))
 		  }
 		}
-		if(ps.order > 0)
+		if(s.frac==0)
 		{
-		  for(j in 1:ps.order)
+
+  		stretch <- c(rep(0,s.period-1),1)
+		  if(ps.order > 0)
 		  {
-			  ars.coef.stretch <- cbind(ars.coef.stretch,t(stretch) %x% diag(mdlPar[,j+p.order+q.order],nrow=N))
-			  ars.coef <- cbind(ars.coef,diag(mdlPar[,j+p.order+q.order],nrow=N))
+  		  for(j in 1:ps.order)
+		    {
+  			  ars.coef.stretch <- cbind(ars.coef.stretch,t(stretch) %x% diag(mdlPar[,j+p.order+q.order],nrow=N))
+			    ars.coef <- cbind(ars.coef,diag(mdlPar[,j+p.order+q.order],nrow=N))
+		    }
 		  }
-		}
-	  if(qs.order > 0)
-	  {
-	    for(j in 1:qs.order)
-	    {
-		    mas.coef.stretch <- cbind(mas.coef.stretch,t(stretch) %x% diag(mdlPar[,j+p.order+q.order+ps.order],nrow=N))
-		    mas.coef <- cbind(mas.coef,diag(mdlPar[,j+p.order+q.order+ps.order],nrow=N))
+	    if(qs.order > 0)
+  	  {
+	      for(j in 1:qs.order)
+	      {
+  		    mas.coef.stretch <- cbind(mas.coef.stretch,t(stretch) %x% diag(mdlPar[,j+p.order+q.order+ps.order],nrow=N))
+		      mas.coef <- cbind(mas.coef,diag(mdlPar[,j+p.order+q.order+ps.order],nrow=N))
+	      }
 	    }
-		}
+		
+		} else  # s.frac > 0
+		{
+		  freqdom <- FALSE  # we can only compute acf by time domain method
+		  if(ps.order > 0) # then ps.order = 1 for this model
+		  {
+		    for(k in 1:N)
+		    {
+		      rho.s <- mdlPar[k,1+p.order+q.order]
+		      sar.op <- ubgenerator(s.period,NULL,1000,rho.s)
+		      sar.op <- polymult(sar.op,c(1,-1*rho.s))
+		      ars.coef.stretch <- rbind(ars.coef.stretch,-1*sar.op[-1])
+		    }
+		  }
+		  if(qs.order > 0) # then qs.order = 1 for this model
+		  {
+		    for(k in 1:N)
+		    {
+		      rho.s <- mdlPar[k,1+p.order+q.order+ps.order]
+		      sma.op <- ubgenerator(s.period,NULL,1000,rho.s)
+		      sma.op <- polymult(sma.op,c(1,-1*rho.s))
+		      mas.coef.stretch <- rbind(mas.coef.stretch,-1*sma.op[-1])
+		    }
+		  }
+		  
+		  
+		}  
+		
 	  delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
     madiff.array <- polymulMat(delta.array,array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1)))
     if(freqdom)
@@ -215,15 +249,15 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
     } else
     {
       ar.array <- array(cbind(diag(N),-1*ar.coef),c(N,N,p.order+1))
-      ars.array <- array(cbind(diag(N),-1*ars.coef.stretch),c(N,N,s.period*ps.order+1))
+      ars.array <- array(cbind(diag(N),-1*ars.coef.stretch),c(N,N,dim(ars.coef.stretch)[2]+1))
       ar.poly <- polymulMat(ar.array,ars.array)
       ar.coef <- matrix(-1*ar.poly[,,-1],nrow=N)
-      mas.array <- array(cbind(diag(N),-1*mas.coef.stretch),c(N,N,s.period*qs.order+1))
+      mas.array <- array(cbind(diag(N),-1*mas.coef.stretch),c(N,N,dim(mas.coef.stretch)[2]+1))
       ma.poly <- polymulMat(madiff.array,mas.array)
       ma.coef <- matrix(ma.poly[,,-1],nrow=N)
       psi.acf <- VARMA_auto(cbind(ar.coef,ma.coef,xi.mat),
-                            p.order+s.period*ps.order,
-                            q.order+d.delta-1+s.period*qs.order,
+                            p.order+dim(ars.coef.stretch)[2],
+                            q.order+d.delta-1+dim(mas.coef.stretch)[2],
                             maxlag)[,,1:maxlag,drop=FALSE]
     }
 		x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
