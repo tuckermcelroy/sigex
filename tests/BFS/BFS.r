@@ -161,11 +161,14 @@ black.reg <- rowSums(black.reg)/7
 ###########################################
 ### PART IV: Model Construction and Fitting
 
+delta.s <- ubgenerator(365.25/7,NULL,1000)
+delta.full <- polymult(c(1,-1),delta.s)
+
 ## (a) Initial Model: no holidays
 
 # model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),NULL,"process",1)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(2,1,0,1,52),NULL,"process",delta.full)
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
 constraint <- NULL
@@ -191,7 +194,7 @@ par.mle <- fit.mle[[2]]
 
 # model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),NULL,"process",1)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(2,1,0,1,52),NULL,"process",delta.full)
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
 # add regressors
@@ -246,11 +249,11 @@ dataNA.ts[AO.times] <- NA
 
 # model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),NULL,"process",1)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(3,1,0,1,52),NULL,"process",delta.full)
 mdl <- sigex.meaninit(mdl,dataNA.ts,0)
 
 # add regressors
-mdl <- sigex.reg(mdl,1,ts(as.matrix(nyd.reg),start=start(nyd.reg),frequency=period,names="NewYearDay"))
+#mdl <- sigex.reg(mdl,1,ts(as.matrix(nyd.reg),start=start(nyd.reg),frequency=period,names="NewYearDay"))
 mdl <- sigex.reg(mdl,1,ts(as.matrix(mlk.reg),start=start(mlk.reg),frequency=period,names="MLK"))
 
 constraint <- NULL
