@@ -249,10 +249,12 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
     } else
     {
       ar.array <- array(cbind(diag(N),-1*ar.coef),c(N,N,p.order+1))
-      ars.array <- array(cbind(diag(N),-1*ars.coef.stretch),c(N,N,dim(ars.coef.stretch)[2]+1))
+      ars.array <- cbind(diag(N),-1*ars.coef.stretch)
+      ars.array <- array(ars.array,c(N,N,dim(ars.array)[2]))
       ar.poly <- polymulMat(ar.array,ars.array)
       ar.coef <- matrix(-1*ar.poly[,,-1],nrow=N)
-      mas.array <- array(cbind(diag(N),-1*mas.coef.stretch),c(N,N,dim(mas.coef.stretch)[2]+1))
+      mas.array <- cbind(diag(N),-1*mas.coef.stretch)
+      mas.array <- array(mas.array,c(N,N,dim(mas.array)[2]))
       ma.poly <- polymulMat(madiff.array,mas.array)
       ma.coef <- matrix(ma.poly[,,-1],nrow=N)
       psi.acf <- VARMA_auto(cbind(ar.coef,ma.coef,xi.mat),

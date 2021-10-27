@@ -168,7 +168,7 @@ delta.full <- polymult(c(1,-1),delta.s)
 
 # model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(2,1,0,1,52),NULL,"process",delta.full)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(2,1,0,1,365.25/7),NULL,"process",delta.full)
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
 constraint <- NULL
