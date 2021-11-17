@@ -1,37 +1,32 @@
-#########################################
 ###  Script for Weekly BFS Data
-#########################################
 
-## wipe
+# Preamble ----
 rm(list=ls())
 
 library(devtools)
 library(Rcpp)
 
+# * set directories ----
 # suppose directory is set to where sigex is located, e.g.
 # setwd("C:\\Users\\neide\\OneDrive\\Documents\\GitHub\\sigex")
 load_all(".")
 root.dir <- "~\\GitHub\\sigex"
 ex.dir <- file.path(root.dir, "tests/BFS")
 
-#####################
-### Part I: load data
+# #### Part I: load data ######################################################
 
 # automatic
 
-#############################################################
-### Part II: Metadata Specifications and Exploratory Analysis
+# #### Part II: Metadata Specifications and Model Selection ##############
 
 begin <- c(2006,1)
 end <- c(2020,27)
 period <- 52
 
-## create ts object and plot
+# * ts object and plot ----
 dataALL.ts <- sigex.load(bfs[,3:6],begin,period,c("bfs-ba","bfs-hba","bfs-wba","bfs-cba"),FALSE)
 
-#############################
-## select span and transforms
-
+# * select span and transforms ----
 # we focus on "bfs-ba", business applications of bfs
 transform <- "log"
 aggregate <- FALSE
@@ -39,9 +34,23 @@ subseries <- 1
 range <- NULL
 data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 
+# ---- * Model Selection ----
+dataJD <- filter(data.ts, filter = sar.op, sides = 1)
+dataUS <- filter(data.ts, filter = delta.full, sides = 1)
 
-###############################
-### Part III: Model Declaration
+par(mfrow = c(2, 2))
+acf(dataJD, na.action = na.pass, lag.max = 4 * 53)
+acf(dataUS, na.action = na.pass, lag.max= 4 * 53)
+
+pacf(dataJD, na.action = na.pass, lag.max = 4 * 53)
+pacf(dataUS, na.action = na.pass, lag.max= 4 * 53)
+
+library(forecast)
+auto.arima(dataJD)
+auto.arima(dataUS)
+
+
+# #### Part III: Model Declaration ############################################
 
 N <- dim(data.ts)[2]
 T <- dim(data.ts)[1]
@@ -53,8 +62,7 @@ start.date <- all.date[[1]]
 end.date <- all.date[[2]]
 
 
-##############################
-## Generate holiday regressors
+# ---- * holiday regressors ----
 
 easter.dates <- read.table(paste(root.dir,"/data/easter500.txt",sep=""))
 easter.reg <- gethol(easter.dates,7,0,start.date,end.date)
@@ -97,8 +105,7 @@ sum(ind.reg^2)
 sum(vet.reg^2)
 sum(xmas.reg^2)
 
-####################################
-## Convert to weekly flow regressors
+# ---- * weekly flow regressors ----
 
 easter.reg <- sigex.daily2weekly(easter.reg,first.day,start.date)
 easter.reg <- rowSums(easter.reg)/7
@@ -137,23 +144,24 @@ black.reg <- sigex.daily2weekly(black.reg,first.day,start.date)
 black.reg <- rowSums(black.reg)/7
 
 
-###########################################
-### PART IV: Model Construction and Fitting
+# #### PART IV: Model Construction ############################################
 
-# Define our differencing operator
+# ---- * differencing operator ----
 delta.s <- ubgenerator(365.25/7,NULL,1000,1)
 delta.full <- polymult(c(1,-1),delta.s)
 
-# Define JD+ differencing operator
+# ---- * Define JD+ differencing operator ----
 s.period <- 365.25/7
 rho.s <- 1
 s.div <- floor(s.period)
 s.frac <- s.period - s.div
 sar.op <- c(1, rep(0, s.div - 1), (s.frac - 1) * rho.s, -1 * s.frac * rho.s)
 
-# ---- (a) Initial Model: no holidays ----
+# #### PART V: Model Fitting ##################################################
 
-# ---- (a, JD+) ----
+# ---- * (a) Initial Model: no holidays ----
+
+# ---- * (a, JD+) ----
 
 # model construction
 mdl <- NULL
@@ -173,12 +181,7 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_a_jd <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
-## manage output
-# psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
-# hess <- fit.mle[[1]]$hessian
-# par.mle <- fit.mle[[2]]
-
-# ---- (a, US) ----
+# ---- * (a, US) ----
 
 # model construction
 mdl <- NULL
@@ -198,14 +201,9 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_a_us <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
-## manage output
-# psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
-# hess <- fit.mle[[1]]$hessian
-# par.mle <- fit.mle[[2]]
+# ---- * (b) Improved Model: add holidays ----
 
-# ---- (b) Improved Model: add holidays ----
-
-# ---- (b, JD+) ----
+# ---- * (b, JD+) ----
 # model construction
 mdl <- NULL
 mdl <- sigex.add(mdl,seq(1,N),"sarmaf",c(2,1,0,1,365.25/7),NULL,"process",sar.op)
@@ -233,7 +231,7 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_b_jd <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
-# ---- (b, US) ----
+# ---- * (b, US) ----
 mdl$type[[1]][[1]] <- "sarma"
 mdl$diffop[[1]] <- delta.full
 
@@ -244,10 +242,10 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_b_us <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
-# ---- (c) Final Model ----
+# ---- * (c) Final Model ----
 #   retain holidays NewYears, MLK, and Labor Day, and AO at time 314.
 
-# ---- (c, JD+) ----
+# ---- * (c, JD+) ----
 
 AO.times <- 314
 dataNA.ts <- data.ts
@@ -269,18 +267,8 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_c_jd <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE,thresh=20)
 
-## manage output
-# psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
-# hess <- fit.mle[[1]]$hessian
-# par.mle <- fit.mle[[2]]
 
-## MLE fitting results, two holidays
-#  divergence:     -2329.284
-#psi.mle <- c(-4.1429305511094, 5.66956218425899, 3.31919328004112, 3.01604771505878,
-#  1.03883169244118, 10.9941148479326, -0.42082779363966, -0.231945823550937)
-#par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
-
-# ---- (c, US) ----
+# ---- * (c, US) ----
 mdl$type[[1]][[1]] <- "sarma"
 mdl$diffop[[1]] <- delta.full
 
@@ -290,11 +278,109 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_c_us <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
-# ---- Save Image ----
-save.image()
+# ---- * Save Image ----
+# save.image()
 
 
 
-fit.mle_c_jd
+# #### Analysis of Results ####################################################
+
+# ---- * Pick model to look at ----
+fit.mle <- fit.mle_b_us
+
+# ---- * manage output ----
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+hess <- fit.mle[[1]]$hessian
+par.mle <- fit.mle[[2]]
+
+## check on standard errors and get t statistics
+eigen(hess)$values
+
+# residual analysis
+resid.mle <- sigex.resid(psi.mle, mdl, data.ts)[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*53,plot=TRUE)$acf
+
+# t statistics for parameters
+sigex.tstats(mdl,psi.mle,hess,constraint)
+
+# residual analysis
+resid.mle <- sigex.resid(psi.mle,mdl,dataNA.ts)[[1]]
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+resid.acf <- acf(resid.mle,lag.max=4*53,plot=FALSE)$acf
+
+## model checking
+sigex.portmanteau(resid.mle,4*period,length(psi.mle))
+sigex.gausscheck(resid.mle)
+
+#pdf(file="retResidAcf.pdf",height=10,width=10)
+par(mfrow=c(N,N),mar=c(3,2,2,0)+0.1,cex.lab=.8,cex.axis=.5,bty="n")
+for(j in 1:N)
+{
+  for(k in 1:N)
+  {
+    plot.ts(resid.acf[,j,k],ylab="",xlab="Lag",ylim=c(-1,1),cex=.5)
+    abline(h=1.96/sqrt(T),lty=3)
+    abline(h=-1.96/sqrt(T),lty=3)
+  }
+}
+# dev.off()
+
+# outlier calculations
+data.casts <- sigex.midcast(psi.mle,mdl,dataNA.ts,0)
+
+
+# #### Part VI: Signal Extraction #############################################
+
+# bundle
+analysis.mle <- sigex.bundle(dataNA.ts,transform,mdl,psi.mle)
+
+# ---- * load fitted model ----
+dataNA.ts <- analysis.mle[[1]]
+mdl <- analysis.mle[[3]]
+psi <- analysis.mle[[4]]
+param <- sigex.psi2par(psi,mdl,dataNA.ts)
+
+# ---- * get fixed effects ----
+reg.trend <- sigex.fixed(data.ts,mdl,1,param,"Trend")
+reg.nyd <- sigex.fixed(data.ts,mdl,1,param,"NewYearDay")
+reg.mlk <- sigex.fixed(data.ts,mdl,1,param,"MLK")
+dataLIN.ts <- data.ts - ts(reg.trend + reg.nyd + reg.mlk,
+                           start=start(data.ts),frequency=period)
+
+# ---- * trend and SA weekly filters ----
+week.period <- 365.25/7
+half.len <- floor(week.period/2)
+x11.filters <- x11filters(week.period,1)
+trend.filter <- x11.filters[[1]]
+seas.filter <- x11.filters[[2]]
+sa.filter <- x11.filters[[3]]
+shift <- (dim(sa.filter)[3]-1)/2
+
+# ---- * extractions -----
+trend.comp <- sigex.adhocextract(psi,mdl,dataNA.ts,trend.filter,half.len,0,TRUE)
+sa.comp <- sigex.adhocextract(psi,mdl,dataNA.ts,sa.filter,shift,0,TRUE)
+AO.errs <- dataLIN.ts[AO.times] - data.casts[[1]]
+sa.comp[[1]][AO.times] <- sa.comp[[1]][AO.times] + AO.errs
+
+# ---- * plotting ----
+trendcol <- "tomato"
+cyccol <- "orchid"
+seascol <- "seagreen"
+sacol <- "navyblue"
+fade <- 60
+
+#pdf(file="bfs-signal-ba.pdf",height=8,width=10)
+plot(data.ts)
+sigex.graph(trend.comp,reg.trend,start(data.ts),
+            period,1,0,trendcol,fade)
+sigex.graph(sa.comp,reg.trend,start(data.ts),
+            period,1,0,sacol,fade)
+dev.off()
+
+# ---- * spectral diagnostics: seasonal adjustment ----
+sigex.specar(sa.comp[[1]],FALSE,1,period)
+dev.off()
+
 
 
