@@ -6,7 +6,7 @@ rm(list=ls())
 library(devtools)
 library(Rcpp)
 
-# * set directories ----
+## * set directories ----
 # suppose directory is set to where sigex is located, e.g.
 # setwd("C:\\Users\\neide\\OneDrive\\Documents\\GitHub\\sigex")
 load_all(".")
@@ -24,7 +24,11 @@ end <- c(2020,27)
 period <- 52
 
 # * ts object and plot ----
-dataALL.ts <- sigex.load(bfs[,3:6],begin,period,c("bfs-ba","bfs-hba","bfs-wba","bfs-cba"),FALSE)
+dataALL.ts <- sigex.load(bfs[,3:6],
+                         begin,
+                         period,
+                         c("bfs-ba","bfs-hba","bfs-wba","bfs-cba"),
+                         FALSE)
 
 # * select span and transforms ----
 # we focus on "bfs-ba", business applications of bfs
@@ -44,10 +48,6 @@ acf(dataUS, na.action = na.pass, lag.max= 4 * 53)
 
 pacf(dataJD, na.action = na.pass, lag.max = 4 * 53)
 pacf(dataUS, na.action = na.pass, lag.max= 4 * 53)
-
-library(forecast)
-auto.arima(dataJD)
-auto.arima(dataUS)
 
 
 # #### Part III: Model Declaration ############################################
@@ -148,7 +148,7 @@ black.reg <- rowSums(black.reg)/7
 
 # ---- * differencing operator ----
 delta.s <- ubgenerator(365.25/7,NULL,1000,1)
-delta.full <- polymult(c(1,-1),delta.s)
+delta.full <- polymult(c(1,-1), delta.s)
 
 # ---- * Define JD+ differencing operator ----
 s.period <- 365.25/7
@@ -201,7 +201,7 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_a_us <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
-# ---- * (b) Improved Model: add holidays ----
+# ---- * (b) Add holidays model ----
 
 # ---- * (b, JD+) ----
 # model construction
@@ -242,7 +242,7 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_b_us <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
-# ---- * (c) Final Model ----
+# ---- * (c) Refined Model ----
 #   retain holidays NewYears, MLK, and Labor Day, and AO at time 314.
 
 # ---- * (c, JD+) ----
@@ -277,6 +277,193 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 
 ## run fitting:
 fit.mle_c_us <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ---- * (d) Visual Model ----
+#   look at ACF and PACF of differenced series and pick SMA(1, 1) model
+#   Regressors: NewYears, MLK, and Labor Day, and AO at time 314.
+
+# ---- * (d, JD+) ----
+
+# Setup AO as missing value
+AO.times <- 314
+dataNA.ts <- data.ts
+dataNA.ts[AO.times] <- NA
+
+# model construction
+mdl <- NULL
+mdl <- sigex.add(mdl,seq(1,N),"sarmaf",c(0,1,0,1,365.25/7),NULL,"process",sar.op)
+mdl <- sigex.meaninit(mdl,dataNA.ts,0)
+
+# add regressors
+mdl <- sigex.reg(mdl,1,ts(as.matrix(nyd.reg),start=start(nyd.reg),frequency=period,names="NewYearDay"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(mlk.reg),start=start(mlk.reg),frequency=period,names="MLK"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(labor.reg),start=start(labor.reg),frequency=period,names="LaborDay"))
+
+constraint <- NULL
+par.mle <- sigex.default(mdl,dataNA.ts,constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl)
+
+## run fitting:
+fit.mle_d_jd <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE,thresh=20)
+
+
+# ---- * (d, US) ----
+mdl$type[[1]][[1]] <- "sarma"
+mdl$diffop[[1]] <- delta.full
+
+par.mle <- sigex.default(mdl,data.ts,constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl)
+
+## run fitting:
+fit.mle_d_us <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ---- * (e) auto.arima Model ----
+#   choose model based on the results of auto.arima()
+#   this requires the data to be twice first differenced
+#   Regressors: NewYears, MLK, and Labor Day, and AO at time 314.
+
+library(forecast)
+auto.arima(dataJD)
+auto.arima(dataUS)
+# > auto.arima(dataJD)
+#
+# Series: dataJD
+# ARIMA(1,1,2)(0,0,1)[52]
+#
+# Coefficients:
+#   ar1      ma1      ma2     sma1
+# -0.0353  -0.9571  -0.0083  -0.4123
+# s.e.   0.5686   0.5679   0.5498   0.0327
+#
+# sigma^2 estimated as 0.02403:  log likelihood=308.79
+# AIC=-607.58   AICc=-607.5   BIC=-584.8
+#
+# > auto.arima(dataUS)
+#
+# Series: dataUS
+# ARIMA(1,1,2)(0,0,1)[52]
+#
+# Coefficients:
+#   ar1     ma1      ma2     sma1
+# -0.3039  0.0266  -0.9504  -0.4080
+# s.e.   0.0406  0.0146   0.0142   0.0335
+#
+# sigma^2 estimated as 0.02829:  log likelihood=250.24
+# AIC=-490.47   AICc=-490.39   BIC=-467.69
+
+
+# ---- * (e, JD+) ----
+
+# Setup AO as missing value
+AO.times <- 314
+dataNA.ts <- data.ts
+dataNA.ts[AO.times] <- NA
+
+# New JD+ differencing operator after additional 1st diff
+sar.op2 <- polymult(c(1,-1), sar.op2)
+
+# model construction
+mdl <- NULL
+mdl <- sigex.add(mdl,seq(1,N),"sarmaf",c(1,2,0,1,365.25/7),NULL,"process",sar.op2)
+mdl <- sigex.meaninit(mdl,dataNA.ts,0)
+
+# add regressors
+mdl <- sigex.reg(mdl,1,ts(as.matrix(nyd.reg),start=start(nyd.reg),frequency=period,names="NewYearDay"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(mlk.reg),start=start(mlk.reg),frequency=period,names="MLK"))
+mdl <- sigex.reg(mdl,1,ts(as.matrix(labor.reg),start=start(labor.reg),frequency=period,names="LaborDay"))
+
+constraint <- NULL
+par.mle <- sigex.default(mdl,dataNA.ts,constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl)
+
+## run fitting:
+fit.mle_e_jd <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE,thresh=20)
+
+
+# ---- * (e, US) ----
+
+# New differencing operator after additonal 1st diff
+delta.full2 <- polymult(c(1, -1), delta.full)
+
+mdl$type[[1]][[1]] <- "sarma"
+mdl$diffop[[1]] <- delta.full2
+
+par.mle <- sigex.default(mdl,data.ts,constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl)
+
+## run fitting:
+fit.mle_e_us <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ---- * Save Image ----
 # save.image()
