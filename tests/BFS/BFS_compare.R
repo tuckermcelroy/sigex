@@ -1,7 +1,7 @@
 ###  Script for Weekly BFS Data
 
 # Preamble ----
-rm(list=ls())
+
 
 library(devtools)
 library(Rcpp)
@@ -38,16 +38,7 @@ subseries <- 1
 range <- NULL
 data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 
-# ---- * Model Selection ----
-dataJD <- filter(data.ts, filter = sar.op, sides = 1)
-dataUS <- filter(data.ts, filter = delta.full, sides = 1)
 
-par(mfrow = c(2, 2))
-acf(dataJD, na.action = na.pass, lag.max = 4 * 53)
-acf(dataUS, na.action = na.pass, lag.max= 4 * 53)
-
-pacf(dataJD, na.action = na.pass, lag.max = 4 * 53)
-pacf(dataUS, na.action = na.pass, lag.max= 4 * 53)
 
 
 # #### Part III: Model Declaration ############################################
@@ -157,6 +148,21 @@ s.div <- floor(s.period)
 s.frac <- s.period - s.div
 sar.op <- c(1, rep(0, s.div - 1), (s.frac - 1) * rho.s, -1 * s.frac * rho.s)
 
+
+# ---- * Model Selection ----
+dataJD <- filter(data.ts, filter = sar.op, sides = 1)
+dataUS <- filter(data.ts, filter = delta.full, sides = 1)
+
+par(mfrow = c(1, 2))
+acf(dataJD, na.action = na.pass, lag.max = 4 * 53)
+acf(dataUS, na.action = na.pass, lag.max= 4 * 53)
+
+pacf(dataJD, na.action = na.pass, lag.max = 4 * 53)
+pacf(dataUS, na.action = na.pass, lag.max= 4 * 53)
+
+
+
+
 # #### PART V: Model Fitting ##################################################
 
 # ---- * (a) Initial Model: no holidays ----
@@ -168,7 +174,7 @@ mdl <- NULL
 mdl <- sigex.add(mdl    = mdl,
                  vrank  = seq(1,N),
                  class  = "sarmaf",
-                 order  = c(2,1,0,1,365.25/7),
+                 order  = c(2, 1, 0, 1, 365.25/7),
                  bounds = NULL,
                  name   = "process",
                  delta  = sar.op )
@@ -180,6 +186,11 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 
 ## run fitting:
 fit.mle_a_jd <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+
+#params
+psi_a_jd <-           fit.mle_a_jd[[1]]$par
+par_a_jd <- sigex.psi2par(psi_a_jd, mdl, data.ts)
+
 
 # ---- * (a, US) ----
 
@@ -200,6 +211,25 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 
 ## run fitting:
 fit.mle_a_us <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+
+
+# params
+psi_a_us <- fit.mle_a_us[[1]]$par
+par_a_us <- sigex.psi2par(psi_a_us, mdl, data.ts)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ---- * (b) Add holidays model ----
 
@@ -231,6 +261,13 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_b_jd <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
+#params
+psi_b_jd <-           fit.mle_b_jd[[1]]$par
+par_b_jd <- sigex.psi2par(psi_b_jd, mdl, data.ts)
+
+
+
+
 # ---- * (b, US) ----
 mdl$type[[1]][[1]] <- "sarma"
 mdl$diffop[[1]] <- delta.full
@@ -241,6 +278,17 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 
 ## run fitting:
 fit.mle_b_us <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+
+#params
+psi_b_us <-           fit.mle_b_us[[1]]$par
+par_b_us <- sigex.psi2par(psi_b_us, mdl, data.ts)
+
+
+
+
+
+
+
 
 # ---- * (c) Refined Model ----
 #   retain holidays NewYears, MLK, and Labor Day, and AO at time 314.
@@ -267,6 +315,11 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_c_jd <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE,thresh=20)
 
+#params
+psi_c_jd <-           fit.mle_c_jd[[1]]$par
+par_c_jd <- sigex.psi2par(psi_c_jd, mdl, data.ts)
+
+
 
 # ---- * (c, US) ----
 mdl$type[[1]][[1]] <- "sarma"
@@ -277,6 +330,10 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 
 ## run fitting:
 fit.mle_c_us <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+
+#params
+psi_c_us <-           fit.mle_c_us[[1]]$par
+par_c_us <- sigex.psi2par(psi_c_us, mdl, data.ts)
 
 
 
@@ -329,6 +386,11 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_d_jd <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE,thresh=20)
 
+#params
+psi_d_jd <-           fit.mle_d_jd[[1]]$par
+par_d_jd <- sigex.psi2par(psi_d_jd, mdl, data.ts)
+
+
 
 # ---- * (d, US) ----
 mdl$type[[1]][[1]] <- "sarma"
@@ -340,11 +402,9 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_d_us <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
-
-
-
-
-
+#params
+psi_d_us <-           fit.mle_d_us[[1]]$par
+par_d_us <- sigex.psi2par(psi_d_us, mdl, data.ts)
 
 
 
@@ -399,7 +459,7 @@ dataNA.ts <- data.ts
 dataNA.ts[AO.times] <- NA
 
 # New JD+ differencing operator after additional 1st diff
-sar.op2 <- polymult(c(1,-1), sar.op2)
+sar.op2 <- polymult(c(1,-1), sar.op)
 
 # model construction
 mdl <- NULL
@@ -419,6 +479,11 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 fit.mle_e_jd <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE,thresh=20)
 
 
+#params
+psi_e_jd <-           fit.mle_e_jd[[1]]$par
+par_e_jd <- sigex.psi2par(psi_e_jd, mdl, data.ts)
+
+
 # ---- * (e, US) ----
 
 # New differencing operator after additonal 1st diff
@@ -433,6 +498,9 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 ## run fitting:
 fit.mle_e_us <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
+#params
+psi_e_us <-           fit.mle_e_us[[1]]$par
+par_e_us <- sigex.psi2par(psi_e_us, mdl, data.ts)
 
 
 
@@ -441,21 +509,60 @@ fit.mle_e_us <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
 
 
+# ---- Fix Param ----
+
+# here we force SMA param to be -.8
+# We want to understand the negative seasonal lag in model residuals
+
+sigex.lik(psi = psi_d_us, mdl = mdl, data.ts = dataNA.ts)
+psi_d_us_zeroReg <- psi_d_us
+psi_d_us_zeroReg[5:7] <- 0
+sigex.lik(psi = psi_d_us_zeroReg, mdl = mdl, data.ts = dataNA.ts)
+
+psi_d_us_zeroReg_fixedTheta <- psi_d_us_zeroReg
+psi_d_us_zeroReg_fixedTheta[3] <- -2.1972245773
+sigex.lik(psi = psi_d_us_zeroReg_fixedTheta, mdl = mdl, data.ts = dataNA.ts)
 
 
+# Zero out regression effects
+par_temp <- par_d_us
+par_temp[[3]][[1]][2] <- -.8
+par_temp[[3]][[1]][1] <- -.5
+# par_temp[[4]][2:4] <- 0
+par_temp
+psi_temp <- sigex.par2psi(par_temp, mdl)
+
+sigex.lik(psi = psi_temp, mdl = mdl, data.ts = dataNA.ts)
+e <- sigex.resid(psi = psi_temp, mdl = mdl, data.ts = dataNA.ts)
+acf(c(e[[1]]), lag.max = 52*4)
+
+# model construction
+mdl <- NULL
+mdl <- sigex.add(mdl    = mdl,
+                 vrank  = seq(1,N),
+                 class  = "sarma",
+                 order  = c(0,1,0,1,365.25/7),
+                 bounds = NULL,
+                 name   = "process",
+                 delta  = delta.full )
+mdl <- sigex.meaninit(mdl,data.ts,0)
 
 
+constraint <- matrix(c(-2.197, 0, 0, 1, 0), nrow = 1) # Constraint making SMA = -.8
+# where did -2.197 come from?
 
 
+par.mle <- sigex.default(mdl, data.ts, constraint)
+psi.mle <- sigex.par2psi(par.mle,mdl)
 
+## run fitting:
+fit.mle_f_us <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
+psi <- sigex.eta2psi(eta = fit.mle_f_us[[1]]$par,
+                     constraint = constraint)
+par <- sigex.psi2par(psi, mdl, data.ts)
 
-
-
-
-
-
-
+sigex.lik(psi = psi, mdl = mdl, data.ts = dataNA.ts)
 
 
 
@@ -466,17 +573,17 @@ fit.mle_e_us <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
 
 
 # ---- * Save Image ----
-# save.image()
+# save.image(file = "model_d_e.RData")
 
 
 
 # #### Analysis of Results ####################################################
 
 # ---- * Pick model to look at ----
-fit.mle <- fit.mle_b_us
+fit.mle <- fit.mle_f_us
 
 # ---- * manage output ----
-psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)
+psi.mle <- sigex.eta2psi(fit.mle[[1]]$par, constraint)
 hess <- fit.mle[[1]]$hessian
 par.mle <- fit.mle[[2]]
 
@@ -485,8 +592,8 @@ eigen(hess)$values
 
 # residual analysis
 resid.mle <- sigex.resid(psi.mle, mdl, data.ts)[[1]]
-resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
-resid.acf <- acf(resid.mle,lag.max=4*53,plot=TRUE)$acf
+resid.mle <- sigex.load(t(resid.mle), start(data.ts), frequency(data.ts), colnames(data.ts), TRUE)
+resid.acf <- acf(resid.mle, lag.max = 4 * 53, plot = TRUE)$acf
 
 # t statistics for parameters
 sigex.tstats(mdl,psi.mle,hess,constraint)
