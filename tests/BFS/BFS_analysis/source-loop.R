@@ -23,3 +23,15 @@ for(d in sourceDirs){
   source(launchFile)
 }
 
+
+### Check for results.RData files in all subdirectories
+
+# create char vector of all subdirs (ignore all .R files and README)
+modelDirsIdx <- grep(pattern = "*_", x = list.files(topDir))
+modelDirs <- list.files(topDir)[modelDirsIdx]
+
+# loop over all model directories and check for results.RData
+for(d in modelDirs){
+  print(d)
+  print(file.exists(file.path(topDir, d, "results.RData")))
+}
