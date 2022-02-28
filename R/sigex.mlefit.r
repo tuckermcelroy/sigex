@@ -132,7 +132,7 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	if(method=="bfgs") {
 	mle <- try(nlminb(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
 	          whittle=whittle,debug=debug,lower=lower.bound,upper=upper.bound,
-		        control=list(iter.max=50,eval.max=200)),TRUE)
+		        control=list(iter.max=200,eval.max=200)),TRUE)
 	}
 	if(method=="sann") {
 	mle <- optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
