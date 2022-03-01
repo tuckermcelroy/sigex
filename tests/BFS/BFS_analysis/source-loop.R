@@ -31,7 +31,13 @@ modelDirsIdx <- grep(pattern = "*_", x = list.files(topDir))
 modelDirs <- list.files(topDir)[modelDirsIdx]
 
 # loop over all model directories and check for results.RData
+modelDir_withResults <- numeric()
 for(d in modelDirs){
   print(d)
   print(file.exists(file.path(topDir, d, "results.RData")))
 }
+
+# create vector of all model dirs with results files
+idx <- file.exists(file.path(topDir, modelDirs, "results.RData"))
+modelDir_withResults <- modelDirs[idx]
+

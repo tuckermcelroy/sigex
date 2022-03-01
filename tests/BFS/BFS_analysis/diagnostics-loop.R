@@ -21,7 +21,6 @@ model_directories <-
   "US_A6_model"
   )
 
-
 par(mfrow = c(2, 3), mar = c(5, 4, 4, 2))
 for(d in model_directories){
   # Load results file and create short model name
@@ -40,9 +39,11 @@ for(d in model_directories){
   seasTheta <- round(seasTheta, 3)
 
   # Make acf plot of residuals
-  plotTitle <- paste(shortMdlName, seasTheta)
-  # plot
-  resid.mle <- sigex.resid(psi.mle, mdl, data.ts)[[1]]
-  resid.mle <- sigex.load(t(resid.mle), start(data.ts), frequency(data.ts), colnames(data.ts), FALSE)
-  resid.acf <- acf(resid.mle, lag.max = 4 * 53, plot = TRUE, main = plotTitle)
+  if(FALSE){
+    plotTitle <- paste(shortMdlName, seasTheta)
+    # plot
+    resid.mle <- sigex.resid(psi.mle, mdl, data.ts)[[1]]
+    resid.mle <- sigex.load(t(resid.mle), start(data.ts), frequency(data.ts), colnames(data.ts), FALSE)
+    resid.acf <- acf(resid.mle, lag.max = 4 * 53, plot = TRUE, main = plotTitle)
+  }
 }
