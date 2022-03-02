@@ -104,7 +104,15 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
     {
       out <- sigex.lik(psi,mdl,data.ts,debug)
     }
-    if(debug) psi.last <<- psi
+    if(debug) 
+    {
+      psi.last <<- psi
+      if(out < lik.best)
+      {
+        psi.best <<- psi
+        lik.best <<- out
+      }
+    }  
     return(out)
   }
 
@@ -128,6 +136,10 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	lower.bound <- rep(-thresh,length(eta))
 	upper.bound <- rep(thresh,length(eta))
 
+	# initialize best psi
+	psi.best <<- sigex.eta2psi(eta,constraint)
+	lik.best <<- sigex.lik(psi.best,mdl,data.ts,debug)
+	
 	# initial attempt to fit
 	if(method=="bfgs") {
 	mle <- try(nlminb(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
