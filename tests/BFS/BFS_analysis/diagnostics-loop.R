@@ -7,26 +7,24 @@ list.dirs(topDir, full.names = "FALSE")
 # List of models (directories) to load results.RData for
 model_directories <-
   c(
-  "JD_A_model",
-  "JD_A2_model",
-  "JD_A3_model",
-  "JD_A4_model",
-  "JD_A5_model",
-  "JD_A6_model",
-  "US_A_model",
-  "US_A3_model",
-  "US_A3_model",
-  "US_A4_model",
-  "US_A5_model",
-  "US_A6_model"
+    "JD_ser1_2101_nreg00_maxit2500_initmdl_A2",
+    "JD_ser1_2101_nreg00_maxit2500_initmdl_A2",
+    "JD_ser1_2201_nreg00_maxit2500_initmdl_A3",
+    "JD_ser1_3201_nreg00_maxit2500_initmdl_A4",
+    "JD_ser1_2210_nreg00_maxit2500_initmdl_A5",
+    "JD_ser1_4001_nreg00_maxit2500_initmdl_A6",
+    "US_ser1_2101_nreg00_maxit2500_initmdl_A2",
+    "US_ser1_2201_nreg00_maxit2500_initmdl_A3",
+    "US_ser1_3201_nreg00_maxit2500_initmdl_A4",
+    "US_ser1_2210_nreg00_maxit2500_initmdl_A5",
+    "US_ser1_4001_nreg00_maxit2500_initmdl_A6"
   )
 
 par(mfrow = c(2, 3), mar = c(5, 4, 4, 2))
 for(d in model_directories){
   # Load results file and create short model name
   load(file.path(topDir, d, 'results.RData'))
-  shortMdlName <- substr(d, 1, 5)
-  print(shortMdlName)
+  print(d)
 
   # Check convergence of optim
   optimConverge <- fit.mle[[1]]$convergence == 0
@@ -39,8 +37,13 @@ for(d in model_directories){
   seasTheta <- round(seasTheta, 3)
 
   # Make acf plot of residuals
-  if(FALSE){
-    plotTitle <- paste(shortMdlName, seasTheta)
+  if(TRUE){
+
+    substrRight <- function(x, n){
+      substr(x, nchar(x)-n+1, nchar(x))
+    }
+    shortName <- paste(substr(d, 1, 2), substrRight(d, 2), sep = "-")
+    plotTitle <- paste(shortName, seasTheta)
     # plot
     resid.mle <- sigex.resid(psi.mle, mdl, data.ts)[[1]]
     resid.mle <- sigex.load(t(resid.mle), start(data.ts), frequency(data.ts), colnames(data.ts), FALSE)
