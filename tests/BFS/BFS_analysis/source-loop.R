@@ -17,14 +17,15 @@ sourceDirs <- c(
 )
 
 # Check that all files have runMLE flag = TRUE
-countFlag <- 0
-for(d in sourceDirs){
-    if(sum(grepl("runMLE <- TRUE", readLines(launchFile))) > 0){
-      countFlag <- countFlag + 1
-    }
+launchFiles <- file.path(topDir, sourceDirs, 'launch.R')
+out <- data.frame(model = sourceDirs, runMLE = NA)
+for(i in seq_along(launchFiles)){
+  f <- launchFiles[i]
+  g <- grepl(pattern = "runMLE <- TRUE", x = readLines(f))
+  out$runMLE[i] <- any(g)
 }
-length(sourceDirs)
-countFlag
+View(out)
+
 
 # !!!! CAREFUL: Delete results.RData from
 if(FALSE){
@@ -41,20 +42,21 @@ if(FALSE){
 
 # ---- Main loop sourcing all launch.R files in specified directories ----
 for(d in sourceDirs){
+  topDir <- 'tests/BFS/BFS_analysis/'
   launchPath <- paste0(topDir, d)
   launchFile <- file.path(launchPath, 'launch.R')
+  print(d)
   source(launchFile)
 }
 
 
 ### Check for results.RData files in all subdirectories
-
 # create char vector of all subdirs (ignore all .R files and README)
 modelDirsIdx <- grep(pattern = "*_", x = list.files(topDir))
 modelDirs <- list.files(topDir)[modelDirsIdx]
+# modelDirs <- sourceDirs
 
 # loop over all model directories and check for results.RData
-modelDir_withResults <- numeric()
 for(d in modelDirs){
   print(d)
   print(file.exists(file.path(topDir, d, "results.RData")))
