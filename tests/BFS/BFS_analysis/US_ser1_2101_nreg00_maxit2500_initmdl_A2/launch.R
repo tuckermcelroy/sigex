@@ -26,7 +26,7 @@ constraint <- NULL
 regVars <- NULL
 
 # Should fit.mle be run?
-runMLE <- FALSE
+runMLE <- TRUE
 
 source(file.path(modelPath, "run.R"))
 
