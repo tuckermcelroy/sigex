@@ -8,17 +8,24 @@ grep("JD_ser1_2101_nreg00_maxit[0-9]{4}",
      x = list.dirs(topDir, full.names = "FALSE"),
      value = TRUE)
 
+g <-
+grep("hessF",
+     x = list.dirs(topDir, full.names = "FALSE"),
+     value = TRUE)
+dput(g)
+
+
 
 # List of models (directories) to load results.RData for
 model_directories <-
   c(
-    "JD_ser2_2101_nreg00_maxit0050_initmdl_A",
-    "JD_ser2_2101_nreg12_maxit0050_allReg_B",
-    "JD_ser2_2101_nreg03_maxit0050_signifReg_C",
-    "JD_ser2_0101_nreg00_maxit0050_visual_D"
+    # "JD_ser1_hessF_0101_nreg00_maxit0500_visual_D",
+    # "JD_ser2_hessF_0101_nreg00_maxit0500_visual_D",
+    # "US_ser1_hessF_0101_nreg00_maxit0500_visual_D",
+    "US_ser2_hessF_0101_nreg00_maxit0500_visual_D"
   )
 
-par(mfrow = c(2, 2), mar = c(5, 4, 4, 2))
+par(mfrow = c(1, 1), mar = c(5, 4, 4, 2))
 for(d in model_directories){
   # Load results file and create short model name
   load(file.path(topDir, d, 'results.RData'))
@@ -38,7 +45,6 @@ for(d in model_directories){
 
   # Make acf plot of residuals
   if(TRUE){
-
     substrRight <- function(x, n){
       substr(x, nchar(x)-n+1, nchar(x))
     }
