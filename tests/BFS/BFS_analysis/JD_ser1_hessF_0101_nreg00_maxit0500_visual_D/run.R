@@ -70,6 +70,7 @@ if(runMLE){
                           param = par.default,
                           constraint = constraint,
                           mdl = mdl,
+hess = FALSE, 
                           method = "bfgs",
                           debug = FALSE)
 
@@ -79,5 +80,4 @@ if(runMLE){
   # Save everything
   save.image(file = file.path(modelPath, "results.RData"))
 }
-
 

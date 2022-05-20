@@ -1,3 +1,4 @@
+# JD A5
 
 rm(list=ls())
 devtools::load_all(".")
@@ -24,12 +25,12 @@ delta <- sar.op
 
 # Mdl
 class <- "sarmaf"
-order <- c(2, 1, 0, 1, 365.25/7)
+order <- c(2, 2, 1, 0, 365.25/7)
 constraint <- NULL
 regVars <- NULL
 
 # Should fit.mle be run?
-runMLE <- FALSE
+runMLE <- TRUE
 
 source(file.path(modelPath, "run.R"))
 
