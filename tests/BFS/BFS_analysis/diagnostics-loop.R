@@ -4,6 +4,7 @@ topDir <- 'tests/BFS/BFS_analysis/'
 # List off all directories in top-level directory
 list.dirs(topDir, full.names = "FALSE")
 
+g <-
 grep("JD_ser1_2101_nreg00_maxit[0-9]{4}",
      x = list.dirs(topDir, full.names = "FALSE"),
      value = TRUE)
@@ -12,7 +13,6 @@ g <-
 grep("hessF",
      x = list.dirs(topDir, full.names = "FALSE"),
      value = TRUE)
-dput(g)
 
 
 
@@ -111,7 +111,7 @@ for(i in seq_along(model_directories)){
   df$Hess[i]      <- ss[3]
   df$Delta[i]     <- ss[1]
   df$nReg[i]      <- ss[5]
-  df$order        <- ss[4]
+  df$order[i]     <- ss[4]
 
   # Load results file and create short model name
   load(file.path(topDir, d, 'results.RData'))
@@ -143,9 +143,9 @@ for(i in seq_along(model_directories)){
   resid.acf <- acf(resid.mle, lag.max = 4 * 53, plot = FALSE)$acf
   # lag52acf[i, ] <- resid.acf[51:55]
 
-  df$lag51acf[i] <- resid.acf[52]
-  df$lag52acf[i] <- resid.acf[53]
-  df$lag53acf[i] <- resid.acf[54]
+  df$lag51acf[i] <- round(resid.acf[52], 4)
+  df$lag52acf[i] <- round(resid.acf[53], 4)
+  df$lag53acf[i] <- round(resid.acf[54], 4)
 
   # Make acf plot of residuals
   if(FALSE){
