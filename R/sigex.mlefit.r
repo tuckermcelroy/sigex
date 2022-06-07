@@ -107,11 +107,17 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
     {
       out <- sigex.lik(psi,mdl,data.ts,debug)
     }
-    if(debug) {
+    if(debug) 
+    {
       psi.last <<- psi
       message('psi = ', paste(psi.last, collapse = ", "))
       message("lik = ", out)
-    }
+      if(out < lik.best)
+      {
+        psi.best <<- psi
+        lik.best <<- out
+      }
+    }  
     return(out)
   }
 
@@ -135,18 +141,22 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
   lower.bound <- rep(-thresh,length(eta))
   upper.bound <- rep(thresh,length(eta))
 
-  # initial attempt to fit
-  if(method=="bfgs") {
-    mle <- try(nlminb(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
-                      whittle=whittle,debug=debug,lower=lower.bound,upper=upper.bound,
-                      control=list(iter.max=500, eval.max=200)), TRUE)
-  }
-  if(method=="sann") {
-    mle <- optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
-                 whittle=whittle,debug=debug,method="SANN",control=list(maxit=5000)) }
-  if(method=="cg") {
-    mle <- optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
-                 whittle=whittle,debug=debug,method="CG",control=list(maxit=50,trace=10)) }
+	# initialize best psi
+	psi.best <<- sigex.eta2psi(eta,constraint)
+	lik.best <<- sigex.lik(psi.best,mdl,data.ts,debug)
+	
+	# initial attempt to fit
+	if(method=="bfgs") {
+	mle <- try(nlminb(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
+	          whittle=whittle,debug=debug,lower=lower.bound,upper=upper.bound,
+		        control=list(iter.max=100,eval.max=200)),TRUE)
+	}
+	if(method=="sann") {
+	mle <- optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
+	             whittle=whittle,debug=debug,method="SANN",control=list(maxit=5000)) }
+	if(method=="cg") {
+	mle <- optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
+	             whittle=whittle,debug=debug,method="CG",control=list(maxit=50,trace=10)) }
 
   # if the fit was successful, we can report results;
   #	also, we can try to get the hessian - in this case,
