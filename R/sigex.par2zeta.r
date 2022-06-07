@@ -136,7 +136,7 @@ phi2psi <- function(phi)
 	}
 
 	# SARMA
-	if(mdlClass %in% c("sarma"))
+	if(mdlClass %in% c("sarma","sarmaf"))
 	{
 		p.order <- mdlOrder[1]
 		q.order <- mdlOrder[2]

@@ -9,7 +9,7 @@
 #' @export
 #'
 
-ubgenerator <- function(period,trunc.len,m)
+ubgenerator <- function(period,trunc.len,m,rho)
 {
 
   ##########################################################################
@@ -34,16 +34,17 @@ ubgenerator <- function(period,trunc.len,m)
 
   ################# Documentation #####################################
   #
-  #	Purpose: compute the product of unit root differencing operators.
+  #	Purpose: compute the product of differencing operators.
   # Background: the goal is to annihilate periodic components of
   #   frequency 2*pi*k/period for k = 1, 2, ..., [period/2].
-  #   Compute product_k  (1 - 2 cos(2*pi*k/period) z + z^2) by using
+  #   Compute product_k  (1 - 2 rho cos(2*pi*k/period) z + rho^2 z^2) by using
   #   cepstral method for higher accuracy.
   #	Inputs:
   #   period: possibly non-integer period of sinusoids
   #   trunc.len: gives the maximal index of k, and is set to [period/2]
   #     when trunc.len = NULL
   #   m: large integer giving number of cepstral coefficients
+  #   rho: parameter between 0 and 1, can equal 1 for unit root case
   #	Outputs:
   #	  wolds: coefficients of product polynomial.
   #
@@ -69,7 +70,7 @@ ubgenerator <- function(period,trunc.len,m)
 
   for(ell in 1:m)
   {
-    ceps[ell] <- -2*sum(cos(2*pi*ell*seq(1,trunc.len)/period))/ell
+    ceps[ell] <- -2*(rho^ell)*sum(cos(2*pi*ell*seq(1,trunc.len)/period))/ell
   }
   wolds <- ceps2wold(ceps,2*trunc.len)
 
