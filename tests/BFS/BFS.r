@@ -9,10 +9,11 @@ library(devtools)
 library(Rcpp)
 
 # suppose directory is set to where sigex is located, e.g.
-#setwd("C:\\Users\\neide\\Documents\\GitHub\\sigex")
+# setwd("C:\\Users\\neide\\OneDrive\\Documents\\GitHub\\sigex")
 load_all(".")
-root.dir <- getwd()
-setwd(paste(root.dir,"/tests/BFS",sep=""))
+root.dir <- "~\\GitHub\\sigex"
+ex.dir <- file.path(root.dir, "tests/BFS")
+
 
 
 #####################
@@ -161,11 +162,14 @@ black.reg <- rowSums(black.reg)/7
 ###########################################
 ### PART IV: Model Construction and Fitting
 
+delta.s <- ubgenerator(365.25/7,NULL,1000,1)
+delta.full <- polymult(c(1,-1),delta.s)
+
 ## (a) Initial Model: no holidays
 
 # model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),NULL,"process",1)
+mdl <- sigex.add(mdl,seq(1,N),"sarmaf",c(2,1,0,1,365.25/7),NULL,"process",delta.full)
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
 constraint <- NULL
@@ -191,7 +195,7 @@ par.mle <- fit.mle[[2]]
 
 # model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),NULL,"process",1)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(2,1,0,1,365.25/7),NULL,"process",delta.full)
 mdl <- sigex.meaninit(mdl,data.ts,0)
 
 # add regressors
@@ -246,11 +250,11 @@ dataNA.ts[AO.times] <- NA
 
 # model construction
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),NULL,"process",1)
+mdl <- sigex.add(mdl,seq(1,N),"sarma",c(2,0,0,1,365.25/7),NULL,"process",delta.full)
 mdl <- sigex.meaninit(mdl,dataNA.ts,0)
 
 # add regressors
-mdl <- sigex.reg(mdl,1,ts(as.matrix(nyd.reg),start=start(nyd.reg),frequency=period,names="NewYearDay"))
+#mdl <- sigex.reg(mdl,1,ts(as.matrix(nyd.reg),start=start(nyd.reg),frequency=period,names="NewYearDay"))
 mdl <- sigex.reg(mdl,1,ts(as.matrix(mlk.reg),start=start(mlk.reg),frequency=period,names="MLK"))
 
 constraint <- NULL
@@ -258,7 +262,7 @@ par.mle <- sigex.default(mdl,dataNA.ts,constraint)
 psi.mle <- sigex.par2psi(par.mle,mdl)
 
 ## run fitting:
-fit.mle <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE)
+fit.mle <- sigex.mlefit(dataNA.ts,par.mle,constraint,mdl,"bfgs",debug=TRUE,thresh=20)
 
 ## manage output
 psi.mle <- sigex.eta2psi(fit.mle[[1]]$par,constraint)

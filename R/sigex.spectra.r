@@ -78,7 +78,7 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 	#		f.spec: array of dimension N x N x (grid+1), consisting of spectrum
 	#			at frequencies pi*j/grid for 0 <= j <= grid
 	#	Requires: polymult, polysum, polymulMat
-	#		specFact, specFactmvar, sigex.getcycle, sigex.canonize
+	#		specFact, specFactmvar, sigex.getcycle, sigex.canonize, ubgenerator
 	#
 	####################################################################
 
@@ -147,13 +147,15 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 	# SARMA model
 	if(mdlClass == "sarma")
 	{
-		p.order <- mdlOrder[1]
-		q.order <- mdlOrder[2]
-		ps.order <- mdlOrder[3]
-		qs.order <- mdlOrder[4]
-		s.period <- mdlOrder[5]
-		stretch <- c(rep(0,s.period-1),1)
-		ar.coef <- NULL
+	  p.order <- mdlOrder[1]
+	  q.order <- mdlOrder[2]
+	  ps.order <- mdlOrder[3]
+	  qs.order <- mdlOrder[4]
+	  s.period <- mdlOrder[5]
+	  s.div <- floor(s.period)
+	  s.frac <- s.period - s.div
+	  
+	  ar.coef <- NULL
 		ma.coef <- NULL
 		ars.coef <- NULL
 		mas.coef <- NULL
@@ -177,22 +179,56 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 		  }
 		  ma.array <- array(cbind(diag(N),-1*matrix(ma.coef,nrow=N)),c(N,N,q.order+1))
 		}
-		if(ps.order > 0)
+		if(s.frac==0)
 		{
-		  for(j in 1:ps.order)
+		  
+		  stretch <- c(rep(0,s.period-1),1)
+  		if(ps.order > 0)
 		  {
-		    ars.coef <- cbind(ars.coef,t(stretch) %x% diag(mdlPar[,j+p.order+q.order],nrow=N))
+  		  for(j in 1:ps.order)
+		    {
+  		    ars.coef <- cbind(ars.coef,t(stretch) %x% diag(mdlPar[,j+p.order+q.order],nrow=N))
+		    }
+		    ars.array <- array(cbind(diag(N),-1*ars.coef),c(N,N,s.period*ps.order+1))
 		  }
-		  ars.array <- array(cbind(diag(N),-1*ars.coef),c(N,N,s.period*ps.order+1))
-		}
-		if(qs.order > 0)
-		{
-		  for(j in 1:qs.order)
+		  if(qs.order > 0)
 		  {
-		    mas.coef <- cbind(mas.coef,t(stretch) %x% diag(mdlPar[,j+p.order+q.order+ps.order],nrow=N))
+  		  for(j in 1:qs.order)
+		    {
+  		    mas.coef <- cbind(mas.coef,t(stretch) %x% diag(mdlPar[,j+p.order+q.order+ps.order],nrow=N))
+		    }
+		    mas.array <- array(cbind(diag(N),-1*mas.coef),c(N,N,s.period*qs.order+1))
 		  }
-		  mas.array <- array(cbind(diag(N),-1*mas.coef),c(N,N,s.period*qs.order+1))
-		}
+		
+		} else  # s.frac > 0
+		{		  
+		  
+		  if(ps.order > 0) # then ps.order = 1 for this model
+		  {
+		    for(k in 1:N)
+		    {
+		      rho.s <- mdlPar[k,1+p.order+q.order]
+		      sar.op <- ubgenerator(s.period,NULL,1000,rho.s)
+		      sar.op <- polymult(sar.op,c(1,-1*rho.s))
+		      ars.coef <- rbind(ars.coef,-1*sar.op[-1])
+		    }
+		    ars.array <- cbind(diag(N),-1*ars.coef)
+		    ars.array <- array(ars.array,c(N,N,dim(ars.array)[2]))
+		  }
+		  if(qs.order > 0) # then qs.order = 1 for this model
+		  {
+		    for(k in 1:N)
+		    {
+		      rho.s <- mdlPar[k,1+p.order+q.order+ps.order]
+		      sma.op <- ubgenerator(s.period,NULL,1000,rho.s)
+		      sma.op <- polymult(sma.op,c(1,-1*rho.s))
+		      mas.coef <- rbind(mas.coef,-1*sma.op[-1])
+		    }
+		    mas.array <- cbind(diag(N),-1*mas.coef)
+		    mas.array <- array(mas.array,c(N,N,dim(mas.array)[2]))
+		  }
+		  
+		}    
 		ar.poly <- polymulMat(ar.array,ars.array)
 		ma.poly <- polymulMat(ma.array,mas.array)
 		delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
@@ -202,6 +238,72 @@ sigex.spectra <- function(L.par,D.par,mdl,comp,mdlPar,delta,grid)
 		comp.sigma <- xi.mat
 	}
 
+	# Fractional SARMA of JDemetra+; need ps, qs <= 1
+	if(mdlClass == "sarmaf")
+	{
+	  p.order <- mdlOrder[1]
+	  q.order <- mdlOrder[2]
+	  ps.order <- mdlOrder[3]
+	  qs.order <- mdlOrder[4]
+	  s.period <- mdlOrder[5]
+	  s.div <- floor(s.period)
+	  s.frac <- s.period - s.div
+	  
+	  ar.coef <- NULL
+	  ma.coef <- NULL
+	  ars.coef <- NULL
+	  mas.coef <- NULL
+	  ar.array <- array(diag(N),c(N,N,1))
+	  ma.array <- array(diag(N),c(N,N,1))
+	  ars.array <- array(diag(N),c(N,N,1))
+	  mas.array <- array(diag(N),c(N,N,1))
+	  if(p.order > 0)
+	  {
+	    for(j in 1:p.order)
+	    {
+	      ar.coef <- cbind(ar.coef,diag(mdlPar[,j],nrow=N))
+	    }
+	    ar.array <- array(cbind(diag(N),-1*matrix(ar.coef,nrow=N)),c(N,N,p.order+1))
+	  }
+	  if(q.order > 0)
+	  {
+	    for(j in 1:q.order)
+	    {
+	      ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.order],nrow=N))
+	    }
+	    ma.array <- array(cbind(diag(N),-1*matrix(ma.coef,nrow=N)),c(N,N,q.order+1))
+	  }
+	  if(ps.order > 0) # then ps.order = 1 for this model
+	  {
+	    for(k in 1:N)
+	    {
+	      rho.s <- mdlPar[k,1+p.order+q.order]
+	      sar.op <- c(1,rep(0,s.div-1),(s.frac-1)*rho.s,-1*s.frac*rho.s) 
+	      ars.coef <- rbind(ars.coef,-1*sar.op[-1])
+	    }
+	    ars.array <- cbind(diag(N),-1*ars.coef)
+	    ars.array <- array(ars.array,c(N,N,dim(ars.array)[2]))
+	  }
+	  if(qs.order > 0) # then qs.order = 1 for this model
+	  {
+	    for(k in 1:N)
+	    {
+	      rho.s <- mdlPar[k,1+p.order+q.order+ps.order]
+	      sma.op <- c(1,rep(0,s.div-1),(s.frac-1)*rho.s,-1*s.frac*rho.s)
+	      mas.coef <- rbind(mas.coef,-1*sma.op[-1])
+	    }
+	    mas.array <- cbind(diag(N),-1*mas.coef)
+	    mas.array <- array(mas.array,c(N,N,dim(mas.array)[2]))
+	  }
+	  ar.poly <- polymulMat(ar.array,ars.array)
+	  ma.poly <- polymulMat(ma.array,mas.array)
+	  delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
+	  madiff.array <- polymulMat(delta.array,ma.poly)
+	  comp.MA <- madiff.array
+	  comp.AR <- ar.poly
+	  comp.sigma <- xi.mat
+	}	  
+	
 	# Stabilized SARMA model
 	if(mdlClass == "sarma.stab")
 	{
