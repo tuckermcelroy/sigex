@@ -137,7 +137,7 @@ sigex.lpfiltering <- function(mdl,data.ts,trendcyclecomp,sigcomps,psi,cutoff,gri
 		output.j <- rep(0,T)
 		for(k in 1:N)
 		{
-			output.k <- filter(data.ext[,k],psi.filter[j,k,],
+			output.k <- stats::filter(data.ext[,k],psi.filter[j,k,],
 				method="convolution",sides=2)
 			output.k <- output.k[(trunc+1):(trunc+T)]
 			output.j <- output.j + output.k

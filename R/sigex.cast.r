@@ -139,7 +139,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 	# difference the data
 	fulldiff <-  sigex.delta(mdl,0)
 	del <- length(fulldiff) - 1
-	x.diff <- as.matrix(filter(data.diff,fulldiff,method="convolution",
+	x.diff <- as.matrix(stats::filter(data.diff,fulldiff,method="convolution",
 		sides=1)[length(fulldiff):T,])
 	Tdiff <- dim(x.diff)[1]
 	x.diff <- t(x.diff)
@@ -151,7 +151,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 		x.fore <- cbind(x.diff,matrix(1i,N,(fore.index-T)))
 		diff.cast <- mvar.forecast(x.acf,x.fore,FALSE)[[1]]
 		if(del > 0) {
-			fore.cast <- as.matrix(filter(init = matrix(data.diff[del:1,],ncol=N),
+			fore.cast <- as.matrix(stats::filter(init = matrix(data.diff[del:1,],ncol=N),
 				x=t(diff.cast)/fulldiff[1],filter=-1*fulldiff[-1]/fulldiff[1],
 				method="recursive"))
 		} else { fore.cast <- t(diff.cast) }
@@ -164,7 +164,7 @@ sigex.cast <- function(psi,mdl,data.ts,leads)
 		x.aft <- cbind(x.rev,matrix(1i,N,(1-aft.index)))
 		diff.cast <- mvar.forecast(aperm(x.acf,c(3,2,1)),x.aft,FALSE)[[1]]
  		if(del > 0) {
-			aft.cast <- as.matrix(filter(init = matrix(data.diff[(Tdiff+1):T,],ncol=N),
+			aft.cast <- as.matrix(stats::filter(init = matrix(data.diff[(Tdiff+1):T,],ncol=N),
 				x=t(diff.cast)/fulldiff[del+1],filter=-1*rev(fulldiff)[-1]/fulldiff[del+1],
 				method="recursive"))
 		} else { aft.cast <- t(diff.cast) }

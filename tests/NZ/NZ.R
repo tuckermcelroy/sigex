@@ -337,7 +337,7 @@ for(i in 1:N)
 reg.td <- rbind(rep(0,N),reg.td)
 reg.td <- ts(sigex.weekly2daily(reg.td,first.day),
                 start=start(dataONE.ts),frequency=period)
-reg.trend <- filter(reg.td,td.hifilter,method="convolution",sides=1)
+reg.trend <- stats::filter(reg.td,td.hifilter,method="convolution",sides=1)
 reg.trend <- as.matrix(reg.trend[8:length(reg.td)])
 
 

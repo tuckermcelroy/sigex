@@ -65,7 +65,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 	par.new <- param
 
 	fulldiff <- sigex.delta(mdl,0)
-	data.diff <- filter(t(x),fulldiff,method="convolution",
+	data.diff <- stats::filter(t(x),fulldiff,method="convolution",
 			sides=1)[length(fulldiff):T,,drop=FALSE]
 	Tdiff <- dim(data.diff)[1]
 
@@ -75,7 +75,7 @@ sigex.momfit <- function(data.ts,param,mdl)
 	for(k in 1:N)
 	{
 		reg <- mdl[[4]][[k]]
-		reg.diff <- as.matrix(filter(reg,fulldiff,method="convolution",
+		reg.diff <- as.matrix(stats::filter(reg,fulldiff,method="convolution",
 			sides=1)[length(fulldiff):T,])
 		reg.mat <- t(reg.diff) %*% reg.diff
 		reg.y <- t(reg.diff) %*% data.diff[,k]

@@ -81,7 +81,7 @@ sigex.reg <- function(mdl,series,reg)
 
 	T <- dim(reg)[1]
 	delta <-  sigex.delta(mdl,0)
-	reg.diff <- filter(reg,delta,method="convolution",sides=1)[length(delta):T]
+	reg.diff <- stats::filter(reg,delta,method="convolution",sides=1)[length(delta):T]
 	if(sum(reg.diff^2) > 10^(-8))
 	{
 		mdlReg[[series]] <- ts(cbind(mdlReg[[series]][1:T,],reg[1:T,]),start=start(reg),

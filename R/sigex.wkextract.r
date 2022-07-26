@@ -168,7 +168,7 @@ sigex.wkextract <- function(psi,mdl,data.ts,sigcomps,target,grid,window,horizon,
 		output.j <- rep(0,T+2*horizon)
 		for(k in 1:N)
 		{
-			output.k <- filter(data.ext[,k],wk.filter[j,k,],
+			output.k <- stats::filter(data.ext[,k],wk.filter[j,k,],
 				method="convolution",sides=2)
 			output.k <- output.k[(window+1):(window+T+2*horizon)]
 			output.j <- output.j + output.k

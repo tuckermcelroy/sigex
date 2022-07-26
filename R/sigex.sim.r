@@ -160,7 +160,7 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	delta <- sigex.delta(mdl,0)
 	delta.recurse <- -delta[-1]/delta[1]
 
-	sims <- as.matrix(filter(t(sim),delta.recurse,method="recursive",init)[-seq(1,d),])
+	sims <- as.matrix(stats::filter(t(sim),delta.recurse,method="recursive",init)[-seq(1,d),])
 	sims <- as.matrix(sims[(burnin+1):(burnin+simlen),])
 
 	# add fixed effects here, regressors must have length simlen

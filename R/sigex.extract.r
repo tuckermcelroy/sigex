@@ -19,7 +19,7 @@
 #' @export
 #'
 
-sigex.extract <- function(data.ts,filter,mdl,param)
+sigex.extract <- function(data.ts,my.filter,mdl,param)
 {
 
 	##########################################################################
@@ -62,7 +62,7 @@ sigex.extract <- function(data.ts,filter,mdl,param)
 	#		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 	#	Inputs:
 	#		data.ts: a T x N matrix ts object
-	#		filter: list object corresponding to the output of sigex.signal,
+	#		my.filter: list object corresponding to the output of sigex.signal,
 	#			a list object of f.mat and v.mat.
 	#			f.mat: array of dimension c(T,N,T,N), where f.mat[,j,,k]
 	#				is the signal extraction matrix that utilizes input series k
@@ -97,10 +97,10 @@ sigex.extract <- function(data.ts,filter,mdl,param)
 	}
 	xvec <- matrix(t(data.diff),nrow=N*T,ncol=1)
 
-  extract <- filter[[1]] %*% xvec
+  extract <- my.filter[[1]] %*% xvec
 	extract <- t(matrix(extract,nrow=N,ncol=T))
 
-	mse <- t(matrix(diag(filter[[2]]),N,T))
+	mse <- t(matrix(diag(my.filter[[2]]),N,T))
 	upp <- extract + 2*sqrt(mse)
 	low <- extract - 2*sqrt(mse)
 

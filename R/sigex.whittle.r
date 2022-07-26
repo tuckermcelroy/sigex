@@ -134,7 +134,7 @@ sigex.whittle <- function(psi,mdl,data.ts)
 
 	# difference the data
 	delta <- sigex.delta(mdl,0)
-	x.diff <- as.matrix(filter(t(z),delta,method="convolution",
+	x.diff <- as.matrix(stats::filter(t(z),delta,method="convolution",
 		sides=1)[length(delta):T,])
 	Tdiff <- dim(x.diff)[1]
 	x.diff <- t(x.diff)

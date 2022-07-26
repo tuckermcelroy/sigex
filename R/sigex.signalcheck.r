@@ -104,7 +104,7 @@ sigex.signalcheck <- function(signal,param,mdl,sigcomps,lagall)
 	}
 	signal.acf <- array(acfsignal.mat,dim=c(N,TdiffSig,N))
 
-	dsig <- filter(signal,delta.signal,method="convolution",sides=1)[length(delta.signal):T,]
+	dsig <- stats::filter(signal,delta.signal,method="convolution",sides=1)[length(delta.signal):T,]
  	acf.sample <- acf(dsig,type="correlation",lag.max=TdiffSig,plot=FALSE)$acf
 
 	L <- TdiffSig-1

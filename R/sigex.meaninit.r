@@ -106,7 +106,7 @@ sigex.meaninit <- function(mdl,data.ts,d)
 			d.inc <- d.inc-1
 			reg <- ts(as.matrix(seq(1,T)^d.inc),start=start(data.ts),
 				frequency=frequency(data.ts),names="Trend")
-			reg.diff <- filter(reg,delta,method="convolution",
+			reg.diff <- stats::filter(reg,delta,method="convolution",
 				sides=1)[length(delta):T]
 			if(sum(reg.diff^2) > 10^(-8))
 			{

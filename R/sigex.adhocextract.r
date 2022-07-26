@@ -170,7 +170,7 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
     output.j <- rep(0,T+2*horizon)
     for(k in 1:N)
     {
-      output.k <- filter(data.ext[,k],adhoc[j,k,],
+      output.k <- stats::filter(data.ext[,k],adhoc[j,k,],
                          method="convolution",sides=1)
       output.k <- output.k[-seq(1,L-1)]
       output.j <- output.j + output.k
