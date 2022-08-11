@@ -26,11 +26,11 @@ var2.pre2par <- function(psi,p,N)
   #
   #	Purpose: generates a stable dimension N VAR(p) process
   #	Background:
-  #		param is the name for the model parameters entered into
+#		param is the name for the model parameters entered into 
   #		an array object with a more intuitive structure, whereas
   #		psi refers to a vector of real numbers containing all
-  #		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
-  #		Algorithm is that of Ansley and Kohn (1986)
+  #		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+  #		Algorithm is that of Roy, McElroy, and Linton (2019)
   #	Notes: only for use with N > 1 and p > 0
   #	Inputs:
   #		psi: vector of real numbers, of length p*N^2
