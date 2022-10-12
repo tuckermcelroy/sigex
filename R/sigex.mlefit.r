@@ -30,7 +30,8 @@
 #' @export
 #'
 
-sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRUE,whittle=FALSE,debug=FALSE)
+sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,
+                         hess=TRUE,whittle=FALSE,debug=FALSE,maxiter=100)
 {
 
   ##########################################################################
@@ -149,14 +150,15 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
 	if(method=="bfgs") {
 	mle <- try(nlminb(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
 	          whittle=whittle,debug=debug,lower=lower.bound,upper=upper.bound,
-		        control=list(iter.max=100,eval.max=200)),TRUE)
+		        control=list(iter.max=maxiter,eval.max=200)),TRUE)
 	}
 	if(method=="sann") {
 	mle <- optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
-	             whittle=whittle,debug=debug,method="SANN",control=list(maxit=5000)) }
+	             whittle=whittle,debug=debug,method="SANN",control=list(maxit=maxiter)) }
 	if(method=="cg") {
 	mle <- optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
-	             whittle=whittle,debug=debug,method="CG",control=list(maxit=50,trace=10)) }
+	             whittle=whittle,debug=debug,method="CG",
+	             control=list(maxit=maxiter,trace=10)) }
 
   # if the fit was successful, we can report results;
   #	also, we can try to get the hessian - in this case,
@@ -167,7 +169,7 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,hess=TRU
       eta.est <- mle$par
       mle.hess <- try(optim(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,
                             whittle=whittle,debug=debug,lower=lower.bound,upper=upper.bound,
-                            method="L-BFGS-B",hessian=TRUE,control=list(maxit=100)))
+                            method="L-BFGS-B",hessian=TRUE,control=list(maxit=maxiter)))
       if(!inherits(mle.hess, "try-error")) { mle <- mle.hess }
     }
     eta.est <- mle$par
