@@ -151,7 +151,7 @@ if (p > 0)
 {
 	gamARMA <- array(gamMA[,,1],c(m,m,1))
 	if (q == 0) { gamMix <- array(sigma,c(m,m,1)) } else
-		gamMix <- gamMA[,,1:(q+1)]
+		gamMix <- array(gamMA[,,1:(q+1)],c(m,m,q+1))
 }
 
 if (maxlag <= p)
