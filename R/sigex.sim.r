@@ -63,7 +63,6 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	####################################################################
 
 	N <- length(mdl[[4]])
-	boundlist <- mdl[[5]]
 	delta <- sigex.delta(mdl,0)
 	d <- length(delta) - 1
 	T <- simlen + burnin + d
@@ -106,7 +105,6 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	ind <- 0
 	for(i in 1:length(mdl[[3]]))
 	{
-		bounds <- boundlist[[i]]
 		mdlType <- mdl[[2]][i]
 		delta <- mdl[[3]][[i]]
 		zetalen <- sigex.zetalen(mdlType)
