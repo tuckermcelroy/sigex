@@ -7,13 +7,15 @@
 #'     the matrix of constraints and Q (constraint.vec) the vector
 #'     of constraint constants, such that C psi = Q.
 #'     Use NULL if there are no constraints
+#' @param returnSE Boolean by default FALSE; if TRUE, output is a list
+#'     with first element t statistics and second element standard errors    
 #'
 #' @return tstats: vector of psi mles divided by standard error.  If a parameter
 #'			constraints are used, this is taken into account.
 #' @export
 #'
 
-sigex.tstats <- function(mdl,psi,hess,constraint)
+sigex.tstats <- function(mdl,psi,hess,constraint,returnSE = FALSE)
 {
 
 	##########################################################################
@@ -83,6 +85,12 @@ sigex.tstats <- function(mdl,psi,hess,constraint)
 	  se <- sqrt(2*diag(trans.mat %*% solve(hess) %*% t(trans.mat)))
 	}
 	tstats <- psi/se
+	if(returnSE)
+	{
+	  tstats <- list()
+	  tstats[[1]] <- psi/se
+	  tstats[[2]] <- se
+	}
 	return(tstats)
 }
 

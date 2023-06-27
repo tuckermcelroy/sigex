@@ -63,7 +63,6 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	####################################################################
 
 	N <- length(mdl[[4]])
-	boundlist <- mdl[[5]]
 	delta <- sigex.delta(mdl,0)
 	d <- length(delta) - 1
 	T <- simlen + burnin + d
@@ -71,7 +70,7 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	L.par <- mdl[[3]]
 	D.par <- mdl[[3]]
 	zeta.par <- vector("list",length(mdl[[3]]))
-	acf.mat <- matrix(0,nrow=N*T,ncol=N)
+	acf.mat <- matrix(0,nrow=N*(T+1),ncol=N)
 
 	# get xi portion
 	ind <- 0
@@ -106,21 +105,20 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	ind <- 0
 	for(i in 1:length(mdl[[3]]))
 	{
-		bounds <- boundlist[[i]]
-		mdlType <- mdl[[2]][i]
+		mdlType <- mdl[[2]][[i]]
 		delta <- mdl[[3]][[i]]
-		zetalen <- sigex.zetalen(mdlType)
+		zetalen <- sigex.zetalen(mdlType,N)
 		if(zetalen > 0) {
 			subzeta <- zeta[(ind+1):(ind+zetalen)]
-			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType)
+			zeta.par[[i]] <- sigex.zeta2par(subzeta,mdlType,N)
 		}
 		ind <- ind + zetalen
 
 		delta <- sigex.delta(mdl,i)
-		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T)
+		acf.mat <- acf.mat + sigex.acf(L.par[[i]],D.par[[i]],mdl,i,zeta.par[[i]],delta,T+1)
 	}
 
-	x.acf <- array(acf.mat,dim=c(N,T,N))
+	x.acf <- array(acf.mat,dim=c(N,T+1,N))
 	reg.vec <- beta.par
 
 	if(dof == Inf) { eps <- t(matrix(rnorm(N*T),nrow=N)) } else {

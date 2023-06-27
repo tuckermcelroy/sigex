@@ -63,19 +63,25 @@ ARMAauto <- function(ar = NULL, ma = NULL, lag.max)
 		Binv <- solve(Bmat)
 
 		gamMix <- Binv %*% gamMA
-		if (p <= q) gamMix <- matrix(gamMix[1:(p+1),],p+1,1) else
-		{ gamMix <- matrix(c(gamMix,rep(0,(p-q))),p+1,1) }
-		gamARMA <- solve(Amat) %*% gamMix
-	} else gamARMA <- gamMA[1]
+		if (p <= q) gamMixtemp <- matrix(gamMix[1:(p+1),],p+1,1) else
+		{ gamMixtemp <- matrix(c(gamMix,rep(0,(p-q))),p+1,1) }
+		gamARMA <- solve(Amat) %*% gamMixtemp
+	} else 
+	  {
+	    gamARMA <- gamMA[1]
+      gamMix <- gamMA[1:(q+1)]
+	  }
 
-	gamMA <- as.vector(gamMA)
-	if (lag.max <= q) gamMA <- gamMA[1:(lag.max+1)] else gamMA <- c(gamMA,rep(0,(lag.max-q)))
+#	gamMA <- as.vector(gamMA)
+#	if (lag.max <= q) gamMA <- gamMA[1:(lag.max+1)] else gamMA <- c(gamMA,rep(0,(lag.max-q)))
+
 	gamARMA <- as.vector(gamARMA)
 	if (lag.max <= p) gamARMA <- gamARMA[1:(lag.max+1)] else {
+	  if (lag.max > q) gamMix <- c(gamMix,rep(0,lag.max-q))
 		for(k in 1:(lag.max-p))
 		{
 			len <- length(gamARMA)
-			acf <- gamMA[p+1+k]
+			acf <- gamMix[p+1+k]
 			if (p > 0) acf <- acf + sum(ar*rev(gamARMA[(len-p+1):len]))
 			gamARMA <- c(gamARMA,acf)
 		}
