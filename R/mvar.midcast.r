@@ -110,7 +110,8 @@ mvar.midcast <- function(x.acf,z,delta,debug=FALSE)
 	#
 	####################################################################
 
-	thresh <- 10^(-16)
+	# thresh <- 10^(-16)
+  thresh <- -1
 	N <- dim(z)[1]
 	T <- dim(z)[2]
 	all.series <- seq(1,N)
