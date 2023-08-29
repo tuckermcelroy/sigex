@@ -1,4 +1,19 @@
-polymult <- function(a,b) 
+#' compute the product of two polynomials
+#'
+#' @import stats
+#'
+#' @param a vector of polynomial coefficients, where a[1] is the zeroth coefficient,
+#'			a[2] is the first coefficient, etc.
+#' @param b vector of polynomial coefficients, where b[1] is the zeroth coefficient,
+#'			b[2] is the first coefficient, etc.
+#'
+#' @return vector of polynomial coefficients for c(z) = a(z)*b(z),
+#'			where c[1] is the zeroth coefficient, c[2] is the first coefficient, etc.
+#' @export
+#'
+#' @examples polymult(c(1, 2), c(1, 4))
+#'
+polymult <- function(a,b)
 {
 
 	##########################################################################
@@ -24,12 +39,12 @@ polymult <- function(a,b)
 	################# Documentation #####################################
 	#
 	#	Purpose: compute the product of two polynomials
-	#	Inputs:	
+	#	Inputs:
 	#		a: vector of polynomial coefficients, where a[1] is the zeroth coefficient,
 	#			a[2] is the first coefficient, etc.
 	#		b: vector of polynomial coefficients, where b[1] is the zeroth coefficient,
 	#			b[2] is the first coefficient, etc.
-	#	Outputs: 
+	#	Outputs:
 	#		c: vector of polynomial coefficients for c(z) = a(z)*b(z),
 	#			where c[1] is the zeroth coefficient, c[2] is the first coefficient, etc.
 	#
