@@ -1,3 +1,20 @@
+#' compute the autocovariance function of an ARMA process
+#'
+#'	Background: function computes autocovariances of ARMA (p,q) from lag zero
+#'		to lag.max, with inputs ar and ma.  Format:
+#'		(1 - ar[1]z ... - ar[p]z^p) X_t = (1 + ma[1]z ...+ ma[q]z^q) WN
+#'           For absent AR or MA portions, pass in NULL
+#'
+#' @param ar numeric vector of AR coefficients
+#' @param ma numeric vector of MA coefficients
+#' @param lag.max Largest autocovariance lag required
+#'
+#' @return autocovariances at lags 0 through lag.max
+#' @export
+#'
+#' @import stats
+#' @import utils
+
 ARMAauto <- function(ar = NULL, ma = NULL, lag.max)
 {
 
@@ -66,7 +83,7 @@ ARMAauto <- function(ar = NULL, ma = NULL, lag.max)
 		if (p <= q) gamMixtemp <- matrix(gamMix[1:(p+1),],p+1,1) else
 		{ gamMixtemp <- matrix(c(gamMix,rep(0,(p-q))),p+1,1) }
 		gamARMA <- solve(Amat) %*% gamMixtemp
-	} else 
+	} else
 	  {
 	    gamARMA <- gamMA[1]
       gamMix <- gamMA[1:(q+1)]
