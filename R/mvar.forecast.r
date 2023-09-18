@@ -19,7 +19,7 @@
 #' @export
 #'
 
-mvar.forecast <- function(x.acf,z,needMSE)
+mvar.forecast <- function(x.acf, z, needMSE)
 {
 
 	##########################################################################

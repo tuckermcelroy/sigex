@@ -7,7 +7,7 @@
 #' @export
 #'
 
-x11filters <- function(period,p.seas)
+x11filters <- function(period, p.seas)
 {
 
   ##########################################################################

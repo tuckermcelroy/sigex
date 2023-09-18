@@ -18,7 +18,16 @@
 #' @export
 #'
 
-sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
+sigex.acf <-
+  function(L.par,
+           D.par,
+           mdl,
+           comp,
+           mdlPar,
+           delta,
+           maxlag,
+           freqdom = FALSE
+  )
 {
 
 	##########################################################################
@@ -169,7 +178,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
 		s.period <- mdlOrder[5]
 		s.div <- floor(s.period)
 		s.frac <- s.period - s.div
-		
+
 		ar.coef <- NULL
 		ma.coef <- NULL
 		ars.coef <- NULL
@@ -210,7 +219,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
 		      mas.coef <- cbind(mas.coef,diag(mdlPar[,j+p.order+q.order+ps.order],nrow=N))
 	      }
 	    }
-		
+
 		} else  # s.frac > 0
 		{
 		  freqdom <- FALSE  # we can only compute acf by time domain method
@@ -234,10 +243,10 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
 		      mas.coef.stretch <- rbind(mas.coef.stretch,-1*sma.op[-1])
 		    }
 		  }
-		  
-		  
-		}  
-		
+
+
+		}
+
 	  delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
     madiff.array <- polymulMat(delta.array,array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1)))
     if(freqdom)
@@ -275,7 +284,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
     s.period <- mdlOrder[5]
     s.div <- floor(s.period)
     s.frac <- s.period - s.div
-    
+
     ar.coef <- NULL
     ma.coef <- NULL
     ars.coef <- NULL
@@ -302,7 +311,7 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
       for(k in 1:N)
       {
         rho.s <- mdlPar[k,1+p.order+q.order]
-        sar.op <- c(1,rep(0,s.div-1),(s.frac-1)*rho.s,-1*s.frac*rho.s) 
+        sar.op <- c(1,rep(0,s.div-1),(s.frac-1)*rho.s,-1*s.frac*rho.s)
         ars.coef.stretch <- rbind(ars.coef.stretch,-1*sar.op[-1])
       }
     }
@@ -315,10 +324,10 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
         mas.coef.stretch <- rbind(mas.coef.stretch,-1*sma.op[-1])
       }
     }
-    
+
     delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
     madiff.array <- polymulMat(delta.array,array(cbind(diag(N),-1*ma.coef),c(N,N,q.order+1)))
-  
+
       ar.array <- array(cbind(diag(N),-1*ar.coef),c(N,N,p.order+1))
       ars.array <- cbind(diag(N),-1*ars.coef.stretch)
       ars.array <- array(ars.array,c(N,N,dim(ars.array)[2]))
@@ -334,10 +343,10 @@ sigex.acf <- function(L.par,D.par,mdl,comp,mdlPar,delta,maxlag,freqdom=FALSE)
                             maxlag)[,,1:maxlag,drop=FALSE]
 
     x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
-    
+
   }
-  
-  
+
+
 	# Stabilized SARMA model
 	if(mdlClass == "sarma.stab")
 	{

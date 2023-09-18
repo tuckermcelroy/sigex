@@ -1,9 +1,17 @@
+#' generates a stable dimension N VAR(p) process
+#'
+#' @param param N x N x var.order array,
+#'		  where var.order is the VAR order p and N is the dimension of the process
+#'
+#' @return psi: vector of real numbers, of length p*N^2
+#' @export
+#'
 var.par2pre <- function(param)
 {
-  
+
   ##########################################################################
   #
-  #	var.par2pre.r  
+  #	var.par2pre.r
   # 	    Copyright (C) 2020  Tucker McElroy
   #
   #    This program is free software: you can redistribute it and/or modify
@@ -20,32 +28,32 @@ var.par2pre <- function(param)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation #####################################
   #
   #	Purpose: generates a stable dimension N VAR(p) process
-  #	Background:	
-  #		param is the name for the model parameters entered into 
+  #	Background:
+  #		param is the name for the model parameters entered into
   #		an array object with a more intuitive structure, whereas
   #		psi refers to a vector of real numbers containing all
-  #		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold) 
+  #		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
   #		Algorithm is that of Ansley and Kohn (1986)
   #	Notes: only for use with N > 1 and p > 0
   #	Inputs:
   #		param: N x N x var.order array,
   #		  where var.order is the VAR order p and N is the dimension of the process
   #	Outputs:
-  #		psi: vector of real numbers, of length p*N^2  
+  #		psi: vector of real numbers, of length p*N^2
   # Requires: VARMAauto.r
   #
   ####################################################################
-  
+
   sqrtm <- function(A) { return(t(chol(A))) }
 
   N <- dim(param)[1]
   var.order <- dim(param)[3]
   acvf <- VARMAauto(param,NULL,diag(N),var.order)
-  
+
   Sigma <- acvf[,,1]
   S.mat <- sqrtm(Sigma)
   Sstar.mat <- S.mat
@@ -81,7 +89,7 @@ var.par2pre <- function(param)
       }
     }
     pacf.array[,,k] <- solve(S.mat) %*% phi.array[[k]][,,k] %*% Sstar.mat
- 
+
     new.sigma <- acvf[,,1]
     new.sigmastar <- acvf[,,1]
     for(j in 1:k)
@@ -101,12 +109,12 @@ var.par2pre <- function(param)
 
   psi.array <- array(0,c(N,N,var.order))
   for(k in 1:var.order)
-  { 
-    psi.array[,,k] <- solve(sqrtm(diag(N) - pacf.array[,,k] %*% 
+  {
+    psi.array[,,k] <- solve(sqrtm(diag(N) - pacf.array[,,k] %*%
                               t(pacf.array[,,k]))) %*% pacf.array[,,k]
   }
   psi.mat <- matrix(psi.array,c(N,N*var.order))
-  psi <- matrix(psi.mat,ncol=1)    
-  
+  psi <- matrix(psi.mat,ncol=1)
+
   return(psi)
 }

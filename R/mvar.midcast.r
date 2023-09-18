@@ -10,7 +10,8 @@
 #'			Im(z[,t]) = rep(1i,N) encodes missing values.
 #' @param	delta Differencing polynomial (corresponds to delta(B) in Background)
 #'			written in format c(delta0,delta1,...,deltad)
-#' @param debug Set to TRUE if lik values should be printed to screen
+#' @param debug Set to TRUE (FALSE by default) if lik values should be printed
+#'      to screen
 #'
 #' @return 	list containing casts.x, casts.var, c(Qseq,logdet), and eps
 #'		casts.x: N x H matrix of backcasts, midcasts, aftcasts, where H
@@ -33,7 +34,7 @@
 #' @export
 #'
 
-mvar.midcast <- function(x.acf,z,delta,debug=FALSE)
+mvar.midcast <- function(x.acf, z, delta, debug=FALSE)
 {
 
 	##########################################################################

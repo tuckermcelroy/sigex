@@ -1,4 +1,18 @@
-polymulMat <- function(amat,bmat)
+#' compute the product of two matrix polynomials
+#'
+#' @import stats
+#'
+#' @param amat array of polynomial coefficients, where amat[,,1] is the zeroth coefficient,
+#'			amat[,,2] is the first coefficient, etc.
+#' @param bmat vector of polynomial coefficients, where bmat[,,1] is the zeroth coefficient,
+#'			bmat[,,2] is the first coefficient, etc.
+#'
+#' @return array of polynomial coefficients for cmat(z) = mata(z) * matb(z),
+#'			where cmat[,,1] is the zeroth coefficient,
+#'			      cmat[,,2] is the first coefficient, etc.
+#' @export
+
+polymulMat <- function(amat, bmat)
 {
         p <- dim(amat)[3]-1
         q <- dim(bmat)[3]-1

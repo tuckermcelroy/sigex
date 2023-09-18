@@ -1,3 +1,17 @@
+#' compute the sum of two polynomials,
+#		assuming both are symmetric power series
+#'
+#' @param a symmetric vector of polynomial coefficients,
+#'			where a[1] is the zeroth coefficient,
+#'			a[2] is the first coefficient, etc.
+#' @param b symmetric vector of polynomial coefficients,
+#'			where b[1] is the zeroth coefficient,
+#'			b[2] is the first coefficient, etc.
+#'
+#' @return symmetric vector of polynomial coefficients for c(z) = a(z) + b(z),
+#'			where c[1] is the zeroth coefficient, c[2] is the first coefficient, etc.
+#' @export
+#'
 polysum <- function(a,b)
 {
 
@@ -25,14 +39,14 @@ polysum <- function(a,b)
 	#
 	#	Purpose: compute the sum of two polynomials,
 	#		assuming both are symmetric power series
-	#	Inputs:	
-	#		a: symmetric vector of polynomial coefficients, 
+	#	Inputs:
+	#		a: symmetric vector of polynomial coefficients,
 	#			where a[1] is the zeroth coefficient,
 	#			a[2] is the first coefficient, etc.
-	#		b: symmetric vector of polynomial coefficients, 
+	#		b: symmetric vector of polynomial coefficients,
 	#			where b[1] is the zeroth coefficient,
 	#			b[2] is the first coefficient, etc.
-	#	Outputs: 
+	#	Outputs:
 	#		c: symmetric vector of polynomial coefficients for c(z) = a(z) + b(z),
 	#			where c[1] is the zeroth coefficient, c[2] is the first coefficient, etc.
 	#
