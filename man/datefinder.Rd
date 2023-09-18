@@ -7,15 +7,22 @@
 datefinder(dayofweek, week, month, year)
 }
 \arguments{
-\item{date}{a given date in month-day-year format,
-a 3-element vector}
+\item{dayofweek}{number 1 through 7, where 1 is Sunday, 2 is Monday, etc.}
+
+\item{week}{number 1 through 5, for the week within the month}
+
+\item{month}{number 1 through 12, for the month within the year}
+
+\item{year}{integer year}
 }
 \value{
-dayofweek: number 1 through 7, where 1 is Sunday, 2 is Monday, etc.
+date: a given date in month-day-year format, a 3-element vector
 }
 \description{
 converts a date in month-day-year format and finds the day of week
 }
 \note{
-calibrated according to Jan 1, 1600 being a Saturday
+calibrated according to Jan 1, 1600 being a Saturday.
+
+if week = 5, the program gives the last dayofweek that occurs
 }

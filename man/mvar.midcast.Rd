@@ -20,7 +20,8 @@ Im(z[,t]) = rep(1i,N) encodes missing values.}
 \item{delta}{Differencing polynomial (corresponds to delta(B) in Background)
 written in format c(delta0,delta1,...,deltad)}
 
-\item{debug}{Set to TRUE if lik values should be printed to screen}
+\item{debug}{Set to TRUE (FALSE by default) if lik values should be printed
+to screen}
 }
 \value{
 list containing casts.x, casts.var, c(Qseq,logdet), and eps

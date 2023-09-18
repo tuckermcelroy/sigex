@@ -4,7 +4,7 @@
 \alias{ubgenerator}
 \title{Compute the product of unit root differencing operators.}
 \usage{
-ubgenerator(period, trunc.len, m)
+ubgenerator(period, trunc.len, m, rho)
 }
 \arguments{
 \item{period}{Possibly non-integer period of sinusoids}

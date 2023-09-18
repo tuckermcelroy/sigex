@@ -13,7 +13,8 @@ sigex.mlefit(
   thresh = Inf,
   hess = TRUE,
   whittle = FALSE,
-  debug = FALSE
+  debug = FALSE,
+  maxiter = 100
 )
 }
 \arguments{
