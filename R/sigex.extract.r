@@ -1,7 +1,7 @@
 #' Computes signal extraction estimates with two standard errors
 #'
 #' @param data.ts A T x N matrix ts object
-#' @param	filter List object corresponding to the output of sigex.signal,
+#' @param	my.filter List object corresponding to the output of sigex.signal,
 #'			a list object of f.mat and v.mat.
 #'			f.mat: array of dimension c(T,N,T,N), where f.mat[,j,,k]
 #'				is the signal extraction matrix that utilizes input series k

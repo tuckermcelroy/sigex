@@ -1,11 +1,11 @@
 #' obtain start and end dates for a weekly time series
 #'
-#' @param  first.day: for the weekly data, first.day indicates what day of
-#'     the week corresponds to the first day in the week, 
+#' @param  first.day For the weekly data, first.day indicates what day of
+#'     the week corresponds to the first day in the week,
 #'     with 1 = Sunday, 2 = Monday, etc.
 #'     e.g. for weekly data beginning with Sunday, set first.day = 1
-#' @param  begin: two components with year and week index (between 1 and 53)
-#' @param  T: number of weeks in the time series
+#' @param  begin Two components with year and week index (between 1 and 53)
+#' @param  T Number of weeks in the time series
 #'
 #' @return list with start.date and end.date, each in format c(month,day,year)
 #' @export
@@ -13,7 +13,7 @@
 
 weekly2date <- function(first.day,begin,T)
 {
-  
+
   ##########################################################################
   #
   #	weekly2date
@@ -33,13 +33,13 @@ weekly2date <- function(first.day,begin,T)
   #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
   #
   ############################################################################
-  
+
   ################# Documentation #####################################
   #
   #	Purpose: obtain start and end dates for a weekly time series
   #	Inputs:
   #   first.day: for the weekly data, first.day indicates what day of
-  #     the week corresponds to the first day in the week, 
+  #     the week corresponds to the first day in the week,
   #     with 1 = Sunday, 2 = Monday, etc.
   #     e.g. for weekly data beginning with Sunday, set first.day = 1
   #   begin: two components with year and week index (between 1 and 53)
@@ -49,7 +49,7 @@ weekly2date <- function(first.day,begin,T)
   # Require: date2day, day2week, day2date
   #
   #####################################################################
-  
+
   start.year <- begin[1]
   start.week <- begin[2]
   day.lead <- day2week(c(1,1,start.year)) - first.day
@@ -63,7 +63,7 @@ weekly2date <- function(first.day,begin,T)
   }
   start.date <- day2date(day.index-1,c(1,1,year.index))
   end.date <- day2date(day.index-2 + 7*T,c(1,1,year.index))
-  
+
   return(list(start.date,end.date))
 }
 

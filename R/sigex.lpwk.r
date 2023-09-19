@@ -7,10 +7,6 @@
 #'		a list object with an intuitive structure.
 #' @param	mdl The specified sigex model, a list object
 #' @param	trendcyclecomp  The (single) index of the trend-cycle component
-#' @param	sigcomps Provides indices of a desired component that
-#'			is disjoint from trend-cycle, so that MSEs of
-#'			trend+sigcomps and cycle+sigcomps are computed.
-#'		 	(Pass in sigcomps = NULL to just get trend and cycle MSEs.)
 #' @param grid Desired number of frequencies for spectrum calculations
 #' @param	len  Max index of the filter coefficients
 #' @param	cutoff  A number between 0 and pi, with all frequencies < cutoff preserved
@@ -71,10 +67,6 @@ sigex.lpwk <- function(data.ts,param,mdl,trendcyclecomp,grid,len,cutoff,trunc)
 	#		param: see background.  Must have form specified by mdl
 	#		mdl: the specified sigex model, a list object
 	#		trendcyclecomp: is the (single) index of the trend-cycle component
-	#		sigcomps: provides indices of a desired component that
-	#			is disjoint from trend-cycle, so that MSEs of
-	#			trend+sigcomps and cycle+sigcomps are computed.
-	#		 	(Pass in sigcomps = NULL to just get trend and cycle MSEs.)
 	#		grid: desired number of frequencies for spectrum calculations
 	#		len: max index of the filter coefficients
 	#		cutoff: is a number between 0 and pi, with all frequencies < cutoff preserved

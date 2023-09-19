@@ -5,6 +5,7 @@
 #' @param data.ts A T x N matrix ts object; any  values to be imputed
 #'			must be encoded with NA in that entry.  The NA is for missing value,
 #'     or an enforced imputation (e.g. extreme-value adjustment).
+#' @param debug Set to TRUE if lik values should be printed to screen
 #'
 #' @return  A list with two elements
 #'		resids: a N x (T-d) matrix of residuals, where d is

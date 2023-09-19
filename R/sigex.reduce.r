@@ -1,7 +1,7 @@
 #' Determine a reduced rank model from a given fitted model
 #'
 #' @param data.ts   A T x N matrix ts object
-#' @return param:  model parameters entered into
+#' @param param  Model parameters entered into
 #'		a list object with an intuitive structure.
 #' @param mdl The specified sigex model, a list object
 #' @param thresh Lower bound on Schur complements
