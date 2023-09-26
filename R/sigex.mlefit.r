@@ -23,6 +23,7 @@
 #'			psi.last and psi.now to the global field.  Also lik will be printed.
 #'			psi.now gives the parameter that crashed the likelihood (if it crashed),
 #'			psi.last gives the last good parameter that did not crash the lik.
+#' @param maxiter Maximum number of iterations allowed in optimization routines
 #'
 #' @return 	list with mle and par.est
 #'		mle: an object of type outputted by optim
@@ -108,7 +109,7 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,
     {
       out <- sigex.lik(psi,mdl,data.ts,debug)
     }
-    if(debug) 
+    if(debug)
     {
       psi.last <<- psi
       message('psi = ', paste(psi.last, collapse = ", "))
@@ -118,7 +119,7 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,
         psi.best <<- psi
         lik.best <<- out
       }
-    }  
+    }
     return(out)
   }
 
@@ -145,7 +146,7 @@ sigex.mlefit <- function(data.ts,param,constraint,mdl,method,thresh=Inf,
 	# initialize best psi
 	psi.best <<- sigex.eta2psi(eta,constraint)
 	lik.best <<- sigex.lik(psi.best,mdl,data.ts,debug)
-	
+
 	# initial attempt to fit
 	if(method=="bfgs") {
 	mle <- try(nlminb(eta,fix.lik,constraint=constraint,mdl=mdl,data.ts=data.ts,

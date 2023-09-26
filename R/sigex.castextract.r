@@ -6,12 +6,12 @@
 #'
 #' @param  data.ts A T x N matrix ts object; any  values to be imputed
 #'			must be encoded with NA in that entry.  The NA is for missing value,
-#'     or an enforced imputation (e.g. extreme-value adjustment).
+#'      or an enforced imputation (e.g. extreme-value adjustment).
 #' @param data.casts A list containing casts.x and casts.var
-#' @param	casts.x N x H matrix of forecasts, midcasts, aftcasts, where H
+#'   	  casts.x N x H matrix of forecasts, midcasts, aftcasts, where H
 #'		  	is the total number of time indices with missing values,
 #'			  given by cardinality( leads setminus {1,2,...,T} )
-#' @param casts.var NH x NH matrix of covariances of casting errors.
+#'      casts.var NH x NH matrix of covariances of casting errors.
 #'			  note that casts.var.array <- array(casts.var,c(N,H,N,H))
 #'	  		corresponds to cast.var.array[,j,,k] equal to the
 #'		  	covariance between the jth and kth casting errors

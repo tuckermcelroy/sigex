@@ -21,8 +21,8 @@
 #'			to indices of non-zero Schur complements in the GCD
 #'			of the innovations' covariance matrix for the new latent component
 #' @param	class Character string of t.s. model type for the new latent component
-#' @param	order Vector of model order bounds:
-#'      four numbers, gives bounds for rho and omega,
+#' @param	order Vector of model order
+#' @param bounds Four numbers, gives bounds for rho and omega,
 #'			the cycle parameters of the new latent component
 #'			rho lies in (bounds[1],bounds[2])
 #'			omega lies in (bounds[3],bounds[4])

@@ -4,6 +4,7 @@
 #' @param trunc.len  Gives the maximal index of k, and is set to [period/2]
 #'     when trunc.len = NULL
 #' @param m  Large integer giving number of cepstral coefficients
+#' @param rho Parameter between 0 and 1, can equal 1 for unit root case
 #'
 #' @return wolds: coefficients of product polynomial.
 #' @export
