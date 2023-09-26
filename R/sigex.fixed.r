@@ -1,5 +1,24 @@
 #' Computes all nontrend fixed regression effects
 #'
+#' Background:
+#'		x is a multivariate time series (N x T), and each individual series
+#'		can have its distinct set of regressors.  So for each 1 <= j <= N,
+#'		x[j,] is length T and has r_j number of length T regressors.
+#'		There is a default regressor of polynomial time: suppose the
+#'		time series has d unit roots (d >= 0), and this applies to each
+#'		individual series (differencing polynomials are the same for all
+#'		individual series in sigex).  Then the regressor t^d for 1 <= t <= T
+#'		is the default "mean effect".  (Coefficients of lower order time
+#'		polynomial effects cannot be identified.)  When d=0, this is
+#'		just the mean of the process.  (Although it need not be stationary
+#'		when d=0, any other non-stationary latent components are assumed to
+#'		have mean zero for identifiability.)  One can always add higher order
+#'		time polynomial regressors, if desired.
+#'		param is the name for the model parameters entered into
+#'		a list object with a more intuitive structure, whereas
+#'		psi refers to a vector of real numbers containing all
+#'		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
+#'
 #' @param data.ts A T x N matrix ts object
 #' @param	mdl The specified sigex model, a list object
 #' @param	series Integer between 1 and N, the index of the individual series for

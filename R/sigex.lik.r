@@ -1,5 +1,17 @@
 #' Computes -2*log(Gaussian likelihood) of model
 #'
+#' Background:
+#'		param is the name for the model parameters entered into
+#'		a list object with a more intuitive structure, whereas
+#'		psi refers to a vector of real numbers containing all
+#'		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
+#'
+#'	Format: psi has three portions, psi = [xi,zeta,beta]
+#'		xi ~ all hyper-parameters for covariance matrices
+#'		zeta ~ all hyper-parameters for t.s. models
+#'		beta ~ all regression parameters
+#'	Notes: handles missing values in data.ts, which are indicated by 1i
+#'
 #' @param psi A vector of all the real hyper-parameters
 #' @param mdl The specified sigex model, a list object
 #' @param data.ts A T x N matrix ts object; any  values to be imputed

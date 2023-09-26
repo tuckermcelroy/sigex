@@ -2,6 +2,34 @@
 #'		for trend and cycle, by combining WK filter for trend-cycle
 #'		(specified by trendcyclecomp) with LP filter of cutoff.
 #'
+#'		Background:
+#'		A sigex model consists of process x = sum y, for
+#'		stochastic components y.  Each component process y_t
+#'		is either stationary or is reduced to stationarity by
+#'		application of a differencing polynomial delta(B), i.e.
+#'			w_t = delta(B) y_t   is stationary.
+#'		We have a model for each w_t process, and can compute its
+#'		autocovariance function (acf), and denote its autocovariance
+#'		generating function (acgf) via gamma_w (B).
+#'		The signal extraction filter for y_t is determined from
+#'		this acgf and delta.  The error spectral density calculations
+#'		are found in:
+#'		"Casting Vector Time Series: Algorithms for Forecasting,
+#'		Imputation, and Signal Extraction," McElroy (2018).
+#'		param is the name for the model parameters entered into
+#'		a list object with a more intuitive structure, whereas
+#'		psi refers to a vector of real numbers containing all
+#'		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
+#'
+#'	Notes:
+#'		Starts with LP an ideal low-pass filter,
+#'		and applies LP*WK filter with cutoff parameter  to
+#'		each component, where the filter has been truncated to
+#'		length 2*window + 1.  The output will be LP*WK filter applied to data,
+#'	  	which is forecast and aftcast extended by window units, covering time points
+#'	  	1-window ..., T+window.  This gives trend and cycle at times 1,...,T.
+#'	      Take grid >> window, else numerical issues arise
+#'
 #' @param mdl The specified sigex model, a list object
 #' @param	data.ts A T x N matrix ts object
 #' @param	trendcyclecomp  The (single) index of the trend-cycle component

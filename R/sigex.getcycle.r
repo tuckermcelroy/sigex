@@ -1,5 +1,9 @@
 #' Compute AR and MA polynomials for Butterworth and Balanced cycles
 #'
+#' Background:
+#'		A stochastic cycle is a particular parametrization of an ARMA process,
+#'		governed by its order, its persistency (rho), and its period (2/omega)
+#'
 #' @param cycle.order Integer order of the cycle
 #' @param rho Persistency, a value between 0 and 1
 #' @param	omega Frequency in units of pi, a value between 0 and 1.

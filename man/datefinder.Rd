@@ -19,7 +19,7 @@ datefinder(dayofweek, week, month, year)
 date: a given date in month-day-year format, a 3-element vector
 }
 \description{
-converts a date in month-day-year format and finds the day of week
+described as "the [dayofweek] occuring in [week] of [month] of [year]"
 }
 \note{
 calibrated according to Jan 1, 1600 being a Saturday.

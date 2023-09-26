@@ -1,6 +1,18 @@
 #' Adds signal extraction estimates, with shaded bands,
 #'		to an existing time series plot
 #'
+#'		Background:
+#'		A sigex model consists of process x = sum y, for
+#'		stochastic components y.  Each component process y_t
+#'		is either stationary or is reduced to stationarity by
+#'		application of a differencing polynomial delta(B), i.e.
+#'			w_t = delta(B) y_t   is stationary.
+#'		We have a model for each w_t process, and can compute its
+#'		autocovariance function (acf), and denote its autocovariance
+#'		generating function (acgf) via gamma_w (B).
+#'		The signal extraction filter for y_t is determined from
+#'		this acgf and delta.
+#'
 #' @param extract T x N matrix of the signal estimates, e.g. output of sigex.extract
 #' @param	reg A T x N matrix of fixed effects, to be added to extraction.
 #'			Note: only the column of reg corresponding to "series" is utilized.

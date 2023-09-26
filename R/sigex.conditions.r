@@ -1,5 +1,18 @@
 #' Computes condition number for a covariance matrix
 #'
+#' Background: a non-negative definite matrix Sigma has a
+#'		Generalized Cholesky Decomposition (GCD) of the form
+#'		Sigma = L %*% D %*% t(L),
+#'		where L is unit lower triangular and D is diagonal with
+#'		non-negative entries, referred to as the Schur complements
+#'		of Sigma.  The number of nonzero Schur complements equals
+#'		the rank of Sigma.  The condition numbers can be computed
+#'		by dividing D by the diagonal of Sigma.
+#'		param is the name for the model parameters entered into
+#'		a list object with a more intuitive structure, whereas
+#'		psi refers to a vector of real numbers containing all
+#'		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
+#'
 #' @param	data.ts A T x N matrix ts object (with no missing values)
 #'			corresponding to N time series of length T
 #' @param psi A vector of all the real hyper-parameters

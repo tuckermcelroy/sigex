@@ -1,5 +1,14 @@
 #' Compute canonization of a given ARMA process
 #'
+#' 	Background:
+#'		An ARMA or ARIMA process X_t has form
+#'			X_t = theta(B)/phi(B) eps_t
+#'		where eps_t is white noise, and we allow phi(B) to have unit roots.
+#'		Canonization seeks a new theta*(B) such that the spectral density
+#'		corresponding to theta*(B)/phi(B) is non-invertible (i.e. has a zero).
+#'		The minimum value of the original spectrum is subtracted off to
+#'		get the canonized spectrum.
+#'
 #' @param ma.coef q coefficients of MA polynomial with unit constant coefficient
 #' @param ar.coef p coefficients (minus convention) of AR polynomial with
 #'   unit constant coefficient

@@ -1,5 +1,9 @@
 #' Formats cast estimates with two standard errors
 #'
+#' Background:
+#'		psi refers to a vector of real numbers containing all
+#'		hyper-parameters (i.e., reals mapped bijectively to the parameter manifold)
+#'
 #' @param  data.ts A T x N matrix ts object; any  values to be imputed
 #'			must be encoded with NA in that entry.  The NA is for missing value,
 #'     or an enforced imputation (e.g. extreme-value adjustment).

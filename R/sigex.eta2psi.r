@@ -1,5 +1,14 @@
 #' Transform eta to psi
 #'
+#' Background:
+#'		psi refers to a vector of real numbers containing all
+#'		hyper-parameters (i.e., reals mapped bijectively to the parameter
+#'		manifold), whereas eta consists of free variables of real numbers
+#'   that are mapped to a fixed set nu, and psi is a permuted
+#'   vector of eta and nu.
+#'
+#'	Notes: this is a functional inverse to sigex.psi2eta
+#'
 #' @param eta free variables of real numbers.  Must have length given by
 #'     dim(constraint.mat)[2] - dim(constraint.mat)[1]
 #' @param	constraint Matrix of the form [Q , C], with C (constraint.mat)

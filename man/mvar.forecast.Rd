@@ -28,6 +28,19 @@ list containing preds.x and pred.stack
 		obtain uncertainty.
 }
 \description{
-Compute multi-step forecasts and predictors of a multivariate process
-	via Levinson-Durbin algorithm
+Background:
+	A multivariate difference-stationary process x_t with
+		w_t = delta(B) x_t
+	may be observed with missing values, and one wants to compute
+	Gaussian conditional expectations of missing values (midcasts),
+	or future values (forecasts), or past values (aftcasts).
+	Also of interest is the Gaussian likelihood resulting from
+	such a sample, and the residuals.
+}
+\details{
+Notes: running this code with needMSE=1 makes it slower, but yields
+	pred.stack, however the routine mvar.midcast is preferred for
+	obtaining any casts with uncertainty.  I think the pred.stack feature
+	here should be deprecated, but not sure if I want to completely
+	remove it in case another application comes up.
 }

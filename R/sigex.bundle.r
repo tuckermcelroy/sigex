@@ -1,5 +1,11 @@
 #' Bundles into a list object several features
 #'
+#' Background:
+#'		param is the name for the model parameters entered into
+#'		a list object with a more intuitive structure, whereas
+#'		psi refers to a vector of real numbers containing all
+#'		hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
+#'
 #' @param data.ts A T x N matrix ts object,
 #'			corresponding to N time series of length T
 #' @param	transform A character indicating an instantaneous

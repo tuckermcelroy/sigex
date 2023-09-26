@@ -1,5 +1,7 @@
 #' Generates holiday regressors from holiday dates
 #'
+#' Notes:  this version presumes start.date and end.date are in separate years
+#'
 #' @param hol.dates List of dates in month-day-year format;
 #'			this is a matrix with one row for each holiday date,
 #'			and 3 columns for month, day in month, and year

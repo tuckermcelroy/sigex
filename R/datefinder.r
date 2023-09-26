@@ -1,5 +1,7 @@
 #' converts a date in month-day-year format and finds the day of week
 #'
+#' described as "the [dayofweek] occuring in [week] of [month] of [year]"
+#'
 #' @param dayofweek number 1 through 7, where 1 is Sunday, 2 is Monday, etc.
 #' @param week number 1 through 5, for the week within the month
 #' @param month number 1 through 12, for the month within the year

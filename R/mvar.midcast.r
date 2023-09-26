@@ -1,6 +1,26 @@
 #' Compute multi-step imputations and predictors of a multivariate process
 #'		via Levinson-Durbin algorithm with  missing values
 #'
+#'	Background:
+#'		A multivariate difference-stationary process x_t with
+#'			w_t = delta(B) x_t
+#'		may be observed with missing values, and one wants to compute
+#'		Gaussian conditional expectations of missing values (midcasts),
+#'		or future values (forecasts), or past values (aftcasts).
+#'		Also of interest is the Gaussian likelihood resulting from
+#'		such a sample, and the residuals.
+#'		It is required that at least d
+#'		contiguous values be observed, where d is the order of delta(B).
+#'		If the first d values are contiguous, we can do a forward pass;
+#'		otherwise, the first set of d contiguous values starts after
+#'		time index 1, and is marked by t.hash.  In this case, we must
+#'		also do a backward pass, involving aftcasts.
+#'
+#'		Notes: to get H forecasts, append matrix(1i,N,H) to input x.  To get aftcasts,
+#'		prepend the same.  T will be the second dimension of z, and includes
+#'		the spots taken by aftcasts and forecasts.  (So the T for the original
+#'		dataset could be less than the T used in this function.)
+#'
 #' @param x.acf Array of dimension N x T x N of autocovariances for process w_t,
 #'			where there are N series, of total length T each.
 #' @param	z Differenced data as N x (T+H) matrix, with missing values at

@@ -1,5 +1,18 @@
 #' Compute differencing polynomial with factors omitted
 #'
+#' Background:
+#'		A sigex model consists of process x = sum y, for
+#'		stochastic components y.  Each component process y_t
+#'		is either stationary or is reduced to stationarity by
+#'		application of a differencing polynomial delta(B), i.e.
+#'			w_t = delta(B) y_t   is stationary.
+#'		The differencing polynomial for x_t is the product of
+#'		the components' polynomials, so long as they are relatively prime
+#'		(this is assumed).  Applying this product polynomial to x_t,
+#'		the effect on a summand y_t is that it is differenced to
+#'		stationary w_t, but a remainder polynomial acts on w_t as well,
+#'		given by the product of all other polynomials.
+#'
 #' @param mdl The specified sigex model, a list object
 #' @param omits Indices of components that are to be omitted,
 #'			when computing the product of differencing polynomials

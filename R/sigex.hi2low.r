@@ -1,6 +1,10 @@
 #' Embeds a given high frequency filter as a low frequency filter
 #'     for a vector embedding
 #'
+#'     Background:	a scalar high frequency filter acts on a high frequency time series
+#'     by convolution.  If we embed as a low frequency time series, the
+#'     corresponding filter is now a matrix filter.
+#'
 #' @param filter.hi Given scalar high frequency filter of length L
 #' @param hi.freq  Sampling frequency of high frequency time series
 #' @param low.freq Sampling frequency of low frequency time series

@@ -1,5 +1,11 @@
 #' Wrapper for Shapiro-Wilks test of normality
 #'
+#' Background:
+#'		model-fitting is an entropy maximizing transformation of
+#'		the data, producing residuals that should resemble
+#'		Gaussian white noise.  We can test whether the
+#'		marginal distribution is normal with Shapiro-Wilks.
+#'
 #' @param	resids A T x N matrix of residuals
 #'
 #' @return tests: output of shapiro.tests routine of R

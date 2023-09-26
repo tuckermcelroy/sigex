@@ -27,5 +27,5 @@ subset.hol.reg: regressors corresponding to the holiday effect,
 		and at dates between start.date and end.date
 }
 \description{
-Generates holiday regressors from holiday dates
+Notes:  this version presumes start.date and end.date are in separate years
 }

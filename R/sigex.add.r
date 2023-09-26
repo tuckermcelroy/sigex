@@ -1,5 +1,21 @@
 #' Build the model by adding on another latent component
 #'
+#' 	#	Background:
+#'		A sigex model consists of process x = sum y, for
+#'		stochastic components y.  Each component process y_t
+#'		is either stationary or is reduced to stationarity by
+#'		application of a differencing polynomial delta(B), i.e.
+#'			w_t = delta(B) y_t   is stationary.
+#'		We have a model for each w_t process, which is specified
+#'		through the ranks (indices of non-zero Schur complements,
+#'		cf. background for sigex.param2gcd) of the white noise
+#'		covariance matrix; also there is the model type, which
+#'		denotes the specification of the t.s. model for w_t;
+#'		all the regressors, which are specified by individual time series
+#'		rather than by latent component, and must have length T;
+#'		pre-specified bounds for cyclical parameters, for each component,
+#'		if applicable.
+#'
 #' @param mdl The specified sigex model, a list object
 #' @param	vrank Vector of integers between 1 and N, corresponding
 #'			to indices of non-zero Schur complements in the GCD

@@ -2,34 +2,34 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 polymul_matt <- function(amat, bmat) {
-    .Call(`_sigex_polymul_matt`, amat, bmat)
+    .Call('_sigex_polymul_matt', PACKAGE = 'sigex', amat, bmat)
 }
 
 VARMA_auto <- function(param, p, q, maxlag) {
-    .Call(`_sigex_VARMA_auto`, param, p, q, maxlag)
+    .Call('_sigex_VARMA_auto', PACKAGE = 'sigex', param, p, q, maxlag)
 }
 
 getEigenValues <- function(M) {
-    .Call(`_sigex_getEigenValues`, M)
+    .Call('_sigex_getEigenValues', PACKAGE = 'sigex', M)
 }
 
 complexExp <- function(x) {
-    .Call(`_sigex_complexExp`, x)
+    .Call('_sigex_complexExp', PACKAGE = 'sigex', x)
 }
 
 polymult <- function(a, b) {
-    .Call(`_sigex_polymult`, a, b)
+    .Call('_sigex_polymult', PACKAGE = 'sigex', a, b)
 }
 
 polymul_mat <- function(amat, bmat) {
-    .Call(`_sigex_polymul_mat`, amat, bmat)
+    .Call('_sigex_polymul_mat', PACKAGE = 'sigex', amat, bmat)
 }
 
 ar_adjoint <- function(poly_array) {
-    .Call(`_sigex_ar_adjoint`, poly_array)
+    .Call('_sigex_ar_adjoint', PACKAGE = 'sigex', poly_array)
 }
 
 auto_VARMA <- function(param, p, q, ps, qs, season, grid, maxlag) {
-    .Call(`_sigex_auto_VARMA`, param, p, q, ps, qs, season, grid, maxlag)
+    .Call('_sigex_auto_VARMA', PACKAGE = 'sigex', param, p, q, ps, qs, season, grid, maxlag)
 }
 
