@@ -150,7 +150,8 @@ sigex.lpfiltering <- function(mdl,data.ts,trendcyclecomp,sigcomps,psi,cutoff,gri
 
 	if(length(sigcomps) > 0)
 	{
-		extract.signal <- sigex.wkextract2(psi,mdl,data.ts,sigcomps,grid,window,0,NULL,FALSE)
+		extract.signal <- sigex.wkextract(psi,mdl,data.ts,sigcomps,
+		                        array(diag(N),c(N,N,1)),grid,window,0,FALSE)
 	}
 	if((trunc) > 0) {
 		leads <- c(-rev(seq(0,trunc-1)),seq(1,T),seq(T+1,T+trunc))
