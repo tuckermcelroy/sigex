@@ -22,5 +22,15 @@ par.default: this is param, filled from a psi of all zeroes,
 		subject to constraints.  Will have form specified by mdl.
 }
 \description{
-Initializes param with zeroes according to the constraints
+Background:
+	param is the name for the model parameters entered into
+	a list object with a more intuitive structure, whereas
+	psi refers to a vector of real numbers containing all
+	hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
+}
+\details{
+Format: psi has three portions, psi = [xi,zeta,beta]
+	xi ~ all hyper-parameters for covariance matrices
+	zeta ~ all hyper-parameters for t.s. models
+	beta ~ all regression parameters
 }

@@ -49,6 +49,8 @@ default Gaussian likelihood}
 psi.last and psi.now to the global field.  Also lik will be printed.
 psi.now gives the parameter that crashed the likelihood (if it crashed),
 psi.last gives the last good parameter that did not crash the lik.}
+
+\item{maxiter}{Maximum number of iterations allowed in optimization routines}
 }
 \value{
 list with mle and par.est

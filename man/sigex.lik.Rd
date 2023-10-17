@@ -21,5 +21,16 @@ or an enforced imputation (e.g. extreme-value adjustment).}
 Value of the divergence
 }
 \description{
-Computes -2*log(Gaussian likelihood) of model
+Background:
+	param is the name for the model parameters entered into
+	a list object with a more intuitive structure, whereas
+	psi refers to a vector of real numbers containing all
+	hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
+}
+\details{
+Format: psi has three portions, psi = [xi,zeta,beta]
+	xi ~ all hyper-parameters for covariance matrices
+	zeta ~ all hyper-parameters for t.s. models
+	beta ~ all regression parameters
+Notes: handles missing values in data.ts, which are indicated by 1i
 }

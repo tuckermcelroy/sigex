@@ -18,5 +18,13 @@ of constraint constants, such that C psi = Q.}
 psi: a vector of all the real hyper-parameters.
 }
 \description{
-Transform eta to psi
+Background:
+	psi refers to a vector of real numbers containing all
+	hyper-parameters (i.e., reals mapped bijectively to the parameter
+	manifold), whereas eta consists of free variables of real numbers
+  that are mapped to a fixed set nu, and psi is a permuted
+  vector of eta and nu.
+}
+\details{
+Notes: this is a functional inverse to sigex.psi2eta
 }

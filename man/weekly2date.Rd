@@ -7,14 +7,14 @@
 weekly2date(first.day, begin, T)
 }
 \arguments{
-\item{first.day:}{for the weekly data, first.day indicates what day of
-the week corresponds to the first day in the week, 
+\item{first.day}{For the weekly data, first.day indicates what day of
+the week corresponds to the first day in the week,
 with 1 = Sunday, 2 = Monday, etc.
 e.g. for weekly data beginning with Sunday, set first.day = 1}
 
-\item{begin:}{two components with year and week index (between 1 and 53)}
+\item{begin}{Two components with year and week index (between 1 and 53)}
 
-\item{T:}{number of weeks in the time series}
+\item{T}{Number of weeks in the time series}
 }
 \value{
 list with start.date and end.date, each in format c(month,day,year)

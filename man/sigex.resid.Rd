@@ -14,6 +14,8 @@ sigex.resid(psi, mdl, data.ts, debug = FALSE)
 \item{data.ts}{A T x N matrix ts object; any  values to be imputed
     must be encoded with NA in that entry.  The NA is for missing value,
 or an enforced imputation (e.g. extreme-value adjustment).}
+
+\item{debug}{Set to TRUE if lik values should be printed to screen}
 }
 \value{
 A list with two elements

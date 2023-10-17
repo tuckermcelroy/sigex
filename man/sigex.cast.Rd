@@ -25,6 +25,10 @@ x.casted: N x (T+H) matrix of aftcasts, data, and forecasts, where H
 		is the total number of forecasts and aftcasts
 }
 \description{
-Computes forecasts and aftcasts, without uncertainty;
-	a faster version of sigex.midcast, if you don't need midcasts
+Background:
+	psi refers to a vector of real numbers containing all
+	hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
+}
+\details{
+Notes: presumes that regression effects have already been removed.
 }

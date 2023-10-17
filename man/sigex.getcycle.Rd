@@ -20,5 +20,7 @@ list object with cycle.AR and cycle.MA
 	cycle.MA: full MA polynomial in format c(1,theta1,...,thetaq)
 }
 \description{
-Compute AR and MA polynomials for Butterworth and Balanced cycles
+Background:
+	A stochastic cycle is a particular parametrization of an ARMA process,
+	governed by its order, its persistency (rho), and its period (2/omega)
 }

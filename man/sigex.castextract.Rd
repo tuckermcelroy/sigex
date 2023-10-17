@@ -8,25 +8,23 @@ sigex.castextract(data.ts, data.casts, mdl, castspan, param)
 }
 \arguments{
 \item{data.ts}{A T x N matrix ts object; any  values to be imputed
-    must be encoded with NA in that entry.  The NA is for missing value,
+   must be encoded with NA in that entry.  The NA is for missing value,
 or an enforced imputation (e.g. extreme-value adjustment).}
 
-\item{data.casts}{A list containing casts.x and casts.var}
+\item{data.casts}{A list containing casts.x and casts.var
+   casts.x N x H matrix of forecasts, midcasts, aftcasts, where H
+     is the total number of time indices with missing values,
+     given by cardinality( leads setminus {1,2,...,T} )
+casts.var NH x NH matrix of covariances of casting errors.
+     note that casts.var.array <- array(casts.var,c(N,H,N,H))
+     corresponds to cast.var.array[,j,,k] equal to the
+     covariance between the jth and kth casting errors}
 
 \item{mdl}{The specified sigex model, a list object}
 
 \item{castspan}{A non-negative integer horizon giving number of fore- and aft-casts}
 
 \item{param}{Must have form specified by mdl}
-
-\item{casts.x}{N x H matrix of forecasts, midcasts, aftcasts, where H
-is the total number of time indices with missing values,
-given by cardinality( leads setminus {1,2,...,T} )}
-
-\item{casts.var}{NH x NH matrix of covariances of casting errors.
-note that casts.var.array <- array(casts.var,c(N,H,N,H))
-corresponds to cast.var.array[,j,,k] equal to the
-covariance between the jth and kth casting errors}
 }
 \value{
 list object extract.casts with cast, upp, and low
@@ -35,5 +33,7 @@ list object extract.casts with cast, upp, and low
 		  low: as cast, minus twice the standard error
 }
 \description{
-Formats cast estimates with two standard errors
+Background:
+	psi refers to a vector of real numbers containing all
+	hyper-parameters (i.e., reals mapped bijectively to the parameter manifold)
 }
