@@ -29,6 +29,8 @@
 #' @return frf.comp:  array of dimension c(N,N,grid), with complex number entries
 #' @export
 #'
+#' @import graphics
+#'
 
 sigex.getfrf <- function(data.ts,param,mdl,sigcomps,plotit=TRUE,grid)
 {

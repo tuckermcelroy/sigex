@@ -13,6 +13,8 @@ ubgenerator(period, trunc.len, m, rho)
 when trunc.len = NULL}
 
 \item{m}{Large integer giving number of cepstral coefficients}
+
+\item{rho}{Parameter between 0 and 1, can equal 1 for unit root case}
 }
 \value{
 wolds: coefficients of product polynomial.

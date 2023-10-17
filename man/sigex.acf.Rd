@@ -32,5 +32,26 @@ x.acf: matrix of dimension N x N*maxlag, consisting of autocovariance
 		matrices stacked horizontally
 }
 \description{
-Compute the autocovariance function of a differenced latent component
+Background:
+	A sigex model consists of process x = sum y, for
+stochastic components y.  Each component process y_t
+	is either stationary or is reduced to stationarity by
+	application of a differencing polynomial delta(B), i.e.
+		w_t = delta(B) y_t   is stationary.
+	We have a model for each w_t process, and can compute its
+	autocovariance function (acf), and denote its autocovariance
+	generating function (acgf) via gamma_w (B).
+		Sometimes we may over-difference,
+	which means applying a differencing polynomial eta(B) that
+	contains delta(B) as a factor: eta(B) = delta(B)*nu(B).
+	Then  eta(B) y_t = nu(B) w_t, and the corresponding
+	acgf is   nu(B) * nu(B^{-1}) * gamma_w (B).
+}
+\details{
+Notes: this function computes the over-differenced acgf,
+	it is presumed that the given eta(B) contains the needed delta(B)
+	for that particular component.
+Conventions: ARMA and VAR models use minus convention for (V)AR polynomials,
+  and additive convention for (V)MA polynomials.  SARMA and SVARMA use
+  minus convention for all polynomials.
 }

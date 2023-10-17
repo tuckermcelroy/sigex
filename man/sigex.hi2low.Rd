@@ -25,6 +25,7 @@ filter.low: array s x s x M,
   shift.low: integer offset for the low frequency filter
 }
 \description{
-Embeds a given high frequency filter as a low frequency filter
-    for a vector embedding
+Background:	a scalar high frequency filter acts on a high frequency time series
+    by convolution.  If we embed as a low frequency time series, the
+    corresponding filter is now a matrix filter.
 }

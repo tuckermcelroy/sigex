@@ -9,6 +9,9 @@ sigex.reduce(data.ts, param, mdl, thresh, modelflag)
 \arguments{
 \item{data.ts}{A T x N matrix ts object}
 
+\item{param}{Model parameters entered into
+a list object with an intuitive structure.}
+
 \item{mdl}{The specified sigex model, a list object}
 
 \item{thresh}{Lower bound on Schur complements}
@@ -18,9 +21,6 @@ in the new model.  When modelFlag is FALSE, small Schur
 complements are replaced by exp(thresh)}
 }
 \value{
-param:  model parameters entered into
-	a list object with an intuitive structure.
-
 list of mdl.red and par.red
    mdl.red: the new sigex model, a list object
 	par.red: the new param for the new model

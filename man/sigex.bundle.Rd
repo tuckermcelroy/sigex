@@ -22,5 +22,9 @@ transformation to be applied; current options are
 analysis: a list object of the inputs
 }
 \description{
-Bundles into a list object several features
+Background:
+	param is the name for the model parameters entered into
+	a list object with a more intuitive structure, whereas
+	psi refers to a vector of real numbers containing all
+	hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
 }

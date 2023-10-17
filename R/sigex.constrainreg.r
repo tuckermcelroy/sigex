@@ -61,6 +61,7 @@ sigex.constrainreg <- function(mdl,data.ts,regindex,combos)
   #
   ####################################################################
 
+  N <- dim(data.ts)[2]
   par.mle <- sigex.default(mdl,data.ts,NULL)
   psi.mle <- sigex.par2psi(par.mle,mdl)
   psi.index <- NULL

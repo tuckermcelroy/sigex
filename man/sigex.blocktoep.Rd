@@ -13,5 +13,13 @@ sigex.blocktoep(x.array)
 x.toep: array of dimension N x H x N x H, where x.toep[,j,,k]
 }
 \description{
-Generates lower triangular array for block Toeplitz matrix
+Background:
+	Given a sequence of matrix gamma(0), gamma(1),...,gamma(k)
+	a block Toeplitz matrix has the form
+	[ gamma(0), t(gamma(1)),...,t(gamma(k)) ]
+	[ gamma(1), gamma(0),...,t(gamma(k-1)) ]
+	[ gamma(k),...,gamma(0)]
+}
+\details{
+Notes: presumes that gamma(0) is symmetric
 }

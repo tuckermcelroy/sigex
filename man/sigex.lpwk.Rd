@@ -25,11 +25,6 @@ a list object with an intuitive structure.}
 \item{cutoff}{A number between 0 and pi, with all frequencies < cutoff preserved}
 
 \item{trunc}{Truncation index for LP filter}
-
-\item{sigcomps}{Provides indices of a desired component that
-is disjoint from trend-cycle, so that MSEs of
-trend+sigcomps and cycle+sigcomps are computed.
- (Pass in sigcomps = NULL to just get trend and cycle MSEs.)}
 }
 \value{
 list object with psi.lpwk and psi.ilpwk
@@ -37,7 +32,22 @@ list object with psi.lpwk and psi.ilpwk
 	psi.ilpwk: array of dimension c(N,N,2*trunc+1), filter coefficients for cycle
 }
 \description{
-Computes signal extraction filter coefficients
-	for trend and cycle, by combining WK filter for trend-cycle
-	(specified by trendcyclecomp) with LP filter of cutoff.
+Background:
+	A sigex model consists of process x = sum y, for
+	stochastic components y.  Each component process y_t
+	is either stationary or is reduced to stationarity by
+	application of a differencing polynomial delta(B), i.e.
+		w_t = delta(B) y_t   is stationary.
+	We have a model for each w_t process, and can compute its
+	autocovariance function (acf), and denote its autocovariance
+	generating function (acgf) via gamma_w (B).
+	The signal extraction filter for y_t is determined from
+	this acgf and delta.
+	param is the name for the model parameters entered into
+	a list object with a more intuitive structure, whereas
+	psi refers to a vector of real numbers containing all
+	hyper-parameters (i.e., reals mapped bijectively to the parameter	manifold)
+}
+\details{
+Notes: take grid >> len, else numerical issues arise
 }
