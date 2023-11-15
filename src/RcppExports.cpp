@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // polymul_matt
 arma::cube polymul_matt(arma::cube amat, arma::cube bmat);
 RcppExport SEXP _sigex_polymul_matt(SEXP amatSEXP, SEXP bmatSEXP) {
