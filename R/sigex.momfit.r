@@ -107,18 +107,18 @@ sigex.momfit <- function(data.ts,param,mdl)
 		ar.poly <- 1
 		ma.poly <- delta.poly
 
- # 		# ARMA model
- # 		if(mdlClass == "arma")
- # 		{
- # 			p.order <- mdlOrder[1]
- # 			q.order <- mdlOrder[2]
- # 			ar.coef <- NULL
- # 			ma.coef <- NULL
- # 			if(p.order > 0) ar.coef <- mdlPar[1:p.order]
- # 			if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
- # 			ma.poly <- polymult(c(1,ma.coef),delta.poly)
- # 			ar.poly <- c(1,-1*ar.coef)
- #  	}
+ 		# ARMA model
+ 		if(mdlClass == "arma")
+ 		{
+  			p.order <- mdlOrder[1]
+  			q.order <- mdlOrder[2]
+  			ar.coef <- NULL
+  			ma.coef <- NULL
+  			if(p.order > 0) ar.coef <- mdlPar[1:p.order]
+  			if(q.order > 0) ma.coef <- mdlPar[(p.order+1):(p.order+q.order)]
+  			ma.poly <- polymult(c(1,ma.coef),delta.poly)
+  			ar.poly <- c(1,-1*ar.coef)
+   	}
 
 		# Stabilized ARMA model
 		if(mdlClass == "arma.stab")
