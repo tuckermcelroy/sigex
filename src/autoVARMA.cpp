@@ -4,12 +4,27 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
+
+//' Eigenvalue decompostion
+//'
+//' Wrapper function for armadillo `eig_gen`.
+//' Eigen decomposition of dense general (non-symmetric/non-hermitian) square matrix X
+//'
+//' @param X - square matrix
+//' @return The eigenvalues and corresponding right eigenvectors are stored in
+//'     eigval and eigvec, respectively
+//' @export
 // [[Rcpp::export]]
 arma::cx_vec getEigenValues(arma::mat M)
 {
   return arma::eig_gen(M);
 }
 
+//' complexExp - Documentation update needed
+//'
+//' @param x
+//' @return z
+//' @export
 // [[Rcpp::export]]
 arma::cx_vec complexExp(arma::vec x)
 {
@@ -25,6 +40,12 @@ arma::cx_vec complexExp(arma::vec x)
   return z;
 }
 
+//' polymult - Documentation update needed
+//'
+//' @param a
+//' @param b
+//' @return product a * b
+//' @export
 // [[Rcpp::export]]
 arma::cx_vec polymult(arma::cx_vec a, arma::cx_vec b)
 {
@@ -48,6 +69,12 @@ arma::cx_vec polymult(arma::cx_vec a, arma::cx_vec b)
 
 }
 
+//' polumul_mat - Documentation update needed
+//'
+//' @param amat
+//' @param bmat
+//' @return product amat(z) * bmat(z)
+//' @export
 // [[Rcpp::export]]
 arma::cube polymul_mat(arma::cube amat,arma::cube bmat)
 {
@@ -85,6 +112,11 @@ arma::cube polymul_mat(arma::cube amat,arma::cube bmat)
 
 }
 
+//' ar_adjoint - Documentation update needed
+//'
+//' @param poly_array
+//' @return list object ...
+//' @export
 // [[Rcpp::export]]
 List ar_adjoint(arma::cube poly_array)
 {
@@ -145,6 +177,29 @@ List ar_adjoint(arma::cube poly_array)
 
 }
 
+//' computes autocovariances of SVARMA usng frequency domain
+//'
+//' Backgroud:
+//'   function computes autocovariances of SVARMA (p,q,ps,qs) from lag zero
+//'		to maxlag, with array inputs phi and theta.  SVARMA equation:
+//'   (1 - phi[1]B ... - phi[p]B^p) (1 - Phi[1]B^s ... - Phi[ps]B^{s*ps}) X_t =
+//'   (1 + theta[1]B ... + theta[q]B^q) (1 + Theta[1]B^s ... + Theta[qs]B^{s*qs}) WN_t.
+//'
+//' @param param - matrix of dimension m x (p+q+ps+qs+1), equals [ phi | theta | phiseas | thetaseas | sigma ]
+//'		          phi: block matrix of dimension N x N*p of VAR coefficients
+//'		          theta: block matrix of dimension N x N*q of VMA coefficients
+//'             phiseas:  block matrix of dimension N x N*ps of SVAR coefficients
+//'             thetaseas:  block matrix of dimension N x N*qs of SVMA coefficients
+//'		          sigma: N x N covariance matrix of white noise
+//' @param p - AR order
+//' @param q - MA order
+//' @param ps - seasonal AR order
+//' @param qs - seasonal MA order
+//' @param season - period (e.g. monthly = 12)
+//' @param grid - Riemann mesh size
+//' @param maxlag - maximum autocovariance lag needed
+//' @return autocovariances at lags 0 through maxlag, as array of dimension m x m x (maxlag+1)
+//' @export
 // [[Rcpp::export]]
 arma::cube auto_VARMA(arma::mat param,int p,int q,int ps,int qs,int season,int grid,int maxlag)
 {
