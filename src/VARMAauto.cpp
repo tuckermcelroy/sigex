@@ -50,22 +50,22 @@ arma::cube polymul_matt(arma::cube amat,arma::cube bmat)
 
 }
 
- //' computes autocovariances of VARMA
- //'
- //' Background:
- //'    function computes autocovariances of VARMA (p,q) from lag zero
- //'		to maxlag, with array inputs phi and theta.  VARMA equation:
- //'  	(1 - phi[1]B ... - phi[p]B^p) X_t = (1 + theta[1]B ...+ theta[q]B^q) WN_t
- //'
- //' @param param: matrix of dimension m x (p+q+1)m, equals [ phi | theta | sigma ]
- //		  phi: block matrix of dimension m x mp of VAR coefficients
- //		  theta: block matrix of dimension m x mq of VMA coefficients
- //		  sigma: m x m covariance matrix of white noise
- //' @param p - AR order
- //' @param q - MA order
- //' @param maxlag - final lag of autocovariance needed
- //' @return autocovariances at lags 0 through maxlag, as array of dimension m x m x (maxlag+1)
- //' @export
+//' computes autocovariances of VARMA
+//'
+//' Background:
+//'    function computes autocovariances of VARMA (p,q) from lag zero
+//'		to maxlag, with array inputs phi and theta.  VARMA equation:
+//'  	(1 - phi[1]B ... - phi[p]B^p) X_t = (1 + theta[1]B ...+ theta[q]B^q) WN_t
+//'
+//' @param param: matrix of dimension m x (p+q+1)m, equals [ phi | theta | sigma ]
+//'		  phi: block matrix of dimension m x mp of VAR coefficients
+//'		  theta: block matrix of dimension m x mq of VMA coefficients
+//'		  sigma: m x m covariance matrix of white noise
+//' @param p - AR order
+//' @param q - MA order
+//' @param maxlag - final lag of autocovariance needed
+//' @return autocovariances at lags 0 through maxlag, as array of dimension m x m x (maxlag+1)
+//' @export
 // [[Rcpp::export]]
 arma::cube VARMA_auto(arma::mat param,int p, int q, int maxlag)
 {
