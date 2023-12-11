@@ -163,7 +163,7 @@ sigex.sim <- function(psi,mdl,simlen,burnin,dof,init)
 	  sims <- as.matrix(stats::filter(t(sim),delta.recurse,method="recursive",init)[-seq(1,d),])
 	} else # d = 0, stationary case
 	{
-	  sims <- sim
+	  sims <- t(sim)
 	}
 
 	sims <- as.matrix(sims[(burnin+1):(burnin+simlen),])
