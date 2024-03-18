@@ -143,6 +143,8 @@ phi2psi <- function(phi)
 		ps.order <- mdlOrder[3]
 		qs.order <- mdlOrder[4]
 		s.period <- mdlOrder[5]
+		s.div <- floor(s.period)
+		s.frac <- s.period - s.div
 		N <- dim(mdlPar)[1]
 		zetas.ar <- NULL
 		zetas.ma <- NULL
