@@ -170,23 +170,52 @@ psi2phi <- function(psi)
 	      ma.coefs <- rbind(ma.coefs,ma.coef)
 	    }
 	  }
-	  if(ps.order > 0)
+	  if(s.frac==0)
 	  {
-	    for(k in 1:N)
+
+	    if(ps.order > 0)
 	    {
-	      zeta.ars <- zeta[(N*p.order+N*q.order+1+(k-1)*ps.order):(N*p.order+N*q.order+k*ps.order)]
-	      ars.coef <- matrix(psi2phi(zeta.ars),nrow=1)
-	      ars.coefs <- rbind(ars.coefs,ars.coef)
+	      for(k in 1:N)
+	      {
+	        zeta.ars <- zeta[(N*p.order+N*q.order+1+(k-1)*ps.order):(N*p.order+N*q.order+k*ps.order)]
+	        ars.coef <- matrix(psi2phi(zeta.ars),nrow=1)
+	        ars.coefs <- rbind(ars.coefs,ars.coef)
+	      }
 	    }
-	  }
-	  if(qs.order > 0)
+	    if(qs.order > 0)
+	    {
+	      for(k in 1:N)
+	      {
+	        zeta.mas <- zeta[(N*p.order+N*q.order+N*ps.order+1+(k-1)*qs.order):(N*p.order+N*q.order+N*ps.order+k*qs.order)]
+	        mas.coef <- matrix(psi2phi(zeta.mas),nrow=1)
+	        mas.coefs <- rbind(mas.coefs,mas.coef)
+	      }
+	    }
+
+	  } else # s.frac > 0
 	  {
-	    for(k in 1:N)
+
+	    if(ps.order > 0)
 	    {
-	      zeta.mas <- zeta[(N*p.order+N*q.order+N*ps.order+1+(k-1)*qs.order):(N*p.order+N*q.order+N*ps.order+k*qs.order)]
-	      mas.coef <- matrix(psi2phi(zeta.mas),nrow=1)
-	      mas.coefs <- rbind(mas.coefs,mas.coef)
+	      for(k in 1:N)
+	      {
+	        zeta.ars <- zeta[(N*p.order+N*q.order+1+(k-1)*ps.order):(N*p.order+N*q.order+k*ps.order)]
+	        phi.ars <- exp(zeta.ars[1])/(1+exp(zeta.ars[1]))
+	        ars.coef <- matrix(phi.ars,nrow=1)
+	        ars.coefs <- rbind(ars.coefs,ars.coef)
+	      }
 	    }
+	    if(qs.order > 0)
+	    {
+	      for(k in 1:N)
+	      {
+	        zeta.mas <- zeta[(N*p.order+N*q.order+N*ps.order+1+(k-1)*qs.order):(N*p.order+N*q.order+N*ps.order+k*qs.order)]
+	        theta.mas <- exp(zeta.mas[1])/(1+exp(zeta.mas[1]))
+	        mas.coef <- matrix(theta.mas,nrow=1)
+	        mas.coefs <- rbind(mas.coefs,mas.coef)
+	      }
+	    }
+
 	  }
 	  zeta.par <- cbind(ar.coefs,cbind(ma.coefs,cbind(ars.coefs,mas.coefs)))
 	}

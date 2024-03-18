@@ -166,23 +166,50 @@ phi2psi <- function(phi)
 	  		zetas.ma <- c(zetas.ma,zeta.ma)
 		  }
 		}
-		if(ps.order > 0)
+		if(s.frac==0)
 		{
-		  for(k in 1:N)
+
+		  if(ps.order > 0)
 		  {
-		    ars.coef <- mdlPar[k,(p.order+q.order+1):(p.order+q.order+ps.order)]
-			  zeta.ars <- phi2psi(ars.coef)
-			  zetas.ars <- c(zetas.ars,zeta.ars)
+		    for(k in 1:N)
+		    {
+		      ars.coef <- mdlPar[k,(p.order+q.order+1):(p.order+q.order+ps.order)]
+		      zeta.ars <- phi2psi(ars.coef)
+		      zetas.ars <- c(zetas.ars,zeta.ars)
+		    }
 		  }
-		}
-		if(qs.order > 0)
+		  if(qs.order > 0)
+		  {
+		    for(k in 1:N)
+		    {
+		      mas.coef <- mdlPar[k,(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
+		      zeta.mas <- phi2psi(mas.coef)
+		      zetas.mas <- c(zetas.mas,zeta.mas)
+		    }
+		  }
+
+		}	else # s.frac > 0
 		{
-		  for(k in 1:N)
+
+		  if(ps.order > 0)
 		  {
-		    mas.coef <- mdlPar[k,(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
-			  zeta.mas <- phi2psi(mas.coef)
-			  zetas.mas <- c(zetas.mas,zeta.mas)
+		    for(k in 1:N)
+		    {
+		      ars.coef <- mdlPar[k,(p.order+q.order+1):(p.order+q.order+ps.order)]
+		      zeta.ars <- log(ars.coef) - log(1 - ars.coef)
+		      zetas.ars <- c(zetas.ars,zeta.ars)
+		    }
 		  }
+		  if(qs.order > 0)
+		  {
+		    for(k in 1:N)
+		    {
+		      mas.coef <- mdlPar[k,(p.order+q.order+ps.order+1):(p.order+q.order+ps.order+qs.order)]
+		      zeta.mas <- log(mas.coef) - log(1 - mas.coef)
+		      zetas.mas <- c(zetas.mas,zeta.mas)
+		    }
+		  }
+
 		}
 		zeta <- c(zetas.ar,zetas.ma,zetas.ars,zetas.mas)
 	}
