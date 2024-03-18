@@ -148,6 +148,8 @@ psi2phi <- function(psi)
 	  ps.order <- mdlOrder[3]
 	  qs.order <- mdlOrder[4]
 	  s.period <- mdlOrder[5]
+	  s.div <- floor(s.period)
+	  s.frac <- s.period - s.div
 	  ar.coefs <- NULL
 	  ma.coefs <- NULL
 	  ars.coefs <- NULL
