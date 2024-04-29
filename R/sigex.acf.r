@@ -254,6 +254,9 @@ sigex.acf <-
 		      trunc.len <- floor((s.period-1)/2)
 		      sar.op <- ubgenerator(s.period,trunc.len,1000,rho.s)
 		      sar.op <- polymult(sar.op,c(1,-1*rho.s))
+		      if(s.div %% 2 == 0){
+		        sar.op = polymult(sar.op, c(1, 1 * rho.s))
+		      }
 		      ars.coef.stretch <- rbind(ars.coef.stretch,-1*sar.op[-1])
 		    }
 		  }
@@ -266,6 +269,9 @@ sigex.acf <-
 		      trunc.len <- floor((s.period-1)/2)
 		      sma.op <- ubgenerator(s.period,trunc.len,1000,rho.s)
 		      sma.op <- polymult(sma.op,c(1,-1*rho.s))
+		      if(s.div %% 2 == 0){
+		        sma.op = polymult(sma.op, c(1, 1 * rho.s))
+		      }
 		      mas.coef.stretch <- rbind(mas.coef.stretch,-1*sma.op[-1])
 		    }
 		  }
