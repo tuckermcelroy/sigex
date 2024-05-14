@@ -156,7 +156,7 @@ if (p > 0)
 
 if (maxlag <= p)
 {
-	gamARMA <- gamARMA[,,1:(maxlag+1)]
+	gamARMA <- gamARMA[,,1:(maxlag+1),drop=FALSE]
 } else
 {
 	if (maxlag > q) gamMix <- array(cbind(matrix(gamMix,m,m*(q+1)),
