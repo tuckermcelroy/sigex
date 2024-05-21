@@ -337,5 +337,36 @@ phi2psi <- function(phi)
 		zeta <- ar.coef
 	}
 
+	# ARMA Copula
+	if(mdlClass %in% c("armacopula"))
+	{
+	  p.order <- mdlOrder[1,]
+	  q.order <- mdlOrder[2,]
+	  p.max <- max(p.order)
+	  q.max <- max(q.order)
+	  N <- dim(mdlPar)[1]
+	  zetas.ar <- NULL
+	  zetas.ma <- NULL
+	  if(p.max > 0)
+	  {
+	    for(k in 1:N)
+	    {
+	      ar.coef <- mdlPar[k,1:p.order[k]]
+	      zeta.ar <- phi2psi(ar.coef)
+	      zetas.ar <- c(zetas.ar,zeta.ar)
+	    }
+	  }
+	  if(q.max > 0)
+	  {
+	    for(k in 1:N)
+	    {
+	      ma.coef <- mdlPar[k,(p.order[k]+1):(p.order[k]+q.order[k])]
+	      zeta.ma <- phi2psi(-1*ma.coef)
+	      zetas.ma <- c(zetas.ma,zeta.ma)
+	    }
+	  }
+	  zeta <- c(zetas.ar,zetas.ma)
+	}
+
 	return(zeta)
 }

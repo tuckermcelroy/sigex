@@ -74,5 +74,8 @@ sigex.zetalen <- function(mdlType,N)
 	# damped trend
 	if(mdlClass %in% c("damped")) zeta.len <- 1
 
+	# ARMA Copula
+	if(mdlClass %in% c("armacopula")) zeta.len <- sum(mdlOrder)
+
 	return(zeta.len)
 }

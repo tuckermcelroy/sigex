@@ -613,6 +613,48 @@ sigex.acf <-
 		x.acf <- psi.acf %x% xi.mat
 	}
 
+  # ARMA Copula
+  if(mdlClass == "armacopula")
+  {
+    p.order <- mdlOrder[1,]
+    q.order <- mdlOrder[2,]
+    p.max <- max(p.order)
+    q.max <- max(q.order)
+    ar.coef <- NULL
+    ma.coef <- NULL
+    if(p.max > 0)
+    {
+      for(j in 1:p.max)
+      {
+        ar.coef <- cbind(ar.coef,diag(mdlPar[,j],nrow=N))
+      }
+    }
+    if(q.max > 0)
+    {
+      for(j in 1:q.max)
+      {
+        ma.coef <- cbind(ma.coef,diag(mdlPar[,j+p.max],nrow=N))
+      }
+    }
+    ma.array <- array(cbind(diag(N),ma.coef),c(N,N,q.max+1))
+    delta.array <- array(t(delta) %x% diag(N),c(N,N,d.delta))
+    madiff.array <- polymulMat(delta.array,ma.array)
+    ma.coef <- matrix(madiff.array[,,-1],nrow=N)
+    if(freqdom)
+    {
+      psi.acf <- auto_VARMA(cbind(ar.coef,ma.coef,xi.mat),
+                            p.order,q.order+d.delta-1,0,0,
+                            1,2000,maxlag)[,,1:maxlag,drop=FALSE]
+    } else
+    {
+      psi.acf <- VARMA_auto(cbind(ar.coef,
+                                  matrix(madiff.array[,,-1],nrow=N),
+                                  xi.mat),p.order,q.order+d.delta-1,
+                            maxlag)[,,1:maxlag,drop=FALSE]
+    }
+    x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
+  }
+
 	return(x.acf)
 }
 
