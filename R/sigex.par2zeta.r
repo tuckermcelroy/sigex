@@ -351,8 +351,12 @@ phi2psi <- function(phi)
 	  {
 	    for(k in 1:N)
 	    {
-	      ar.coef <- mdlPar[k,1:p.order[k]]
-	      zeta.ar <- phi2psi(ar.coef)
+	      zeta.ar <- NULL
+	      if(p.order[k]>0)
+	      {
+	        ar.coef <- mdlPar[k,1:p.order[k]]
+	        zeta.ar <- phi2psi(ar.coef)
+	      }
 	      zetas.ar <- c(zetas.ar,zeta.ar)
 	    }
 	  }
@@ -360,8 +364,12 @@ phi2psi <- function(phi)
 	  {
 	    for(k in 1:N)
 	    {
-	      ma.coef <- mdlPar[k,(p.order[k]+1):(p.order[k]+q.order[k])]
-	      zeta.ma <- phi2psi(-1*ma.coef)
+	      zeta.ma <- NULL
+	      if(q.order[k]>0)
+	      {
+	        ma.coef <- mdlPar[k,(p.order[k]+1):(p.order[k]+q.order[k])]
+	        zeta.ma <- phi2psi(-1*ma.coef)
+	      }
 	      zetas.ma <- c(zetas.ma,zeta.ma)
 	    }
 	  }

@@ -365,8 +365,12 @@ psi2phi <- function(psi)
 	  {
 	    for(k in 1:N)
 	    {
-	      zeta.ar <- zeta[(1+(k-1)*p.order[k]):(k*p.order[k])]
-	      ar.coef <- matrix(psi2phi(zeta.ar),nrow=1)
+	      ar.coef <- NULL
+	      if(p.order[k]>0)
+	      {
+	        zeta.ar <- zeta[(1+(k-1)*p.order[k]):(k*p.order[k])]
+	        ar.coef <- matrix(psi2phi(zeta.ar),nrow=1)
+	      }
 	      if(p.order[k] < p.max) { ar.coef <- c(ar.coef,rep(0,p.max-p.order[k])) }
 	      ar.coefs <- rbind(ar.coefs,ar.coef)
 	    }
@@ -375,8 +379,12 @@ psi2phi <- function(psi)
 	  {
 	    for(k in 1:N)
 	    {
-	      zeta.ma <- zeta[(N*p.order[k]+1+(k-1)*q.order[k]):(N*p.order[k]+k*q.order[k])]
-	      ma.coef <- matrix(-1*psi2phi(zeta.ma),nrow=1)
+	      ma.coef <- NULL
+	      if(q.order[k]>0)
+	      {
+	        zeta.ma <- zeta[(N*p.order[k]+1+(k-1)*q.order[k]):(N*p.order[k]+k*q.order[k])]
+	        ma.coef <- matrix(-1*psi2phi(zeta.ma),nrow=1)
+	      }
 	      if(q.order[k] < q.max) { ma.coef <- c(ma.coef,rep(0,q.max-q.order[k])) }
 	      ma.coefs <- rbind(ma.coefs,ma.coef)
 	    }
