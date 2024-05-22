@@ -643,13 +643,12 @@ sigex.acf <-
     if(freqdom)
     {
       psi.acf <- auto_VARMA(cbind(ar.coef,ma.coef,xi.mat),
-                            p.order,q.order+d.delta-1,0,0,
+                            p.max,q.max+d.delta-1,0,0,
                             1,2000,maxlag)[,,1:maxlag,drop=FALSE]
     } else
     {
-      psi.acf <- VARMA_auto(cbind(ar.coef,
-                                  matrix(madiff.array[,,-1],nrow=N),
-                                  xi.mat),p.order,q.order+d.delta-1,
+      psi.acf <- VARMA_auto(cbind(ar.coef,ma.coef,xi.mat),
+                            p.max,q.max+d.delta-1,
                             maxlag)[,,1:maxlag,drop=FALSE]
     }
     x.acf <- matrix(aperm(psi.acf,c(1,3,2)),ncol=N)
