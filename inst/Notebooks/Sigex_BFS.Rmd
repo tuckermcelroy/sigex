@@ -6,30 +6,29 @@ output:
 ---
 
 ```{r, setup, include=FALSE}
-knitr::opts_knit$set(root.dir = 'C:/Users/neide/Documents/GitHub/sigex')
+#knitr::opts_knit$set(root.dir = 'C:/Users/neide/Documents/GitHub/sigex')
 ```
  
 # Business Formation Statistics
 
- We study a weekly univariate series: the business applications   component of   the
-  Business Formation Statistics,  or **bfs** for short.
-  (Weekly data as of week 27  of 2020, downloaded on July 14, 2020 (11:27 AM), U.S. Census Bureau, obtained from https://www.census.gov/econ/bfs/index.html.)
-   We consider the non-seasonally adjusted data at the national level.
-   This  component is the main business applications series, which captures the weekly flow of
-    IRS applications for Employer Identification Numbers, mainly for business purposes.
+We study a weekly univariate series: the business applications component of the
+Business Formation Statistics, or **bfs** for short. (Weekly data as of week 27
+of 2020, downloaded on July 14, 2020 (11:27 AM), U.S. Census Bureau, obtained 
+from https://www.census.gov/econ/bfs/index.html.) We consider the non-seasonally 
+adjusted data at the national level. This component is the main business 
+applications series, which captures the weekly flow of IRS applications for 
+Employer Identification Numbers, mainly for business purposes.
     
 ## Loading Packages 
 
-This code loads the data into a variable named **bfs**.
+This code installs and loads the packages, and loads the data into a variable 
+named **bfs**.
 
-```{r}
-## wipe
-rm(list=ls())
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
 library(devtools)
 library(Rcpp)
-
-load_all(".")
-root.dir <- getwd()
+devtools::install_github("tuckermcelroy/sigex")
+library(sigex)
 ```
     
 ## Enter Metadata
@@ -54,11 +53,13 @@ dataALL.ts <- sigex.load(bfs[,3:6],begin,period,
 ## Select Spans and Transforms
 
 - We have the choice of either log or no log.
-- The *aggregate* option will sum across the indicated series, in case we want to analyze an aggregate.  Here we set it to FALSE.
+- The *aggregate* option will sum across the indicated series, in case we want 
+to analyze an aggregate. Here we set it to FALSE.
 - We can also select a subcomponent of series with *subseries*.
-- The *range* argument of **sigex.prep** will select a subset of dates for the time series to be analyzed.
-- We select one of four national series corresponding to business applications, and choose
-    a log transformation.   
+- The *range* argument of **sigex.prep** will select a subset of dates for the 
+time series to be analyzed.
+- We select one of four national series corresponding to business applications, 
+and choose a log transformation.   
  
 ```{r}
 transform <- "log"
@@ -70,28 +71,20 @@ data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 
 ## Spectral Exploratory Analysis
 
-- In order to get an idea about model specification, we can examine spectral estimates,
-using **sigex.specar**.
+- In order to get an idea about model specification, we can examine spectral 
+estimates, using **sigex.specar**.
 - We can look at raw data or differenced data (growth rates).
 
 ```{r}
 # raw data
 par(mfrow=c(1,1))
-for(i in 1:length(subseries))
-{
-  sigex.specar(data.ts,FALSE,i,period)
-}
-dev.off()
+for(i in 1:length(subseries)) { sigex.specar(data.ts,FALSE,i,period) }
 ```
 
 ```{r}
 # growth rates
 par(mfrow=c(1,1))
-for(i in 1:length(subseries))
-{
-  sigex.specar(data.ts,TRUE,i,period)
-}
-dev.off()
+for(i in 1:length(subseries)) { sigex.specar(data.ts,TRUE,i,period) }
 ```
 
 ##  Model Declaration
@@ -104,10 +97,12 @@ N <- dim(data.ts)[2]
 T <- dim(data.ts)[1]
 ```
 
-- To specify the holiday regressors, we need to know the calendar date
-    (in  month-day-year format) for the beginning and end of the series, i.e., the first day of the first week and the last day of the last week.  
+- To specify the holiday regressors, we need to know the calendar date (in 
+month-day-year format) for the beginning and end of the series, i.e., the first 
+day of the first week and the last day of the last week.  
 - The function **weekly2date** provides this.
-- Weekly data typically corresponds to measurements over a seven-day period beginning with Sunday, in which *first.day* is set equal to $1$.
+- Weekly data typically corresponds to measurements over a seven-day period 
+beginning with Sunday, in which *first.day* is set equal to $1$.
 
 ```{r}
 first.day <- 1
@@ -117,10 +112,13 @@ end.date <- all.date[[2]]
 ```
 
 - Next, we load the holiday regressors.
-- One supplies an ASCI file  whose every row contains a calendar date for the relevant holiday, covering a broad range of years.
-- Regressors can simply be created as a daily time series by **gethol**, and then later converted to a weekly regressor.  
-- We use a window of $7$ days before and $0$ days after, so that the holiday effects are presumed to constitute eight days.
-- In the calls to **gethol**,  both *start.date* and *end.date* are required.
+- One supplies an ASCI file  whose every row contains a calendar date for the 
+relevant holiday, covering a broad range of years.
+- Regressors can simply be created as a daily time series by **gethol**, and 
+then later converted to a weekly regressor.  
+- We use a window of $7$ days before and $0$ days after, so that the holiday
+effects are presumed to constitute eight days.
+- In the calls to **gethol**, both *start.date* and *end.date* are required.
    
 ```{r}
 easter.dates <- read.table(paste(root.dir,"/data/easter500.txt",sep=""))
@@ -160,8 +158,8 @@ black.dates <- read.table(paste(root.dir,"/data/black400.txt",sep=""))
 black.reg <- gethol(black.dates,7,0,start.date,end.date)
 ```
 
-- The daily regressors are converted to weekly flow regressors by first embedding
-   with *sigex.daily2weekly*, followed by averaging over each week.
+- The daily regressors are converted to weekly flow regressors by first 
+embedding with *sigex.daily2weekly*, followed by averaging over each week.
 
 ```{r}
 easter.reg <- sigex.daily2weekly(easter.reg,first.day,start.date)
@@ -205,8 +203,9 @@ black.reg <- rowSums(black.reg)/7
 
 ### Initial Model: no holidays
 
-- We fit a baseline model that involves no fixed effects,
-- The model has a  SARMA specification with order one for the AR, MA, seasonal AR, and    seasonal MA polynomials.
+- We fit a baseline model that involves no fixed effects
+- The model has a SARMA specification with order one for the AR, MA, seasonal 
+AR, and seasonal MA polynomials.
 
 ```{r}
 mdl <- NULL
@@ -214,8 +213,10 @@ mdl <- sigex.add(mdl,seq(1,N),"sarma",c(1,1,1,1,52),NULL,"process",1)
 mdl <- sigex.meaninit(mdl,data.ts,0)
 ```
 
-- Maximum Likelihood Estimation is done using BFGS. We use the divergence, which is $-2$ times the log Gaussian likelihood, with constants removed.
-- With the debug option set to TRUE, the values of the divergence are printed to the console.
+- Maximum Likelihood Estimation is done using BFGS. We use the divergence, which
+is $-2$ times the log Gaussian likelihood, with constants removed.
+- With the debug option set to TRUE, the values of the divergence are printed to 
+the console.
 
 ```{r}
 constraint <- NULL
@@ -231,8 +232,11 @@ par.mle <- fit.mle[[2]]
  
 ### Improved Model: add holidays
 
-- The next model incorporates the ten federal holidays along with Easter and Black Friday.
-- Note that Independence Day, Veteran's Day, and Christmas are not included by the call to *sigex.reg*  (which checks for regressors that are numerically zero after differencing).
+- The next model incorporates the ten federal holidays along with Easter and 
+Black Friday.
+- Note that Independence Day, Veteran's Day, and Christmas are not included by 
+the call to *sigex.reg* (which checks for regressors that are numerically zero 
+after differencing).
 
 ```{r}
 mdl <- NULL
@@ -264,7 +268,8 @@ mdl <- sigex.reg(mdl,1,ts(as.matrix(black.reg),start=start(black.reg),
                           frequency=period,names="BlackFriday"))
 ``` 
  
-- This specification has seven federal holidays, plus two other holidays and the trend constant, for a total of $10$ regressors.
+- This specification has seven federal holidays, plus two other holidays and the 
+trend constant, for a total of $10$ regressors.
 - The model is fitted next.
   
 ```{r}  
@@ -278,7 +283,8 @@ par.mle <- fit.mle[[2]]
 ```
 
 - This yields a divergence of `r sigex.lik(psi.mle,mdl,data.ts)`.
-- We can also examine the Hessian matrix,  and compute the t statistics for pre-parameters.
+- We can also examine the Hessian matrix, and compute the t statistics for 
+pre-parameters.
 
 ```{r}
 print(eigen(hess)$values)
@@ -289,11 +295,13 @@ print(eigen(hess)$values)
 
 ```{r}
 resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
-resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
+                        colnames(data.ts),TRUE)
 resid.acf <- acf(resid.mle,lag.max=4*53,plot=TRUE)$acf
 ```
 
-- We observe in the fitted residuals that there is a substantial outlier in the first week of 2012,  which is not explained by the New Year's regressor. 
+- We observe in the fitted residuals that there is a substantial outlier in the 
+first week of 2012, which is not explained by the New Year's regressor. 
 - In a refined model below, this will be handled as an Additive Outlier.
 
 ### Final Model
@@ -356,11 +364,11 @@ for(j in 1:N)
     abline(h=-1.96/sqrt(T),lty=3)
   }
 }
-dev.off()
 ```
 
 - Residual analysis indicates the model seems to be a good fit.
-- We can examine the Portmanteau statistic for residual serial correlation. We use $48$ lags.
+- We can examine the Portmanteau statistic for residual serial correlation. We 
+use $48$ lags.
 - We can also inspect normality via the  Shapiro-Wilks normality test.
 
 ```{r}
@@ -374,7 +382,8 @@ sigex.gausscheck(resid.mle)
 data.casts <- sigex.midcast(psi.mle,mdl,dataNA.ts,0)
 ```
 
-- Having completed our model analysis, we store our results in a single list object.
+- Having completed our model analysis, we store our results in a single list 
+object.
 
 ```{r}
 analysis.mle <- sigex.bundle(dataNA.ts,transform,mdl,psi.mle)
@@ -393,8 +402,9 @@ param <- sigex.psi2par(psi,mdl,dataNA.ts)
 ```
 
 - The relevant fixed effects are loaded into variables.
-- To do this we create a variable *dataLIN.ts*,  consisting of the orginal time series with the fixed effects  removed.
-- This de-meaned series  shall be adjusted for the AO, and then filtered.
+- To do this we create a variable *dataLIN.ts*, consisting of the original time 
+series with the fixed effects removed.
+- This de-meaned series shall be adjusted for the AO, and then filtered.
 
 ```{r}
 reg.trend <- sigex.fixed(data.ts,mdl,1,param,"Trend")
@@ -404,9 +414,13 @@ dataLIN.ts <- data.ts - ts(reg.trend + reg.nyd + reg.mlk,
                            start=start(data.ts),frequency=period)
 ```
 
-- We utilize a set of nonparametric filters to extract trend, seasonal, and non-seasonal (or seasonally adjusted)  latent processes, implemented in  **x11filters**.     
-- Below, we define *week.period* with a non-integer period, which **x11filters** is designed to accomodate.
-- The variable *x11.filters* is a three-item list containing the three filters, each of which is      a symmetric sequence of numbers.   
+- We utilize a set of nonparametric filters to extract trend, seasonal, and 
+non-seasonal (or seasonally adjusted) latent processes, implemented in  
+**x11filters**.     
+- Below, we define *week.period* with a non-integer period, which **x11filters**
+is designed to accommodate.
+- The variable *x11.filters* is a three-item list containing the three filters,
+each of which is a symmetric sequence of numbers.   
 
 ```{r}
 week.period <- 365.25/7
@@ -418,13 +432,16 @@ sa.filter <- x11.filters[[3]]
 shift <- (dim(sa.filter)[3]-1)/2
 ```
 
-- Next, we call **sigex.adhocextract** to apply the various ad hoc (AC) filters to the data.
-- We apply the method to *dataNA.ts*, which was defined previously
- as the de-meaned series with an NA inserted for the AO. 
-- The AC filter *trend.filter* is inputted, along with the *shift* parameter
- set to the middle position of the filter vector; this corresponds to a symmetric filter.  
-- We also compute the casting error at the AO time $t = 314$,  and this is added
- onto the seasonal adjustment *sa.comp[[1]]*.  This is done  because an AO effect belongs with the irregular in the seasonal adjustment extraction.
+- Next, we call **sigex.adhocextract** to apply the various ad hoc (AC) filters
+to the data.
+- We apply the method to *dataNA.ts*, which was defined previously as the 
+de-meaned series with an NA inserted for the AO. 
+- The AC filter *trend.filter* is inputted, along with the *shift* parameter set 
+to the middle position of the filter vector; this corresponds to a symmetric 
+filter.  
+- We also compute the casting error at the AO time $t = 314$, and this is added 
+onto the seasonal adjustment *sa.comp[[1]]*. This is done because an AO effect
+belongs with the irregular in the seasonal adjustment extraction.
  
 ```{r}
 trend.comp <- sigex.adhocextract(psi,mdl,dataNA.ts,trend.filter,half.len,0,TRUE)
@@ -434,7 +451,8 @@ sa.comp[[1]][AO.times] <- sa.comp[[1]][AO.times] + AO.errs
 ```
 
 - The results can be displayed using calls to **sigex.graph**.
-- This code sets up various colors for the extractions, and a shading percentage *fade*.
+- This code sets up various colors for the extractions, and a shading 
+percentage *fade*.
 
 ```{r}
 trendcol <- "tomato"
@@ -448,14 +466,12 @@ sigex.graph(trend.comp,reg.trend,start(data.ts),
             period,1,0,trendcol,fade)
 sigex.graph(sa.comp,reg.trend,start(data.ts),
             period,1,0,sacol,fade)
-dev.off()
 ```
 
 - Next, we can examine spectral density estimates of the extractions.
 
 ```{r}
 sigex.specar(sa.comp[[1]],FALSE,1,period)
-dev.off()
 ```
 
 - The lack of seasonal peaks indicates adequacy of the seasonal adjustment. 

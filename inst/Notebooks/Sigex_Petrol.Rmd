@@ -5,35 +5,27 @@ output:
     df_print: paged
 ---
 
-```{r, setup, include=FALSE}
-knitr::opts_knit$set(root.dir = 'C:/Users/neide/Documents/GitHub/sigex')
-```
- 
 # Petrol
 
-We  examine  Industrial  Petroleum Consumption and OPEC Oil Imports,
- or *petrol* for short. (The two series are available from
- Department of Energy, Energy Information Administration.)
-   Both series cover the period   January 1973 through December 2016, and are
-   seasonally adjusted.   
-   Industrial Petroleum Consumption is
-   U.S. Product Supplied of Crude Oil and Petroleum Products, Monthly,
-   in Thousand Barrels per Day. 	OPEC Oil Imports is   Petroleum Imports from OPEC,
-   in  Thousand Barrels per Day. 
-  We perform a bivariate analysis by fitting the Local Level Model (LLM).
+We examine Industrial Petroleum Consumption and OPEC Oil Imports, or *petrol* 
+for short. (The two series are available from Department of Energy, Energy 
+Information Administration.) Both series cover the period January 1973 through 
+December 2016, and are seasonally adjusted. Industrial Petroleum Consumption is
+U.S. Product Supplied of Crude Oil and Petroleum Products, Monthly, in Thousand 
+Barrels per Day. OPEC Oil Imports is Petroleum Imports from OPEC, in Thousand 
+Barrels per Day. We perform a bivariate analysis by fitting the Local Level 
+Model (LLM).
   
 ## Loading Packages 
 
-This code loads the data into a variable named **petrol**.
+This code installs and loads the packages, and loads the data into a variable 
+named **petrol**.
 
-```{r}
-## wipe
-rm(list=ls())
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
 library(devtools)
 library(Rcpp)
-
-load_all(".")
-root.dir <- getwd()
+devtools::install_github("tuckermcelroy/sigex")
+library(sigex)
 ```
 
 ## Enter Metadata
@@ -54,14 +46,17 @@ dataALL.ts <- sigex.load(petrol[,c(1,2)],start.date,period,
                          c("Consumption","Imports"),TRUE)
 ```
 
-- On the basis of this plot, we decide (below) to utilize a log transformation for the data.
+- On the basis of this plot, we decide (below) to utilize a log transformation 
+for the data.
   
 ## Select Spans and Transforms
 
 - We have the choice of either log or no log.
-- The *aggregate* option will sum across the indicated series, in case we want to analyze an aggregate.  Here we set it to FALSE.
+- The *aggregate* option will sum across the indicated series, in case we want 
+to analyze an aggregate. Here we set it to FALSE.
 - We can also select a subcomponent of series with *subseries*.
-- The *range* argument of **sigex.prep** will select a subset of dates for the time series to be analyzed.
+- The *range* argument of **sigex.prep** will select a subset of dates for the 
+time series to be analyzed.
 
 ```{r}
 transform <- "log"
@@ -75,15 +70,14 @@ data.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
 
 ## Spectral Exploratory Analysis
 
-- In order to get an idea about model specification, we can examine spectral estimates,
-using **sigex.specar**.
+- In order to get an idea about model specification, we can examine spectral 
+estimates, using **sigex.specar**.
 - We can look at raw data or differenced data (growth rates).
 
 ```{r}
 # raw data
 par(mfrow=c(1,2))
 for(i in subseries) {	sigex.specar(data.ts,FALSE,i,period) }
-dev.off()
 ```
 
 - From the raw data, it seems that trend differencing is appropriate.
@@ -92,14 +86,15 @@ dev.off()
 # growth rates
 par(mfrow=c(1,2))
 for(i in subseries) {	sigex.specar(data.ts,TRUE,i,period) }
-dev.off()
 ```
 
-- These plots indicate that a single differencing of the data may be appropriate.
+- These plots indicate that a single differencing of the data may be 
+appropriate.
 
 ##  Model Declaration
 
-- Exploratory analysis indicates we should consider a model with trend and irregular effects.
+- Exploratory analysis indicates we should consider a model with trend and 
+irregular effects.
 - We begin by defining dimension $N$ and sample size $T$.
 
 ```{r}
@@ -109,8 +104,10 @@ T <- dim(data.ts)[1]
      
 ### Default Model: Related Trends
 
-- The basic LLM is referred to as a *related trends model*. This case has full rank covariance matrices for trend (and irregular).
-- The list object *mdl* stores all our specifications about the model, but none of the parameter estimates.
+- The basic LLM is referred to as a *related trends model*. This case has full 
+rank covariance matrices for trend (and irregular).
+- The list object *mdl* stores all our specifications about the model, but none 
+of the parameter estimates.
 
 ```{r}  
 mdl <- NULL
@@ -118,24 +115,31 @@ mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"trend",c(1,-1))
 mdl <- sigex.add(mdl,seq(1,N),"arma",c(0,0),NULL,"irregular",1)
 ```
 
-- Each of the two latent processes is labeled, and has a distinct differencing polynomial,
- whose application produces a full-rank white noise.
-- The multiple calls to **sigex.add** adds each latent process consecutively into the existing model. 
-- The second argument indicates the rank configuration; setting  *vrank* equal to  seq(1,N) ensures a full rank covariance matrix.
-- The third argument  gives the model type as  *arma*; the order $p=0$, $q=0$ indicates a white noise. 
+- Each of the two latent processes is labeled, and has a distinct differencing 
+polynomial, whose application produces a full-rank white noise.
+- The multiple calls to **sigex.add** adds each latent process consecutively 
+into the existing model. 
+- The second argument indicates the rank configuration; setting *vrank* equal to 
+seq(1,N) ensures a full rank covariance matrix.
+- The third argument gives the model type as *arma*; the order $p=0$, $q=0$ 
+indicates a white noise. 
 - The sixth argument associates a label.
     
 ```{r}    
 mdl <- sigex.meaninit(mdl,data.ts,0)
 ```
 
-- There are no regressors specified, but we still need to call **sigex.meaninit** so that the time trend polynomial is set up correctly.  
-- The last argument gives the order of this time trend polynomial. The value $0$ indicates there is a constant mean effect assumed.
+- There are no regressors specified, but we still need to call 
+**sigex.meaninit** so that the time trend polynomial is set up correctly.  
+- The last argument gives the order of this time trend polynomial. The value $0$ 
+indicates there is a constant mean effect assumed.
 
 ### Alternate Model: Common Trends
 
-- The *common trends model* is a type of LLM  where it is enforced that $\Sigma^{(1)}$ has rank one.
-- The only difference from the default model is that *vrank* equals 1, in the first line.
+- The *common trends model* is a type of LLM where it is enforced that 
+$\Sigma^{(1)}$ has rank one.
+- The only difference from the default model is that *vrank* equals 1, in the 
+first line.
 
 ```{r}
 mdl2 <- NULL
@@ -149,7 +153,9 @@ mdl2 <- sigex.meaninit(mdl2,data.ts,0)
 
 ### Initialization
 
-- First we need to initialize. The variable *psi.mle* correspond to the pre-parameters, and get mapped to *par.mle*, the parameters, via **sigex.psi2par**.
+- First we need to initialize. The variable *psi.mle* correspond to the 
+pre-parameters, and get mapped to *par.mle*, the parameters, via 
+**sigex.psi2par**.
 
 ```{r}
 constraint <- NULL
@@ -159,8 +165,10 @@ psi.mle <- sigex.par2psi(par.mle,mdl)
 
 ### MLE Fitting
 
-- Maximum Likelihood Estimation is done using BFGS. We use the divergence, which is $-2$ times the log Gaussian likelihood, with constants removed.
-- With the debug option set to TRUE, the values of the divergence are printed to the console.
+- Maximum Likelihood Estimation is done using BFGS. We use the divergence, 
+which is $-2$ times the log Gaussian likelihood, with constants removed.
+- With the debug option set to TRUE, the values of the divergence are printed to
+the console.
  
 ```{r}
 fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=FALSE)
@@ -183,7 +191,8 @@ resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
 resid.acf <- acf(resid.mle,lag.max=4*period,plot=TRUE)$acf
 ```
 
-- We can also examine the condition numbers, to see if there is rank reduction possible.
+- We can also examine the condition numbers, to see if there is rank reduction 
+possible.
 
 ```{r}
 log(sigex.conditions(data.ts,psi.mle,mdl))
@@ -191,21 +200,25 @@ log(sigex.conditions(data.ts,psi.mle,mdl))
 
 ### Model Checking
 
-- We can examine the Portmanteau statistic for residual serial correlation. We use $48$ lags.
-- We can also inspect normality via the  Shapiro-Wilks normality test.
+- We can examine the Portmanteau statistic for residual serial correlation. We 
+use $48$ lags.
+- We can also inspect normality via the Shapiro-Wilks normality test.
 
 ```{r}
 sigex.portmanteau(resid.mle,4*period,length(psi.mle))
 sigex.gausscheck(resid.mle)
 ```
 
-- We can also examine the Hessian matrix,  and compute the t statistics for pre-parameters.
+- We can also examine the Hessian matrix, and compute the t statistics for 
+pre-parameters.
 
 ```{r}
 print(eigen(hess)$values)
 ```
 
-- If the Hessian is not positive definite (this can happen if nonlinear optimization terminates wrongfully at a saddlepoint),  then the standard error is set to zero.
+- If the Hessian is not positive definite (this can happen if nonlinear 
+optimization terminates wrongfully at a saddlepoint),  then the standard error 
+is set to zero.
 - In this case there is no problem.
   
 ```{r}  
@@ -213,11 +226,13 @@ tstats <- sigex.tstats(mdl,psi.mle,hess,constraint)
 print(tstats)
 ```
 
-- These results could be used to insert zeroes in the pre-parameters, although they need not correspond to zeroes in the parameters.
+- These results could be used to insert zeroes in the pre-parameters, although 
+they need not correspond to zeroes in the parameters.
 
 ### Bundle
 
-- Having completed our model analysis, we store our results in a single list object.
+- Having completed our model analysis, we store our results in a single list 
+object.
 
 ```{r}
 analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
@@ -227,8 +242,12 @@ analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
 
 ### Initialization
 
-- First we need to initialize. The variable *psi.mle2* correspond to the pre-parameters, and get mapped to *par.mle2*, the parameters, via **sigex.psi2par**.
-- We construct initial estimates from the fitted related trends model: the pre-parameters associated with the trend innovation covariance matrix are altered to correspond to a full-correlation matrix (but with the same variances).   
+- First we need to initialize. The variable *psi.mle2* correspond to the 
+pre-parameters, and get mapped to *par.mle2*, the parameters, via 
+**sigex.psi2par**.
+- We construct initial estimates from the fitted related trends model: the 
+pre-parameters associated with the trend innovation covariance matrix are
+altered to correspond to a full-correlation matrix (but with the same variances).   
 
 ```{r} 
 cov.mat <- par.mle[[1]][[1]] %*% diag(exp(par.mle[[2]][[1]])) %*%
@@ -237,7 +256,8 @@ l.trend <- sqrt(cov.mat[2,2]/cov.mat[1,1])
 d.trend <- cov.mat[1,1]
 ```
 
-- The lower entry of the matrix $L$ in the Generalized Cholesky Decomposition (GCD) of the trend covariance matrix is set equal to $\sigma_2 / \sigma_1$.
+- The lower entry of the matrix $L$ in the Generalized Cholesky Decomposition 
+(GCD) of the trend covariance matrix is set equal to $\sigma_2 / \sigma_1$.
 - The first entry of the matrix $D$ in the GCD is set equal to $\sigma_1^2$.  
 - Now we initialize.
 
@@ -250,7 +270,8 @@ par.mle2 <- sigex.psi2par(psi.mle2,mdl2,data.ts)
 ### MLE Fitting
 
 - Maximum Likelihood Estimation is done using BFGS.  
-- With the debug option set to TRUE, the values of the divergence are printed to the console.
+- With the debug option set to TRUE, the values of the divergence are printed 
+to the console.
  
 ```{r}
 fit.mle2 <- sigex.mlefit(data.ts,par.mle2,constraint,mdl2,"bfgs",debug=FALSE)
@@ -273,7 +294,8 @@ resid.mle2 <- sigex.load(t(resid.mle2),start(data.ts),frequency(data.ts),
 resid.acf2 <- acf(resid.mle2,lag.max=4*period,plot=TRUE)$acf
 ```
 
-- We already have done the rank reduction, and can verify this by examining the condition numbers.
+- We already have done the rank reduction, and can verify this by examining the 
+condition numbers.
 
 ```{r}
 log(sigex.conditions(data.ts,psi.mle2,mdl2))
@@ -281,21 +303,25 @@ log(sigex.conditions(data.ts,psi.mle2,mdl2))
 
 ### Model Checking
 
-- We can examine the Portmanteau statistic for residual serial correlation. We use $48$ lags.
-- We can also inspect normality via the  Shapiro-Wilks normality test.
+- We can examine the Portmanteau statistic for residual serial correlation. We 
+use $48$ lags.
+- We can also inspect normality via the Shapiro-Wilks normality test.
 
 ```{r}
 sigex.portmanteau(resid.mle2,4*period,length(psi.mle2))
 sigex.gausscheck(resid.mle2)
 ```
 
-- We can also examine the Hessian matrix,  and compute the t statistics for pre-parameters.
+- We can also examine the Hessian matrix, and compute the t statistics for 
+pre-parameters.
 
 ```{r}
 print(eigen(hess2)$values)
 ```
 
-- If the Hessian is not positive definite (this can happen if nonlinear optimization terminates wrongfully at a saddlepoint),  then the standard error is set to zero.
+- If the Hessian is not positive definite (this can happen if nonlinear 
+optimization terminates wrongfully at a saddlepoint), then the standard error 
+is set to zero.
 - In this case there is no problem.
   
 ```{r}  
@@ -303,11 +329,13 @@ tstats2 <- sigex.tstats(mdl2,psi.mle2,hess2,constraint)
 print(tstats2)
 ```
 
-- These results could be used to insert zeroes in the pre-parameters, although they need not correspond to zeroes in the parameters.
+- These results could be used to insert zeroes in the pre-parameters, although 
+they need not correspond to zeroes in the parameters.
  
 ### Bundle
 
-- Having completed our model analysis, we store our results in a single list object.
+- Having completed our model analysis, we store our results in a single list 
+object.
 
 ```{r}
 analysis.mle2 <- sigex.bundle(data.ts,transform,mdl2,psi.mle2)
@@ -316,8 +344,8 @@ analysis.mle2 <- sigex.bundle(data.ts,transform,mdl2,psi.mle2)
 ### Model Comparison
 
 - The common trends model is quite a bit worse, having a much higher divergence.  
-- A likelihood comparison statistic for nested models is computed using **sigex.glr**,
-   and the p-value is obtained in the second line.
+- A likelihood comparison statistic for nested models is computed using 
+**sigex.glr**, and the p-value is obtained in the second line.
    
 ```{r}
 test.glr <- sigex.glr(data.ts,psi.mle2,psi.mle,mdl2,mdl)
@@ -342,9 +370,12 @@ param <- sigex.psi2par(psi,mdl,data.ts)
 ```
 
 - The first step is to get the matrix filters.
-- There are two latent processes (trend and irregular), and the filters for these are obtained using **sigex.signal**.  
-- This function's last argument is *sigcomps*, a vector of indices denoting the composition of the desired signal.
-- *signal.trend* is the trend variable, and is composed of just the first latent process, so the value of *sigcomps* is $1$.
+- There are two latent processes (trend and irregular), and the filters for 
+these are obtained using **sigex.signal**.  
+- This function's last argument is *sigcomps*, a vector of indices denoting the 
+composition of the desired signal.
+- *signal.trend* is the trend variable, and is composed of just the first 
+latent process, so the value of *sigcomps* is $1$.
   
 ```{r}
 signal.trend <- sigex.signal(data.ts,param,mdl,1)
@@ -352,8 +383,10 @@ signal.irr <- sigex.signal(data.ts,param,mdl,2)
 ```
 
 - The second step is to compute the extractions.
-- *extract.trend* is defined as a list object, with first item corresponding to a $T \times N$ matrix  of trend extractions.  The second and third items of the list give upper and lower bounds of confidence intervals,
-  based on $\pm 2$ square root signal extraction MSE.    
+- *extract.trend* is defined as a list object, with first item corresponding to 
+a $T \times N$ matrix of trend extractions. The second and third items of the 
+list give upper and lower bounds of confidence intervals, based on $\pm 2$ 
+square root signal extraction MSE.    
 
 ```{r}
 extract.trend <- sigex.extract(data.ts,signal.trend,mdl,param)
@@ -361,22 +394,31 @@ extract.irr <- sigex.extract(data.ts,signal.irr,mdl,param)
 ```
 
 - Next, it is important to re-integrate fixed regression effects.
-- The function **sigex.fixed**  finds a specified regressor (named in the last argument) and multiplies by   the corresponding parameter estimate,  for the component specified in the third  *series*  argument.
-- Here, the default linear trend line regressor is passed into the variable *reg.trend*.
+- The function **sigex.fixed** finds a specified regressor (named in the last 
+argument) and multiplies by the corresponding parameter estimate, for the 
+component specified in the third *series* argument.
+- Here, the default linear trend line regressor is passed into the variable 
+*reg.trend*.
 
 ```{r}
 reg.trend <- NULL
-for(i in 1:N) {
-reg.trend <- cbind(reg.trend,sigex.fixed(data.ts,mdl,i,param,"Trend")) }
+for(i in 1:N) { 
+  reg.trend <- cbind(reg.trend,sigex.fixed(data.ts,mdl,i,param,"Trend")) }
 ```
 
 - The results can be displayed using calls to **sigex.graph**.
-- This code sets up a red color for the trend in *trendcol*, and a shading percentage *fade*.
-- For each component time series, the raw data is plotted (in logarithms) and overlaid with the trend.
-- The first argument of  **sigex.graph** takes the extracted list object *extract.trend*,  and any fixed effects that should be added must be included in the second argument.  
-- The sixth  argument allows for a vertical displacement in case one does not wish to overlay the extraction  on top of the data; setting to zero indicates no displacement.   
-- The last argument determines the
-  darkness of shading corresponding to the signal extraction uncertainty.
+- This code sets up a red color for the trend in *trendcol*, and a shading 
+percentage *fade*.
+- For each component time series, the raw data is plotted (in logarithms) and 
+overlaid with the trend.
+- The first argument of  **sigex.graph** takes the extracted list object 
+*extract.trend*, and any fixed effects that should be added must be included in
+the second argument.  
+- The sixth argument allows for a vertical displacement in case one does not 
+wish to overlay the extraction on top of the data; setting to zero indicates no
+displacement.   
+- The last argument determines the darkness of shading corresponding to the 
+signal extraction uncertainty.
  
 ```{r}
 trendcol <- "tomato"
@@ -384,24 +426,27 @@ fade <- 40
 par(mfrow=c(2,1),mar=c(5,4,4,5)+.1)
 for(i in 1:N)
 {
-	plot(data.ts[,i],xlab="Year",ylab=colnames(data.ts)[i],ylim=c(min(data.ts[,i]),max(data.ts[,i])),
-		lwd=2,yaxt="n",xaxt="n")
+	plot(data.ts[,i],xlab="Year",ylab=colnames(data.ts)[i],
+	     ylim=c(min(data.ts[,i]),max(data.ts[,i])),
+		   lwd=2,yaxt="n",xaxt="n")
 	sigex.graph(extract.trend,reg.trend,begin.date,period,i,0,trendcol,fade)
 	axis(1,cex.axis=1)
 	axis(2,cex.axis=1)
 }
-dev.off()
 ```
 
-- One can examine the   frequency response functions  for Wiener-Kolmogorov filters through **sigex.getfrf**,  which can also plot the real portions.
+- One can examine the frequency response functions for Wiener-Kolmogorov filters 
+through **sigex.getfrf**, which can also plot the real portions.
 
 ```{r}
 grid <- 1000
 frf.trend <- sigex.getfrf(data.ts,param,mdl,1,TRUE,grid)
 ```
 
-- The *grid* argument corresponds to a mesh of frequencies in $[0, \pi]$,  and the fourth argument of **sigex.getfrf** indicates the combination of components desired.   
-- One can also examine the   Wiener-Kolmogorov filter coefficients.
+- The *grid* argument corresponds to a mesh of frequencies in $[0, \pi]$, and 
+the fourth argument of **sigex.getfrf** indicates the combination of components 
+desired.   
+- One can also examine the Wiener-Kolmogorov filter coefficients.
 
 ```{r}
 len <- 50
@@ -409,8 +454,10 @@ target <- array(diag(N),c(N,N,1))
 wk.trend <- sigex.wk(data.ts,param,mdl,1,target,TRUE,grid,len)
 ```
 
-- The *target* argument indicates that no linear combination of the trend is being considered here.
-- *len* is set to $50$, so that the indices of the filter run from $-50$ up to $50$.
+- The *target* argument indicates that no linear combination of the trend is 
+being considered here.
+- *len* is set to $50$, so that the indices of the filter run from $-50$ up to 
+$50$.
 
 ### Trend Extraction for Common Trends Model
  
@@ -424,9 +471,12 @@ param <- sigex.psi2par(psi,mdl,data.ts)
 ```
 
 - The first step is to get the matrix filters.
-- There are two latent processes (trend and irregular), and the filters for these are obtained using **sigex.signal**.  
-- This function's last argument is *sigcomps*, a vector of indices denoting the composition of the desired signal.
-- *signal.trend* is the trend variable, and is composed of just the first latent process, so the value of *sigcomps* is $1$.
+- There are two latent processes (trend and irregular), and the filters for 
+these are obtained using **sigex.signal**.  
+- This function's last argument is *sigcomps*, a vector of indices denoting the
+composition of the desired signal.
+- *signal.trend* is the trend variable, and is composed of just the first latent 
+process, so the value of *sigcomps* is $1$.
   
 ```{r}
 signal.trend <- sigex.signal(data.ts,param,mdl,1)
@@ -434,8 +484,10 @@ signal.irr <- sigex.signal(data.ts,param,mdl,2)
 ```
 
 - The second step is to compute the extractions.
-- *extract.trend* is defined as a list object, with first item corresponding to a $T \times N$ matrix  of trend extractions.  The second and third items of the list give upper and lower bounds of confidence intervals,
-  based on $\pm 2$ square root signal extraction MSE.    
+- *extract.trend* is defined as a list object, with first item corresponding to 
+a $T \times N$ matrix of trend extractions. The second and third items of the 
+list give upper and lower bounds of confidence intervals, based on $\pm 2$ 
+square root signal extraction MSE.    
 
 ```{r}
 extract.trend <- sigex.extract(data.ts,signal.trend,mdl,param)
@@ -443,22 +495,31 @@ extract.irr <- sigex.extract(data.ts,signal.irr,mdl,param)
 ```
 
 - Next, it is important to re-integrate fixed regression effects.
-- The function **sigex.fixed**  finds a specified regressor (named in the last argument) and multiplies by   the corresponding parameter estimate,  for the component specified in the third  *series*  argument.
-- Here, the default linear trend line regressor is passed into the variable *reg.trend*.
+- The function **sigex.fixed** finds a specified regressor (named in the last 
+argument) and multiplies by the corresponding parameter estimate, for the 
+component specified in the third *series*  argument.
+- Here, the default linear trend line regressor is passed into the variable 
+*reg.trend*.
 
 ```{r}
 reg.trend <- NULL
 for(i in 1:N) {
-reg.trend <- cbind(reg.trend,sigex.fixed(data.ts,mdl,i,param,"Trend")) }
+  reg.trend <- cbind(reg.trend,sigex.fixed(data.ts,mdl,i,param,"Trend")) }
 ```
 
 - The results can be displayed using calls to **sigex.graph**.
-- This code sets up a red color for the trend in *trendcol*, and a shading percentage *fade*.
-- For each component time series, the raw data is plotted (in logarithms) and overlaid with the trend.
-- The first argument of  **sigex.graph** takes the extracted list object *extract.trend*,  and any fixed effects that should be added must be included in the second argument.  
-- The sixth  argument allows for a vertical displacement in case one does not wish to overlay the extraction  on top of the data; setting to zero indicates no displacement.   
-- The last argument of  **sigex.graph** determines the
-  darkness of shading corresponding to the signal extraction uncertainty.
+- This code sets up a red color for the trend in *trendcol*, and a shading 
+percentage *fade*.
+- For each component time series, the raw data is plotted (in logarithms) and 
+overlaid with the trend.
+- The first argument of  **sigex.graph** takes the extracted list object 
+*extract.trend*, and any fixed effects that should be added must be included 
+in the second argument.  
+- The sixth argument allows for a vertical displacement in case one does not 
+wish to overlay the extraction on top of the data; setting to zero indicates no 
+displacement.   
+- The last argument of **sigex.graph** determines the darkness of shading 
+corresponding to the signal extraction uncertainty.
  
 ```{r}
 trendcol <- "tomato"
@@ -466,24 +527,27 @@ fade <- 40
 par(mfrow=c(2,1),mar=c(5,4,4,5)+.1)
 for(i in 1:N)
 {
-	plot(data.ts[,i],xlab="Year",ylab=colnames(data.ts)[i],ylim=c(min(data.ts[,i]),max(data.ts[,i])),
-		lwd=2,yaxt="n",xaxt="n")
+	plot(data.ts[,i],xlab="Year",ylab=colnames(data.ts)[i],
+	     ylim=c(min(data.ts[,i]),max(data.ts[,i])),
+		   lwd=2,yaxt="n",xaxt="n")
 	sigex.graph(extract.trend,reg.trend,begin.date,period,i,0,trendcol,fade)
 	axis(1,cex.axis=1)
 	axis(2,cex.axis=1)
 }
-dev.off()
 ```
 
-- One can examine the   frequency response functions  for Wiener-Kolmogorov filters through **sigex.getfrf**,  which can also plot the real portions.
+- One can examine the frequency response functions for Wiener-Kolmogorov filters
+through **sigex.getfrf**, which can also plot the real portions.
 
 ```{r}
 grid <- 1000
 frf.trend <- sigex.getfrf(data.ts,param,mdl,1,TRUE,grid)
 ```
 
-- The *grid* argument corresponds to a mesh of frequencies in $[0, \pi]$,  and the fourth argument of **sigex.getfrf** indicates the combination of components desired.   
-- One can also examine the   Wiener-Kolmogorov filter coefficients.
+- The *grid* argument corresponds to a mesh of frequencies in $[0, \pi]$, and 
+the fourth argument of **sigex.getfrf** indicates the combination of components
+desired.   
+- One can also examine the Wiener-Kolmogorov filter coefficients.
 
 ```{r}
 len <- 50
@@ -491,7 +555,9 @@ target <- array(diag(N),c(N,N,1))
 wk.trend <- sigex.wk(data.ts,param,mdl,1,target,TRUE,grid,len)
 ```
 
-- The *target* argument indicates that no linear combination of the trend is being considered here.
-- *len* is set to $50$, so that the indices of the filter run from $-50$ up to $50$.
+- The *target* argument indicates that no linear combination of the trend is 
+being considered here.
+- *len* is set to $50$, so that the indices of the filter run from $-50$ up to 
+$50$.
 
  

@@ -6,33 +6,31 @@ output:
 ---
 
 ```{r, setup, include=FALSE}
-knitr::opts_knit$set(root.dir = 'C:/Users/neide/Documents/GitHub/sigex')
+#knitr::opts_knit$set(root.dir = 'C:/Users/neide/Documents/GitHub/sigex')
 ```
  
 # Non-Defense Capitalization
 
 This illustration examines monthly Shipments and New Orders from the 
-Manufacturing, Shipments, and Inventories survey.
-(This is seasonally adjusted monthly data covering 
- the sample period January 1992 to April 2020,  downloaded July 21, 2020 (4:45 PM),
-  U.S.  Census Bureau, obtained from
- https://www.census.gov/mtis/index.html by selecting 
-  Non-Defense Capital Goods,  and either Value of Shipments or  New Orders.)
-  Call this **ndc** for short.
-  The data for New Orders is not available at January 1992, since this series starts at February 1992;  so this value is entered as an NA.   This is an example of *ragged edge* data.
+Manufacturing, Shipments, and Inventories survey. (This is seasonally adjusted 
+monthly data covering the sample period January 1992 to April 2020, downloaded 
+July 21, 2020 (4:45 PM), U.S. Census Bureau, obtained from
+https://www.census.gov/mtis/index.html by selecting Non-Defense Capital Goods, 
+and either Value of Shipments or New Orders.) Call this **ndc** for short. The
+data for New Orders is not available at January 1992, since this series starts 
+at February 1992; so this value is entered as an NA. This is an example of 
+*ragged edge* data.
 
 ## Loading Packages 
 
-This code loads the data into a variable named **ndc**.
+This code installs and loads the packages, and loads the data into a variable
+named **ndc**.
    	
-```{r}
-## wipe
-rm(list=ls())
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
 library(devtools)
 library(Rcpp)
-
-load_all(".")
-root.dir <- getwd()
+devtools::install_github("tuckermcelroy/sigex")
+library(sigex)
 ```
 
 ## Enter Metadata
@@ -54,14 +52,17 @@ dataALL.ts <- sigex.load(ndc,start.date,period,
                          c("Shipments","NewOrders"),TRUE)
 ```
 
-- On the basis of this plot, we decide (below) to utilize no transformation for the data.
+- On the basis of this plot, we decide (below) to utilize no transformation for 
+the data.
   
 ## Select Spans and Transforms
 
 - We have the choice of either log or no log.
-- The *aggregate* option will sum across the indicated series, in case we want to analyze an aggregate.  Here we set it to FALSE.
+- The *aggregate* option will sum across the indicated series, in case we want 
+to analyze an aggregate. Here we set it to FALSE.
 - We can also select a subcomponent of series with *subseries*.
-- The *range* argument of **sigex.prep** will select a subset of dates for the time series to be analyzed.
+- The *range* argument of **sigex.prep** will select a subset of dates for the 
+time series to be analyzed.
 
 ```{r}
 transform <- "none"
@@ -86,7 +87,8 @@ T <- dim(data.ts)[1]
 ### Preliminary Construction
 
 - To define the VAR model, we begin with fitting via Yule-Walker, using base R.
-- To do this, we are careful to omit the first observation (due to the missing value), and difference the time series to remove trend non-stationarity.
+- To do this, we are careful to omit the first observation (due to the missing 
+value), and difference the time series to remove trend non-stationarity.
 
 ```{r}
 ar.fit <- ar.yw(diff(ts(ndc[2:T,])))
@@ -94,16 +96,21 @@ p.order <- ar.fit$order
 ```
 
 - The parameter estimates will be used as initial values for our MLE routine.
-- But we must first arrange the VAR parameter estimates in the right order, which requires some permuting.
-- Also the innovation covariance matrix is broken into its Cholesky decomposition using **getGCD**.  This function outputs a list object, including the lower triangular entry of $L$ and the log of the diagonal entries of $D$.
+- But we must first arrange the VAR parameter estimates in the right order, 
+which requires some permuting.
+- Also the innovation covariance matrix is broken into its Cholesky 
+decomposition using **getGCD**. This function outputs a list object, including 
+the lower triangular entry of $L$ and the log of the diagonal entries of $D$.
 
 ```{r}
 par.yw <- aperm(ar.fit$ar,c(2,3,1))
 covmat.yw <- getGCD(ar.fit$var.pred,2)
 ```
 
-- Next, the array of VAR parameters are mapped via **var.par2pre** to a pre-parameter vector  *var.out* of length 28.
-- Then *psi.init* is assembled from the Yule-Walker fit, including the sample means, which are incorporated as the last two pre-parameters.
+- Next, the array of VAR parameters are mapped via **var.par2pre** to a 
+pre-parameter vector *var.out* of length 28.
+- Then *psi.init* is assembled from the Yule-Walker fit, including the sample 
+means, which are incorporated as the last two pre-parameters.
 
 ```{r}
 var.out <- var2.par2pre(par.yw)
@@ -114,7 +121,8 @@ psi.init <- as.vector(c(covmat.yw[[1]][2,1],log(covmat.yw[[2]]),
 ### Model Construction
 
 - Now we define the model.
-- The list object *mdl* stores all our specifications about the model, but none of the parameter estimates.
+- The list object *mdl* stores all our specifications about the model, but none 
+of the parameter estimates.
 
 ```{r}
 mdl <- NULL
@@ -122,26 +130,31 @@ mdl <- sigex.add(mdl,seq(1,N),"varma",c(p.order,0),NULL,"process",c(1,-1))
 ```
 
 - The call to **sigex.add** indicates there is one main component.
-- The second argument indicates the rank configuration for the process;
-    setting  *vrank* equal to  seq(1,N) ensures a full rank covariance matrix.
-- The third argument  gives the model type as  *varma*;  
-  the order $p=7$, $q=0$ of the VARMA is given in the fourth argument.  
-- The fifth argument   provides  parameter bounds, and does not apply to this type of model, and hence is set to NULL.
+- The second argument indicates the rank configuration for the process; setting
+*vrank* equal to seq(1,N) ensures a full rank covariance matrix.
+- The third argument gives the model type as *varma*; the order $p=7$, $q=0$ of 
+the VARMA is given in the fourth argument.  
+- The fifth argument provides parameter bounds, and does not apply to this type 
+of model, and hence is set to NULL.
 - The sixth argument associates a label.
-- The last argument is for the scalar differencing operator
-   $\delta^{(1)} (z)$, expressed as a vector of coefficients.
+- The last argument is for the scalar differencing operator $\delta^{(1)} (z)$, 
+expressed as a vector of coefficients.
 
 ```{r}
 mdl <- sigex.meaninit(mdl,data.ts,0)
 ```
 
-- There are no regressors specified, but we still need to call **sigex.meaninit** so that the time trend polynomial is set up correctly.  
-- The last argument gives the order of this time trend polynomial. The value $0$ indicates there is a constant mean effect assumed.
+- There are no regressors specified, but we still need to call 
+**sigex.meaninit** so that the time trend polynomial is set up correctly.  
+- The last argument gives the order of this time trend polynomial. The value $0$ 
+indicates there is a constant mean effect assumed.
 
 ## Model Estimation
 
 - Now we will fit the model, and check the fit.
-- First we need to initialize. The variable *psi.mle* correspond to the pre-parameters, and get mapped to *par.mle*, the parameters, via **sigex.psi2par**.
+- First we need to initialize. The variable *psi.mle* correspond to the 
+pre-parameters, and get mapped to *par.mle*, the parameters, via 
+**sigex.psi2par**.
 
 ```{r}
 constraint <- NULL
@@ -151,8 +164,10 @@ par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 ### MLE Fitting
 
-- Maximum Likelihood Estimation is done using BFGS. We use the divergence, which is $-2$ times the log Gaussian likelihood, with constants removed.
-- With the debug option set to TRUE, the values of the divergence are printed to the console.
+- Maximum Likelihood Estimation is done using BFGS. We use the divergence, which 
+is $-2$ times the log Gaussian likelihood, with constants removed.
+- With the debug option set to TRUE, the values of the divergence are printed to
+the console.
  
 ```{r}
 fit.mle <- sigex.mlefit(data.ts,par.mle,constraint,mdl,"bfgs",debug=FALSE)
@@ -180,7 +195,8 @@ resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
 resid.acf <- acf(resid.mle,lag.max=4*period,plot=TRUE)$acf
 ```
 
-- We can also examine the condition numbers, to see if there is rank reduction possible.
+- We can also examine the condition numbers, to see if there is rank reduction
+possible.
 - Typically there won't be any rank reduction with a single component model.
 
 ```{r}
@@ -189,27 +205,33 @@ log(sigex.conditions(data.ts,psi.mle,mdl))
 
 ### Model Checking
 
-- We can examine the Portmanteau statistic for residual serial correlation. We use $48$ lags.
+- We can examine the Portmanteau statistic for residual serial correlation. We 
+use $48$ lags.
  
 ```{r}
 sigex.portmanteau(resid.mle,4*period,length(psi.mle))
 ```
 
-- The output indicates there is little  residual autocorrelation,  which is confirmed by inspection of the sample    autocorrelation.
-- We can also inspect normality via the  Shapiro-Wilks normality test.
+- The output indicates there is little residual autocorrelation, which is 
+confirmed by inspection of the sample autocorrelation.
+- We can also inspect normality via the Shapiro-Wilks normality test.
 
 ```{r}
 sigex.gausscheck(resid.mle)
 ```
 
-- There is some non-normality indicated.  However, we are not principally interested in the marginal distributions of our time series model.
-- We can also examine the Hessian matrix,  and compute the t statistics for pre-parameters.
+- There is some non-normality indicated. However, we are not principally 
+interested in the marginal distributions of our time series model.
+- We can also examine the Hessian matrix, and compute the t statistics for 
+pre-parameters.
 
 ```{r}
 print(eigen(hess)$values)
 ```
 
-- If the Hessian is not positive definite (this can happen if nonlinear optimization terminates wrongfully at a saddlepoint),  then the standard error is set to zero.
+- If the Hessian is not positive definite (this can happen if nonlinear 
+optimization terminates wrongfully at a saddlepoint), then the standard error is
+set to zero.
 - In this case there is no problem.
   
 ```{r}  
@@ -217,12 +239,14 @@ tstats <- sigex.tstats(mdl,psi.mle,hess,constraint)
 print(tstats)
 ```
 
-- These results could be used to insert zeroes in the pre-parameters, although they need not correspond to zeroes in the parameters.
+- These results could be used to insert zeroes in the pre-parameters, although
+they need not correspond to zeroes in the parameters.
 
 
 ### Bundle
 
-- Having completed our model analysis, we store our results in a single list object.
+- Having completed our model analysis, we store our results in a single list 
+object.
 
 ```{r}
 analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
@@ -230,7 +254,8 @@ analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
 
 ## Casting
 
-- Now the modeling and fitting is completed, we can do forecasting and midcasting.
+- Now the modeling and fitting is completed, we can do forecasting and 
+midcasting.
 - First we reload from the bundle.
 - If we had other fitted models in another bundle, we could load that instead.
 
@@ -242,7 +267,8 @@ param <- sigex.psi2par(psi,mdl,data.ts)
 ```
 
 - Next, we generate $50$ aftcasts and forecasts.
-- Midcast for the missing value at the first time point is automatically generated.
+- Midcast for the missing value at the first time point is automatically 
+generated.
 - Uncertainty is also computed.
 
 ```{r}
@@ -251,15 +277,19 @@ data.casts <- sigex.midcast(psi,mdl,data.ts,window)
 extract.casts <- sigex.castextract(data.ts,data.casts,mdl,window,param)
 ```
 
-- The output of **sigex.midcast** is a list with two items:  the matrix of casts, and a 4-array of casting error  covariances.   
+- The output of **sigex.midcast** is a list with two items: the matrix of casts, 
+and a 4-array of casting error covariances.   
 - Note that these casts are for the series with all fixed effects removed. 
-- This output can be formatted for use via  **sigex.castextract**,  which inserts the casts in the correct      places in the time series and adds an extended trend regression effect (it is extended forward and backward      by the *castspan* value).  
+- This output can be formatted for use via  **sigex.castextract**, which inserts
+the casts in the correct places in the time series and adds an extended trend 
+regression effect (it is extended forward and backward by the *castspan* value).  
 - The output of **sigex.castextract** can be utilized by the graphics routine.
 
 ```{r}
 castcol <- "black"
 fade <- 60
-dataPad.ts <- rbind(matrix(NA,nrow=window,ncol=N),data.ts,matrix(NA,nrow=window,ncol=N))
+dataPad.ts <- rbind(matrix(NA,nrow=window,ncol=N),data.ts,
+                    matrix(NA,nrow=window,ncol=N))
 par(mfrow=c(2,1))
 for(i in 1:N)
 {
@@ -268,12 +298,11 @@ for(i in 1:N)
        ylim=c(min(extract.casts[[3]][,i]),max(extract.casts[[2]][,i])))
   sigex.graph(extract.casts,NULL,start.date,period,i,0,castcol,fade)
 }
-dev.off()
 ```
 
 - This code sets up grey shading for cast uncertainty.
-- For each component time series, the raw data is plotted  after first padding with NA
-  before and after.    
+- For each component time series, the raw data is plotted after first padding 
+with NA before and after.    
   
   
    

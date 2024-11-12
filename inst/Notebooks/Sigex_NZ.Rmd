@@ -6,34 +6,36 @@ output:
 ---
 
 ```{r, setup, include=FALSE}
-knitr::opts_knit$set(root.dir = 'C:/Users/neide/Documents/GitHub/sigex')
+#knitr::opts_knit$set(root.dir = 'C:/Users/neide/Documents/GitHub/sigex')
 ```
  
 # New Zealand Arrivals
 
- This illustration considers  a daily immigration series  (**imm** for short):  
-  New Zealand residents arriving in New Zealand after an absence of less than 12 months,      covering the period January 1, 2008     through July 31, 2012. 
-  The series consists of New Zealand  residents arriving in New Zealand after 
-  an absence of less than 12 months. 
-  These are public use data  produced by Stats New Zealand via a customized extract, and correspond to a portion of the "daily border crossings - arrivals" tab (Total) of the Travel category in the  Covid-19 portal:  
-  https://www.stats.govt.nz/experimental/covid-19-data-portal.
+This illustration considers a daily immigration series (**imm** for short): New 
+Zealand residents arriving in New Zealand after an absence of less than 12 
+months, covering the period January 1, 2008 through July 31, 2012. The series 
+consists of New Zealand residents arriving in New Zealand after an absence of 
+less than 12 months. These are public use data produced by Statistics New 
+Zealand via a customized extract, and correspond to a portion of the 
+"daily border crossings - arrivals" tab (Total) of the Travel category in the 
+Covid-19 portal: https://www.stats.govt.nz/experimental/covid-19-data-portal.
   
 ## Loading Packages 
 
-This code loads the data into a variable named **imm**.
+This code installs and loads the packages, and loads the data into a variable 
+named **imm**.
    	
-```{r}
-## wipe
-rm(list=ls())
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
 library(devtools)
 library(Rcpp)
-
-load_all(".")
-root.dir <- getwd()
+devtools::install_github("tuckermcelroy/sigex")
+library(sigex)
 ```
   
 - We do some initial processing.
-- The original data is grouped into "months" of 31 days, with extra days of value zero added for months of shorter length; our code removes these features, as well as a monthly summation.
+- The original data is grouped into "months" of 31 days, with extra days of 
+value zero added for months of shorter length; our code removes these features, 
+as well as a monthly summation.
 
 ```{r}
 n.months <- dim(imm)[1]/32
@@ -42,9 +44,11 @@ imm <- matrix(imm[imm != 0],ncol=6)
 ```
 
 - Also we load a set of regressors that will be used in later analysis.
--  The first  column is  a regressor that captures  a moving holiday effect for Easter, and the next six columns  correspond to school holidays for public schools  in New Zealand:  an effect is estimated  for the start and end of the holiday for the
-first three school vacations in each year. The last three columns correspond to Y2K effects
- (but will not be used in this script).
+- The first column is a regressor that captures a moving holiday effect for 
+Easter, and the next six columns correspond to school holidays for public 
+schools in New Zealand: an effect is estimated for the start and end of the 
+holiday for the first three school vacations in each year. The last three 
+columns correspond to Y2K effects (but will not be used in this script).
  
 ```{r}
 NZregs <- read.table(paste(root.dir,"/data/NZregressors.txt",sep=""))
@@ -52,7 +56,8 @@ NZregs <- read.table(paste(root.dir,"/data/NZregressors.txt",sep=""))
   
 ## Enter Metadata
 
-- We perform an analysis of one series by using an embedding to the weekly frequency.
+- We perform an analysis of one series by using an embedding to the weekly
+frequency.
 - First enter metadata, including starting date and frequency.
    	 
 ```{r}
@@ -70,20 +75,25 @@ begin <- c(start.date[3],start.day)
 end <- c(end.date[3],end.day)
 ```
 
-- Finally, there is a call to **sigex.load**, which associates labels to the data.
+- Finally, there is a call to **sigex.load**, which associates labels to the 
+data.
 - The last argument of **sigex.load** generates a time series plot.
 
 ```{r}
 dataALL.ts <- sigex.load(imm,begin,period,
-                         c("NZArr","NZDep","VisArr","VisDep","PLTArr","PLTDep"),TRUE)
+                  c("NZArr","NZDep","VisArr","VisDep","PLTArr","PLTDep"),TRUE)
 ```
    
 ## Select Spans and Transforms
 
-- On the basis of the above plot, we decide to utilize a log transformation for the data.
-- The *aggregate* option will sum across the indicated series, in case we want to analyze an aggregate.  Here we set it to FALSE.
-- We can also select a subcomponent of series with *subseries*.  Here we focus on the first series only.
-- The *range* argument of **sigex.prep** will select a subset of dates for the time series to be analyzed.
+- On the basis of the above plot, we decide to utilize a log transformation for 
+the data.
+- The *aggregate* option will sum across the indicated series, in case we want 
+to analyze an aggregate. Here we set it to FALSE.
+- We can also select a subcomponent of series with *subseries*. Here we focus 
+on the first series only.
+- The *range* argument of **sigex.prep** will select a subset of dates for the
+time series to be analyzed.
    
 ```{r}   
 transform <- "log"
@@ -95,31 +105,24 @@ dataONE.ts <- sigex.prep(dataALL.ts,transform,aggregate,subseries,range,TRUE)
    
 ## Spectral Exploratory Analysis
 
-- In order to get an idea about model specification, we can examine spectral estimates,
-using **sigex.specar**.
+- In order to get an idea about model specification, we can examine spectral 
+estimates, using **sigex.specar**.
 - We can look at raw data or differenced data (growth rates).
 
 ```{r}
 par(mfrow=c(1,1))
-for(i in 1:length(subseries))
-{
-  sigex.specar(dataONE.ts,FALSE,i,7)
-}
-dev.off()
+for(i in 1:length(subseries)) { sigex.specar(dataONE.ts,FALSE,i,7) }
 ```
 
 ```{r}
 par(mfrow=c(1,1))
-for(i in 1:length(subseries))
-{
-  sigex.specar(dataONE.ts,TRUE,i,7)
-}
-dev.off()
+for(i in 1:length(subseries)) { sigex.specar(dataONE.ts,TRUE,i,7) }
 ```
 
 ## Embed to Weekly 
 
-- We set the first day of the week to be Sunday, and embed the time series as a $7$-variate weekly time series via a call to **sigex.daily2weekly**.
+- We set the first day of the week to be Sunday, and embed the time series as a 
+$7$-variate weekly time series via a call to **sigex.daily2weekly**.
 
 ```{r}
 first.day <- 1
@@ -127,26 +130,34 @@ data.ts <- sigex.daily2weekly(dataONE.ts,first.day,start.date)
 plot(data.ts)
 ```
 
-- As a result $N= 7$ and $T = 240$,  which yields an initial NA (because the first data value is on Monday, but   the week begins on Sunday).  Also the data ends on a Sunday, so the  last week has six NA values.
+- As a result $N= 7$ and $T = 240$, which yields an initial NA (because the 
+first data value is on Monday, but the week begins on Sunday). Also the data 
+ends on a Sunday, so the last week has six NA values.
 - This is a classic example of a *ragged edge* data pattern.
 
 ##  Model Declaration
 
 - Now we want to define our time series model.
 - We begin by defining dimension $N$ and sample size $T$.
-- Note that although the data analyzed is univariate, because of the embedding now $N=7$.
+- Note that although the data analyzed is univariate, because of the embedding 
+now $N=7$.
 
 ```{r}
 N <- dim(data.ts)[2]
 T <- dim(data.ts)[1]
 ```
 
-- Next, we  define appropriate subspans of the holiday regressors.
-- The *easter* regressor is based on the Easter day itself and also the day before Easter.
-- The *school1* regressor corresponds to the beginning of the first school holiday, with a window for the day of and the day after.
-- The *school2* and *school3* regressors are analogous for the 2nd and 3rd holidays.
-- The *school1e* regressor corresponds to the end of the first school holiday, with a window for the day of and the day before.
-- The *school2e* and *school3e* regressors  are analogous for the 2nd and 3rd holidays.
+- Next, we define appropriate subspans of the holiday regressors.
+- The *easter* regressor is based on the Easter day itself and also the day 
+before Easter.
+- The *school1* regressor corresponds to the beginning of the first school 
+holiday, with a window for the day of and the day after.
+- The *school2* and *school3* regressors are analogous for the second and third
+holidays.
+- The *school1e* regressor corresponds to the end of the first school holiday, 
+with a window for the day of and the day before.
+- The *school2e* and *school3e* regressors  are analogous for the second and 
+third holidays.
 
 ```{r}
 times <- seq((range[[1]][1]-begin[1])*period+(range[[1]][2]-begin[2])+1,
@@ -160,7 +171,8 @@ school3.reg <- NZregs[times,6]
 school3e.reg <- NZregs[times,7]
 ```
 
-- These are the regressors for daily data, and need to be embedded as weekly series.
+- These are the regressors for daily data, and need to be embedded as weekly 
+series.
 
 ```{r}
 easter.reg <- sigex.daily2weekly(easter.reg,first.day,start.date)
@@ -172,7 +184,8 @@ school3.reg <- sigex.daily2weekly(school3.reg,first.day,start.date)
 school3e.reg <- sigex.daily2weekly(school3e.reg,first.day,start.date)
 ```
 
-- Next, we replace any  ragged edge NA values (arising from embedding) with zero, which is appropriate because the corresponding data values are also missing.  
+- Next, we replace any ragged edge NA values (arising from embedding) with zero, 
+which is appropriate because the corresponding data values are also missing.  
 
 ```{r}
 easter.reg[is.na(easter.reg)] <- 0
@@ -186,28 +199,32 @@ school3e.reg[is.na(school3e.reg)] <- 0
 
 ## Model Specification
 
-- The data has a slight upwards trend drift, and there is strong annual correlation
-  present.  
-- We will fit a  SVARMA model for  data differenced to stationarity by applying annual differencing $1 - L^{52}$.  (Here $L$ is the weekly lag operator,
-   and there are approximately 52 weeks per year.)  
+- The data has a slight upwards trend drift, and there is strong annual 
+correlation present.  
+- We will fit a SVARMA model for data differenced to stationarity by applying 
+annual differencing $1 - L^{52}$. (Here $L$ is the weekly lag operator, and 
+there are approximately 52 weeks per year.)  
 - We set the model order to a nonseasonal $q=1$ and seasonal $P = 1$.
     
 ```{r}
 mdl <- NULL
-mdl <- sigex.add(mdl,seq(1,N),"svarma",c(0,1,1,0,52),NULL,"process",c(1,rep(0,51),-1))
+mdl <- sigex.add(mdl,seq(1,N),"svarma",c(0,1,1,0,52),NULL,"process",
+                 c(1,rep(0,51),-1))
 mdl <- sigex.meaninit(mdl,data.ts,0)
 ```
 
 - The call to **sigex.add** indicates there is one main component.
-- The second argument indicates the rank configuration for the process;
-    setting  *vrank* equal to  seq(1,N) ensures a full rank covariance matrix.
-- The third argument  gives the model type as  *svarma*;  
-  the order $q=1$, $P=1$ of the SVARMA is given in the fourth argument.  
-- The fifth argument   provides  parameter bounds, and does not apply to this type of model, and hence is set to NULL.
+- The second argument indicates the rank configuration for the process; setting 
+*vrank* equal to seq(1,N) ensures a full rank covariance matrix.
+- The third argument gives the model type as *svarma*; the order $q=1$, $P=1$ of
+the SVARMA is given in the fourth argument.  
+- The fifth argument provides parameter bounds, and does not apply to this type 
+of model, and hence is set to NULL.
 - The sixth argument associates a label.
-- The last argument is for the scalar differencing operator
-   $\delta^{(1)} (z)$, expressed as a vector of coefficients.
-- The specification of the regressors takes more coding, as we loop over the days of the week.
+- The last argument is for the scalar differencing operator $\delta^{(1)} (z)$, 
+expressed as a vector of coefficients.
+- The specification of the regressors takes more coding, as we loop over the 
+days of the week.
 
 ```{r}
 for(i in 1:N) {
@@ -245,59 +262,79 @@ for(i in 1:N) {
 ## Model Estimation
 
 - Next we consider model fitting. 
-- Here we make use of parameter constraints for the regressors: because
-  the same  holiday effect is present for each day of the week (recall that the weekly regressors are   derived from a single daily regressor), the parameter estimates should be constrained to be identical.
-- We use the **sigex.constrainreg** function to do this:  the *regindex* argument specifies
-   indices $J_1, J_2, \ldots, J_N$ that delineate which regressors are being considered for each series.
-- For instance, $J_1 = \{ 1, 3, 4 \}$  would correspond to the *trend*, *school1*, and *school1e* regressors for the first (Sunday) series.
-- The *combos* argument provides the linear combinations of these regressors, but when
-   set to NULL instead it is enforced that all the regression parameters are the same.
+- Here we make use of parameter constraints for the regressors: because the same 
+holiday effect is present for each day of the week (recall that the weekly 
+regressors are derived from a single daily regressor), the parameter estimates 
+should be constrained to be identical.
+- We use the **sigex.constrainreg** function to do this: the *regindex* argument 
+specifies indices $J_1, J_2, \ldots, J_N$ that delineate which regressors are 
+being considered for each series.
+- For instance, $J_1 = \{ 1, 3, 4 \}$  would correspond to the *trend*, 
+*school1*, and *school1e* regressors for the first (Sunday) series.
+- The *combos* argument provides the linear combinations of these regressors, 
+but when set to NULL instead it is enforced that all the regression parameters 
+are the same.
 
 ```{r}
 constraint <- NULL
-constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(2,2,2,2,2,2,2),NULL))
-constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(3,3,3,3,3,3,3),NULL))
-constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(4,4,4,4,4,4,4),NULL))
-constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(5,5,5,5,5,5,5),NULL))
-constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(6,6,6,6,6,6,6),NULL))
-constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,list(7,7,7,7,7,7,7),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,
+                                                  list(2,2,2,2,2,2,2),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,
+                                                  list(3,3,3,3,3,3,3),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,
+                                                  list(4,4,4,4,4,4,4),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,
+                                                  list(5,5,5,5,5,5,5),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,
+                                                  list(6,6,6,6,6,6,6),NULL))
+constraint <- rbind(constraint,sigex.constrainreg(mdl,data.ts,
+                                                  list(7,7,7,7,7,7,7),NULL))
 ```
 
-- So the first call here identifies in *regindex* the *easter* regressor for each of the seven series,  and *combos* set to  NULL indicates that these parameters will be equal.
-- The next call does the same for the *school1* regressor, and so forth; the first regressor is the *trend*,   and this  remains unconstrained.   
-- The output of **sigex.constrainreg** is a *constraint* matrix,
-    which can be then passed into the MLE fitting routine. 
+- So the first call here identifies in *regindex* the *easter* regressor for
+each of the seven series, and *combos* set to NULL indicates that these 
+parameters will be equal.
+- The next call does the same for the *school1* regressor, and so forth; the 
+first regressor is the *trend*, and this remains unconstrained.   
+- The output of **sigex.constrainreg** is a *constraint* matrix, which can be
+then passed into the MLE fitting routine. 
     
 ```{r}    
 par.mle <- sigex.default(mdl,data.ts,constraint)
 psi.mle <- sigex.par2psi(par.mle,mdl)
 ```    
     
-- Having initialized the pre-parameter vector, we can start nonlinear optimization.
-- In this case the nonlinear optimization    can take a long time.  So we just read the final MLE for *psi* in below.
+- Having initialized the pre-parameter vector, we can start nonlinear
+optimization.
+- In this case the nonlinear optimization can take a long time. So we just read
+the final MLE for *psi* in below.
 
 ```{r}
-psi.mle <- c(0.195543136661102, 0.210896311604314, 0.224884839193806, 0.297710366252992,
-             0.318076964322756, 0.288167112704856, 0.130848490409544, 0.17299456406149,
-             0.213720675984967, 0.0780486278573135, 0.188624612762698, 0.467926733192453,
-             0.434759495960342, 0.314822770386916, 0.280937951321511, 0.484722644882768,
-             0.413444260303994, 0.193778981158949, 0.550345260075344, 0.621238984502903,
-             0.563243057038342, -3.99208014979805, -4.19642305454813, -3.8415818035668,
-             -4.32856255035426, -3.95499509133263, -3.96279211490641, -4.03911188215587,
-             -0.369778097197869, -0.0318374973193093, -0.0459307709775452,
-             -0.138903858423006, -0.10135335156786, -0.2142068950075, -0.112796685064521,
-             -0.140796608637905, -0.237750837664742, -0.194243215055276, 0.0219933280900727,
-             -0.0185736546749142, 0.139055815995136, 0.185830059881372, 0.0297317536468041,
-             -0.0155812148508496, -0.0671396386183212, 0.0476284405203113,
-             -0.0570660189385589, -0.155367001953893, -0.198330717820409,
-             -0.0295063266207021, -0.073765478114995, -0.0829227752708303,
-             -0.187804918878073, -0.0422869655675992, -0.0251387557650662,
-             0.0656914410289482, -0.0840920843255883, -0.145935243196311,
-             -0.0687523983229335, -0.117014892923535, -0.144653364980642,
-             -0.0790943505687107, 0.0611829711400193, -0.104109662533708,
-             0.112359996172669, -0.124553026055195, -0.163431409482439, -0.0283323592215797,
-             -0.0312605011210402, -0.178946106450384, -0.266581746889425,
-             -0.164720047360709, 0.00959770743708815, 0.159928359498417, -0.0132411806278071,
+psi.mle <- c(0.195543136661102, 0.210896311604314, 0.224884839193806, 
+             0.297710366252992, 0.318076964322756, 0.288167112704856, 
+             0.130848490409544, 0.17299456406149, 0.213720675984967, 
+             0.0780486278573135, 0.188624612762698, 0.467926733192453,
+             0.434759495960342, 0.314822770386916, 0.280937951321511, 
+             0.484722644882768, 0.413444260303994, 0.193778981158949,
+             0.550345260075344, 0.621238984502903, 0.563243057038342,
+             -3.99208014979805, -4.19642305454813, -3.8415818035668,
+             -4.32856255035426, -3.95499509133263, -3.96279211490641, 
+             -4.03911188215587, -0.369778097197869, -0.0318374973193093, 
+             -0.0459307709775452, -0.138903858423006, -0.10135335156786,
+             -0.2142068950075, -0.112796685064521, -0.140796608637905,
+             -0.237750837664742, -0.194243215055276, 0.0219933280900727,
+             -0.0185736546749142, 0.139055815995136, 0.185830059881372, 
+             0.0297317536468041, -0.0155812148508496, -0.0671396386183212, 
+             0.0476284405203113, -0.0570660189385589, -0.155367001953893, 
+             -0.198330717820409, -0.0295063266207021, -0.073765478114995, 
+             -0.0829227752708303, -0.187804918878073, -0.0422869655675992, 
+             -0.0251387557650662, 0.0656914410289482, -0.0840920843255883, 
+             -0.145935243196311, -0.0687523983229335, -0.117014892923535, 
+             -0.144653364980642, -0.0790943505687107, 0.0611829711400193, 
+             -0.104109662533708, 0.112359996172669, -0.124553026055195, 
+             -0.163431409482439, -0.0283323592215797, -0.0312605011210402, 
+             -0.178946106450384, -0.266581746889425, -0.164720047360709, 
+             0.00959770743708815, 0.159928359498417, -0.0132411806278071,
              -0.0642101491748187, -0.143487318464752, -0.086691994085389,
              0.0814467471639927, -0.0123455935133012, 0.00908782055333108,
              -0.0441428053848971, -0.0194126102991047, -0.00524075702955244,
@@ -306,29 +343,34 @@ psi.mle <- c(0.195543136661102, 0.210896311604314, 0.224884839193806, 0.29771036
              -0.0207414587537556, -0.0459309858718756, 0.0445914128582114,
              -0.0946876132299148, 0.00588335338136514, 0.00922656520387984,
              -0.0140866870525241, -0.0157842160720905, -0.0319375488373468,
-             0.0514126088016708, 0.0141484170525309, -0.124101882618575, -0.00774709495827467,
-             0.0255995670388491, -0.0364850207049338, 0.0230572817360244,
-             0.0220446070005591, -0.000478476269822034, -0.0168616246820038,
-             -0.102427194747844, 0.00112763406309242, -0.0259316390382219,
-             -0.010758329862067, -0.00198961225224573, -0.0464823007621206,
-             -0.0165414789720724, 0.0104091697972505, -0.14827440476309, 0.0505648610397286,
-             -0.0183900737977979, 0.0311301005304512, 0.00518380184796121,
-             0.0104592851480601, -0.0109208667318225, -0.0637859237889965,
-             -0.0656126331052389, 0.00033010004554818, -0.191533893764455,
-             -0.157111537080312, 0.141669136870683, -0.0225792281088362, 0.157100658532765,
-             -0.08441684545665, 0.1847632577291, 0.000561604448005, -0.191533893764455,
-             -0.157111537080311, 0.141669136870683, -0.0225792281088361, 0.157100658532765,
-             -0.0844168454566499, 0.183411740706148, 0.000312708939566006,
-             -0.191533893764455, -0.157111537080312, 0.141669136870683, -0.0225792281088362,
-             0.157100658532765, -0.08441684545665, -0.00163601810705088, 0.00100594355939265,
-             -0.191533893764455, -0.157111537080311, 0.141669136870683, -0.0225792281088362,
-             0.157100658532765, -0.08441684545665, 0.0156601320968592, 9.68417444876468e-05,
-             -0.191533893764455, -0.157111537080312, 0.141669136870683, -0.0225792281088361,
-             0.157100658532765, -0.08441684545665, 0.00328023110252021, 0.000461006050610564,
-             -0.191533893764455, -0.157111537080312, 0.141669136870683, -0.0225792281088361,
-             0.157100658532765, -0.08441684545665, 0.00430421751741802, 0.000496876409071807,
-             -0.191533893764455, -0.157111537080311, 0.141669136870683, -0.0225792281088362,
-             0.157100658532765, -0.08441684545665, 0.0023532873975757)
+             0.0514126088016708, 0.0141484170525309, -0.124101882618575, 
+             -0.00774709495827467, 0.0255995670388491, -0.0364850207049338, 
+             0.0230572817360244, 0.0220446070005591, -0.000478476269822034, 
+             -0.0168616246820038, -0.102427194747844, 0.00112763406309242, 
+             -0.0259316390382219, -0.010758329862067, -0.00198961225224573, 
+             -0.0464823007621206, -0.0165414789720724, 0.0104091697972505, 
+             -0.14827440476309, 0.0505648610397286, -0.0183900737977979, 
+             0.0311301005304512, 0.00518380184796121, 0.0104592851480601,
+             -0.0109208667318225, -0.0637859237889965, -0.0656126331052389, 
+             0.00033010004554818, -0.191533893764455, -0.157111537080312, 
+             0.141669136870683, -0.0225792281088362, 0.157100658532765,
+             -0.08441684545665, 0.1847632577291, 0.000561604448005, 
+             -0.191533893764455, -0.157111537080311, 0.141669136870683, 
+             -0.0225792281088361, 0.157100658532765, -0.0844168454566499,
+             0.183411740706148, 0.000312708939566006, -0.191533893764455,
+             -0.157111537080312, 0.141669136870683, -0.0225792281088362,
+             0.157100658532765, -0.08441684545665, -0.00163601810705088, 
+             0.00100594355939265, -0.191533893764455, -0.157111537080311,
+             0.141669136870683, -0.0225792281088362, 0.157100658532765,
+             -0.08441684545665, 0.0156601320968592, 9.68417444876468e-05,
+             -0.191533893764455, -0.157111537080312, 0.141669136870683, 
+             -0.0225792281088361, 0.157100658532765, -0.08441684545665,
+             0.00328023110252021, 0.000461006050610564, -0.191533893764455, 
+             -0.157111537080312, 0.141669136870683, -0.0225792281088361,
+             0.157100658532765, -0.08441684545665, 0.00430421751741802,
+             0.000496876409071807, -0.191533893764455, -0.157111537080311, 
+             0.141669136870683, -0.0225792281088362, 0.157100658532765,
+             -0.08441684545665, 0.0023532873975757)
 par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 ```
 
@@ -337,7 +379,8 @@ par.mle <- sigex.psi2par(psi.mle,mdl,data.ts)
 
 ```{r}
 resid.mle <- sigex.resid(psi.mle,mdl,data.ts)[[1]]
-resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),colnames(data.ts),TRUE)
+resid.mle <- sigex.load(t(resid.mle),start(data.ts),frequency(data.ts),
+                        colnames(data.ts),TRUE)
 resid.acf <- acf(resid.mle,lag.max=4*53,plot=FALSE)$acf
 par(mfrow=c(N,N),mar=c(3,2,2,0)+0.1,cex.lab=.8,cex.axis=.5,bty="n")
 for(j in 1:N)
@@ -349,10 +392,10 @@ for(j in 1:N)
     abline(h=-1.96/sqrt(T),lty=3)
   }
 }
-dev.off()
 ```
 
-- We can also examine the condition numbers, to see if there is rank reduction possible.
+- We can also examine the condition numbers, to see if there is rank reduction
+possible.
 - Typically there won't be any rank reduction with a single component model.
 
 ```{r}
@@ -366,14 +409,16 @@ log(sigex.conditions(data.ts,psi.mle,mdl))
 sigex.portmanteau(resid.mle,2*52,length(psi.mle))
 ```
 
-- The output indicates there is moderate  residual autocorrelation,  which is confirmed by inspection of the sample    autocorrelation.
-- We can also inspect normality via the  Shapiro-Wilks normality test.
+- The output indicates there is moderate  residual autocorrelation, which is 
+confirmed by inspection of the sample autocorrelation.
+- We can also inspect normality via the Shapiro-Wilks normality test.
 
 ```{r}
 sigex.gausscheck(resid.mle)
 ```
 
-- Having completed our model analysis, we store our results in a single list object.
+- Having completed our model analysis, we store our results in a single list
+object.
 
 ```{r} 
 analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
@@ -382,8 +427,8 @@ analysis.mle <- sigex.bundle(data.ts,transform,mdl,psi.mle)
 
 ## Signal Extraction
 
-- Now we consider applying a daily seasonal adjustment filter that 
-    we embed as a $7$-variate weekly filter.  
+- Now we consider applying a daily seasonal adjustment filter that we embed as a
+$7$-variate weekly filter.  
 - First we load up the fitted model for signal extraction.
 
 ```{r}
@@ -393,9 +438,14 @@ psi <- analysis.mle[[4]]
 param <- sigex.psi2par(psi,mdl,data.ts)
 ```
 
-- The daily seasonal adjustment filter *sa.hifilter* is an extension of the classic crude trend filter of X11 from monthly to daily frequency.
-- It should suppress all daily frequencies of the form $2\pi j/365$ for $1 \leq j \leq 183$, while also passes  linear trends.   This is embedded with a call to **sigex.hi2low**, where the high and low  frequencies     are indicated and the *shift.hi* parameter is $c = 183$, corresponding to a symmetric filter.
-- The output is the $7$-variate weekly filter *sa.lowfilter*, with shift parameter $C = 27$ given by *shift.low*.
+- The daily seasonal adjustment filter *sa.hifilter* is an extension of the 
+classic crude trend filter of X11 from monthly to daily frequency.
+- It should suppress all daily frequencies of the form $2\pi j/365$ for 
+$1 \leq j \leq 183$, while also passing linear trends. This is embedded with a 
+call to **sigex.hi2low**, where the high and low frequencies are indicated and 
+the *shift.hi* parameter is $c = 183$, corresponding to a symmetric filter.
+- The output is the $7$-variate weekly filter *sa.lowfilter*, with shift 
+parameter $C = 27$ given by *shift.low*.
 
 ```{r}
 sa.hifilter <- c(1,rep(2,365),1)/(2*365)
@@ -409,24 +459,30 @@ shift.low <- out[[2]]
 ```
 
 - This filter is applied using a standard call of **sigex.adhocextract**.
-- This function automatically supplies missing value imputations for the ragged edges, and does forecast and aftcast     extension for application of the filter.      However, this should be transformed back to a daily series,
-     so that we can view the daily series with its seasonal adjustment.
-- The function  **sigex.weekly2daily** transforms the series, using the indicated value of *first.day*.
+- This function automatically supplies missing value imputations for the ragged 
+edges, and does forecast and aftcast extension for application of the filter. 
+However, this should be transformed back to a daily series, so that we can view 
+the daily series with its seasonal adjustment.
+- The function  **sigex.weekly2daily** transforms the series, using the
+indicated value of *first.day*.
 - We repeat this for the lower and upper values of the confidence intervals.       
 
 ```{r}
 sa.low <- sigex.adhocextract(psi,mdl,data.ts,sa.lowfilter,shift.low,0,TRUE)
 sa.hi.daily <- list()
 sa.hi.daily[[1]] <- sigex.weekly2daily(ts(sa.low[[1]],start=start(dataONE.ts),
-                                           frequency=frequency(dataONE.ts)),first.day)
+                                frequency=frequency(dataONE.ts)),first.day)
 sa.hi.daily[[2]] <- sigex.weekly2daily(ts(sa.low[[2]],start=start(dataONE.ts),
-                                           frequency=frequency(dataONE.ts)),first.day)
+                                frequency=frequency(dataONE.ts)),first.day)
 sa.hi.daily[[3]] <- sigex.weekly2daily(ts(sa.low[[3]],start=start(dataONE.ts),
-                                           frequency=frequency(dataONE.ts)),first.day)
+                                frequency=frequency(dataONE.ts)),first.day)
 ```
 
-- For comparison we can design another filter that only removes the weekly dynamics.  
-- This is done by considering a simple filter annihilating weekly effects from the daily data, namely $(1 + B + \ldots + B^6)/7$,  which we call the Trading Day (TD) filter.  
+- For comparison we can design another filter that only removes the weekly 
+dynamics.  
+- This is done by considering a simple filter annihilating weekly effects from 
+the daily data, namely $(1 + B + \ldots + B^6)/7$, which we call the Trading 
+Day (TD) filter.  
 
 ```{r}
 td.hifilter <- rep(1,7)/7
@@ -445,24 +501,28 @@ shift.low <- out[[2]]
 td.low <- sigex.adhocextract(psi,mdl,data.ts,td.lowfilter,shift.low,0,TRUE)
 td.hi.daily <- list()
 td.hi.daily[[1]] <- sigex.weekly2daily(ts(td.low[[1]],start=start(dataONE.ts),
-                                           frequency=frequency(dataONE.ts)),first.day)
+                                frequency=frequency(dataONE.ts)),first.day)
 td.hi.daily[[2]] <- sigex.weekly2daily(ts(td.low[[2]],start=start(dataONE.ts),
-                                           frequency=frequency(dataONE.ts)),first.day)
+                                frequency=frequency(dataONE.ts)),first.day)
 td.hi.daily[[3]] <- sigex.weekly2daily(ts(td.low[[3]],start=start(dataONE.ts),
-                                           frequency=frequency(dataONE.ts)),first.day)
+                                frequency=frequency(dataONE.ts)),first.day)
 ```
 
 - Before plotting, the trend must be computed. 
-- A subtlety is that  we have $7$ trends, one for each day of week, which  therefore combine  long-term trend effects and    day-of-week effects.   The mean of the $7$ parameter values corresponds to the overall mean of each week,   and the residual is the day-of-week effect in excess of the mean.   
-- First *reg.td* is computed, which is the trend means for each day-of-week expressed as a daily time series.   We augment by one prior week's values, which would be all zero, and then convert to a daily series.
-- Next, *reg.trend* is obtained by filtering with $(1 + B + \ldots + B^6)/7$, and finally remove the NA value   (resulting from using **filter**, which does not extend the input series).  
+- A subtlety is that we have $7$ trends, one for each day of week, which 
+therefore combine long-term trend effects and day-of-week effects. The mean of 
+the $7$ parameter values corresponds to the overall mean of each week, and the 
+residual is the day-of-week effect in excess of the mean.   
+- First *reg.td* is computed, which is the trend means for each day-of-week 
+expressed as a daily time series. We augment by one prior week's values, which 
+would be all zero, and then convert to a daily series.
+- Next, *reg.trend* is obtained by filtering with $(1 + B + \ldots + B^6)/7$, 
+and finally remove the NA value (resulting from using **filter**, which does not 
+extend the input series).  
  
 ```{r}
 reg.td <- NULL
-for(i in 1:N)
-{
-  reg.td <- cbind(reg.td,sigex.fixed(data.ts,mdl,i,param,"Trend"))
-}
+for(i in 1:N){reg.td <- cbind(reg.td,sigex.fixed(data.ts,mdl,i,param,"Trend"))}
 reg.td <- rbind(rep(0,N),reg.td)
 reg.td <- ts(sigex.weekly2daily(reg.td,first.day),
                 start=start(dataONE.ts),frequency=period)
@@ -470,8 +530,10 @@ reg.trend <- stats::filter(reg.td,td.hifilter,method="convolution",sides=1)
 reg.trend <- as.matrix(reg.trend[8:length(reg.td)])
 ```
 
-- The illustration is completed   with a display:  the seasonal adjustment contains some mild weekly effects (because the filter is designed to 
-    remove daily, and not weekly frequencies), whereas the TD-adjusted component has annual movements but not     weekly effects.
+- The illustration is completed with a display: the seasonal adjustment contains 
+some mild weekly effects (because the filter is designed to remove daily, and 
+not weekly frequencies), whereas the TD-adjusted component has annual movements 
+but not weekly effects.
 
 ```{r}
 trendcol <- "tomato"
@@ -484,7 +546,6 @@ sigex.graph(sa.hi.daily,reg.trend,start(sa.hi.daily[[1]]),
             period,1,0,trendcol,fade)
 sigex.graph(td.hi.daily,reg.trend,start(td.hi.daily[[1]]),
             period,1,0,sacol,fade)
-dev.off()
 ```
 
 
