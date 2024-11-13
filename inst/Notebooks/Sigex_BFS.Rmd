@@ -121,40 +121,63 @@ effects are presumed to constitute eight days.
 - In the calls to **gethol**, both *start.date* and *end.date* are required.
    
 ```{r}
-easter.dates <- read.table(paste(root.dir,"/data/easter500.txt",sep=""))
+easter.path <- system.file('extdata','easter500.txt',package='sigex')
+easter.dates <- read.table(easter.path)
 easter.reg <- gethol(easter.dates,7,0,start.date,end.date)
 
-nyd.dates <- read.table(paste(root.dir,"/data/newyear500.txt",sep=""))
+nyd.path <- system.file('extdata','newyear500.txt',package='sigex')
+nyd.dates <- read.table(nyd.path)
+#nyd.dates <- read.table(paste(root.dir,"/data/newyear500.txt",sep=""))
 nyd.reg <- gethol(nyd.dates,7,0,start.date,end.date)
 
-mlk.dates <- read.table(paste(root.dir,"/data/mlk500.txt",sep=""))
+mlk.path <- system.file('extdata','mlk500.txt',package='sigex')
+mlk.dates <- read.table(mlk.path)
+#mlk.dates <- read.table(paste(root.dir,"/data/mlk500.txt",sep=""))
 mlk.reg <- gethol(mlk.dates,7,0,start.date,end.date)
 
-gw.dates <- read.table(paste(root.dir,"/data/gw500.txt",sep=""))
+gw.path <- system.file('extdata','gw500.txt',package='sigex')
+gw.dates <- read.table(gw.path)
+#gw.dates <- read.table(paste(root.dir,"/data/gw500.txt",sep=""))
 gw.reg <- gethol(gw.dates,7,0,start.date,end.date)
 
-mem.dates <- read.table(paste(root.dir,"/data/mem500.txt",sep=""))
+mem.path <- system.file('extdata','mem500.txt',package='sigex')
+mem.dates <- read.table(mem.path)
+#mem.dates <- read.table(paste(root.dir,"/data/mem500.txt",sep=""))
 mem.reg <- gethol(mem.dates,7,0,start.date,end.date)
 
-ind.dates <- read.table(paste(root.dir,"/data/ind500.txt",sep=""))
+ind.path <- system.file('extdata','ind500.txt',package='sigex')
+ind.dates <- read.table(ind.path)
+#ind.dates <- read.table(paste(root.dir,"/data/ind500.txt",sep=""))
 ind.reg <- gethol(ind.dates,7,0,start.date,end.date)
 
-labor.dates <- read.table(paste(root.dir,"/data/labor500.txt",sep=""))
+labor.path <- system.file('extdata','labor500.txt',package='sigex')
+labor.dates <- read.table(labor.path)
+#labor.dates <- read.table(paste(root.dir,"/data/labor500.txt",sep=""))
 labor.reg <- gethol(labor.dates,7,0,start.date,end.date)
 
-col.dates <- read.table(paste(root.dir,"/data/columbus500.txt",sep=""))
+col.path <- system.file('extdata','columbus500.txt',package='sigex')
+col.dates <- read.table(col.path)
+#col.dates <- read.table(paste(root.dir,"/data/columbus500.txt",sep=""))
 col.reg <- gethol(col.dates,7,0,start.date,end.date)
 
-vet.dates <- read.table(paste(root.dir,"/data/vet500.txt",sep=""))
+vet.path <- system.file('extdata','vet500.txt',package='sigex')
+vet.dates <- read.table(vet.path)
+#vet.dates <- read.table(paste(root.dir,"/data/vet500.txt",sep=""))
 vet.reg <- gethol(vet.dates,7,0,start.date,end.date)
 
-tg.dates <- read.table(paste(root.dir,"/data/thanksgiving500.txt",sep=""))
+tg.path <- system.file('extdata','thanksgiving500.txt',package='sigex')
+tg.dates <- read.table(tg.path)
+#tg.dates <- read.table(paste(root.dir,"/data/thanksgiving500.txt",sep=""))
 tg.reg <- gethol(tg.dates,7,0,start.date,end.date)
 
-xmas.dates <- read.table(paste(root.dir,"/data/xmas500.txt",sep=""))
+xmas.path <- system.file('extdata','xmas500.txt',package='sigex')
+xmas.dates <- read.table(xmas.path)
+#xmas.dates <- read.table(paste(root.dir,"/data/xmas500.txt",sep=""))
 xmas.reg <- gethol(xmas.dates,7,0,start.date,end.date)
 
-black.dates <- read.table(paste(root.dir,"/data/black400.txt",sep=""))
+black.path <- system.file('extdata','black400.txt',package='sigex')
+black.dates <- read.table(black.path)
+#black.dates <- read.table(paste(root.dir,"/data/black400.txt",sep=""))
 black.reg <- gethol(black.dates,7,0,start.date,end.date)
 ```
 
