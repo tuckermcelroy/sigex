@@ -5,10 +5,6 @@ output:
     df_print: paged
 ---
 
-```{r, setup, include=FALSE}
-#knitr::opts_knit$set(root.dir = 'C:/Users/neide/Documents/GitHub/sigex')
-```
- 
 # New Zealand Arrivals
 
 This illustration considers a daily immigration series (**imm** for short): New 
