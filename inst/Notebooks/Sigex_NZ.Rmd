@@ -53,7 +53,6 @@ columns correspond to Y2K effects (but will not be used in this script).
 ```{r}
 nz.path <- system.file('extdata','NZregressors.txt',package='sigex')
 NZregs <- read.table(nz.path)
-#NZregs <- read.table(paste(root.dir,"/data/NZregressors.txt",sep=""))
 ```
   
 ## Enter Metadata
