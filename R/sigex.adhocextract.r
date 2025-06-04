@@ -132,8 +132,8 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
   # and aftcast times (2-horizon-L+shift):0
   leads.mid <- NULL
   for(k in 1:N) { leads.mid <- union(leads.mid,seq(1,T)[is.na(data.ts)[,k]]) }
-  leads.aft <- seq(2-horizon-L+shift,0)
-  leads.fore <- seq(T+1,T+horizon+shift)
+  if(L+horizon-shift > 1) { leads.aft <- seq(2-horizon-L+shift,0) } else { leads.aft <- NULL }
+  if(horizon+shift > 0) { leads.fore <- seq(T+1,T+horizon+shift) } else {leads.fore <- NULL }
   leads.all <- union(leads.aft,union(leads.mid,leads.fore))
   len.aft <- length(leads.aft)
   len.fore <- length(leads.fore)
@@ -166,8 +166,8 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
                            (len.fore+1):(2*len.fore+len.mid+len.aft),drop=FALSE]
     data.ext <- data.demean
     if(len.mid>0) data.ext[leads.mid,] <- t(casts.x[,(len.aft+1):(len.aft+len.mid)])
-    data.ext <- rbind(t(casts.x[,1:len.aft,drop=FALSE]),data.ext,
-                      t(casts.x[,(len.aft+len.mid+1):len.all,drop=FALSE]))
+    if(len.aft>0) data.ext <- rbind(t(casts.x[,1:len.aft,drop=FALSE]),data.ext)
+    if(len.fore>0) data.ext <- rbind(data.ext,t(casts.x[,(len.aft+len.mid+1):len.all,drop=FALSE]))
     t.start <- 1
     for(t in seq(1-horizon,T+horizon))
     {
@@ -196,7 +196,7 @@ sigex.adhocextract <- function(psi,mdl,data.ts,adhoc,shift,horizon,needMSE)
     {
       output.k <- stats::filter(data.ext[,k],adhoc[j,k,],
                          method="convolution",sides=1)
-      output.k <- output.k[-seq(1,L-1)]
+      if(L > 1) { output.k <- output.k[-seq(1,L-1)] } else { output.k <- output.k }
       output.j <- output.j + output.k
     }
     mse <- pmax(0,cast.mse[j,j,])
