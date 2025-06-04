@@ -106,15 +106,15 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   #  
   #	Inputs:
   #		z.acf: array of dimension M x T x M of autocovariances for process [w_t,v_t],
-  #			where there are M series, of total length T each.
+  #			where there are M series, of total length T each. Assumes M >= N.
   #		y: list with T elements, each of which is a vector of variable length r,
   #			or an NA, representing available information at each time t in {1,...,T}.
   #   c.sieve: list with T elements, each of which is a block vector or an NA.
   #     Element t for t in {1,...,T} has dimension Nt x r, where r is variable
   #     depending on t (and can be 0). Represents mapping from process to observation.
-  #     !! Must have dim(c.sieve[[t]])[2] = dim(obs.data[[t]])[1].
+  #     !! Must have dim(c.sieve[[t]])[2] = dim(y[[t]])[1].
   #   h.sieve: list with T elements, each of which is M-N x N, where M is the dimension
-  #     of the data process z_t, which has increment w_t.
+  #     of the data process z_t, which has increment w_t. If M=N, set h.sieve = NULL.
   #		delta: differencing polynomial (corresponds to delta(B) in Background)
   #			written in format c(delta0,delta1,...,deltad)
   #   debug: set to TRUE if lik values should be printed to screen
@@ -122,7 +122,7 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   #		prepend the same.  T will be the length of the lists, and includes
   #		the spots taken by aftcasts and forecasts.  
   #	Outputs:
-  # HERE
+  # HERE: may need to change???
   #		list containing casts.x, casts.var, c(Qseq,logdet), and eps
   #		casts.x: N x H matrix of backcasts, midcasts, aftcasts, where H
   #			is the total number of time indices with missing values.
@@ -146,13 +146,14 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   
   # thresh <- 10^(-16)
   thresh <- -1
-  T <- length(obs.data)
+  T <- length(y)
   M <- dim(z.acf)[1]
-  N <- dim(h.sieve[[1]])[2]
+  N <- dim(c.sieve[[1]])[1]
+#  if(length(h.sieve) > 0) { N <- dim(h.sieve[[1]])[2] }
   
   all.series <- seq(1,N)
   all.indices <- seq(1,T)
-  full.indices <- all.indices[sapply(y,dim)[1,]==N]
+  full.indices <- all.indices[lapply(y,length)==N]
   cast.indices <- setdiff(all.indices,full.indices)
 
 # HERE :  needed?  
@@ -190,7 +191,7 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
     #   Note: store more than needed in preds.z, makes it easier for indexing later
     preds.z <- NULL
     for(t in 1:d) { preds.z <- cbind(preds.z,y[[t.hash+t]]) }
-    if(t.hash > 0) { preds.z <- cbind(matrix(0,nrow=N,ncol=t.hash)) }
+#    if(t.hash > 0) { preds.z <- cbind(matrix(0,nrow=N,ncol=t.hash)) }
     if(M > N) { preds.z <- rbind(preds.z,matrix(0,nrow=(M-N),ncol=d)) }
     new.covar <- NULL
     casts.z <- NULL
@@ -198,8 +199,10 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
     eps <- NULL
     Qseq <- 0
     logdet <- 0
+# HERE: modify cast.index.t, we will store everything    
     # track indices of casted variables up to present time
-    cast.index.t <- intersect(cast.indices,seq(t.hash+1,t.hash+d))
+#    cast.index.t <- intersect(cast.indices,seq(t.hash+1,t.hash+d))
+    cast.index.t <- NULL
     t.star <- T
     t.len <- d
     
@@ -207,7 +210,9 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
     if(t.hash < T-d) {
       for(t in (t.hash+d+1):T)
       {
-        sieve.mat <- c.sieve[[t]]
+        c.sieve.mat <- c.sieve[[t]]
+        h.sieve.mat <- diag(N)
+        if(length(h.sieve) > 0) { h.sieve.mat <- rbind(h.sieve.mat,t(h.sieve[[t]])) }
         if(is.na(sieve.mat)) { ragged.t <- 0 } else { ragged.t <- dim(sieve.mat)[2] }
 # HERE : needed?
         # determine whether full info, or partial/completely missing
@@ -262,11 +267,11 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
         # third, update casts.z by changing the stored portions of
         #   E [ Z_{t-1} | F_{t-1} ] to E [ Z_{t-1} | F_t ] and
         #   appending E [ z_t | F_t ] if partially/completely missing
-# HERE
         if(cast.len>0)  # at least one cast within t.len time points
         {
           if(ragged.t > 0)  # update only if full info or partially missing (do nothing if fully missing)
           {
+#            new.covar.nw <- matrix(casts.var.array,nrow=length(cast.index.t)*M,ncol=cast.len*M)
             new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*M,ncol=cast.len*M) %*% t(l.pred.tlen)
             update <- matrix(new.covar %*% t(select.mat) %*% solve(select.mat %*% new.var %*% t(select.mat)) %*%
                                (z.real[non.raggeds,t,drop=FALSE] - select.mat %*% new.pred),nrow=N)
@@ -353,7 +358,8 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
         logdet <- logdet + log(new.det)
         
         # updating
-        cast.index.t <- intersect(cast.indices,seq(t.hash+1,t))
+#        cast.index.t <- intersect(cast.indices,seq(t.hash+1,t))
+        cast.index.t <- c(cast.index.t,t)
         preds.x <- z.real[,1:t,drop=FALSE]
         
         #  get fore and aft predictors based on observations (t.hash+1):t
