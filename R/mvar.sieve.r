@@ -148,6 +148,7 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   delta <- c(1,-1)
   N <- 3
   M <- 3
+  y <- list()
   y[[1]] <- list(NULL)
   y[[2]] <- list(NULL)
   y[[3]] <- rnorm(2)
