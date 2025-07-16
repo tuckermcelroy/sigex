@@ -107,8 +107,8 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   #	Inputs:
   #		z.acf: array of dimension M x T x M of autocovariances for process [w_t,v_t],
   #			where there are M series, of total length T each. Assumes M >= N.
-  #		y: list with T elements, each of which is a vector of variable length r,
-  #			or an NA, representing available information at each time t in {1,...,T}.
+  #		y: list with T elements, each of which is a vector of variable length r <= N,
+  #			or NULL (r=0 case), representing available information at each time t in {1,...,T}.
   #   c.sieve: list with T elements, each of which is a block vector or an NA.
   #     Element t for t in {1,...,T} has dimension Nt x r, where r is variable
   #     depending on t (and can be 0). Represents mapping from process to observation.
@@ -118,8 +118,8 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   #		delta: differencing polynomial (corresponds to delta(B) in Background)
   #			written in format c(delta0,delta1,...,deltad)
   #   debug: set to TRUE if lik values should be printed to screen
-  #	Notes: to get H forecasts, append NAs to list of obs.data.  To get aftcasts,
-  #		prepend the same.  T will be the length of the lists, and includes
+  #	Notes: to get forecasts or aftcasts, assign NAs to end or beginning of c.sieve.
+  #   T will be the length of the lists, and includes
   #		the spots taken by aftcasts and forecasts.  
   #	Outputs:
   # HERE: may need to change???
@@ -144,12 +144,25 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   #
   ####################################################################
   
+  ### Example
+  delta <- c(1,-1)
+  N <- 3
+  M <- 3
+  y[[1]] <- list(NULL)
+  y[[2]] <- list(NULL)
+  y[[3]] <- rnorm(2)
+  y[[4]] <- rnorm(3)
+  y[[5]] <- rnorm(3)
+  y[[6]] <- rnorm(3)
+  y[[7]] <- list(NULL)
+  ##--------------------------
+  
   # thresh <- 10^(-16)
   thresh <- -1
   T <- length(y)
   M <- dim(z.acf)[1]
-  N <- dim(c.sieve[[1]])[1]
-#  if(length(h.sieve) > 0) { N <- dim(h.sieve[[1]])[2] }
+#  N <- dim(c.sieve[[1]])[1]
+  if(length(h.sieve) > 0) { N <- dim(h.sieve[[1]])[2] } else { N <- M }
   
   all.series <- seq(1,N)
   all.indices <- seq(1,T)
@@ -213,7 +226,7 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
         c.sieve.mat <- c.sieve[[t]]
         h.sieve.mat <- diag(N)
         if(length(h.sieve) > 0) { h.sieve.mat <- rbind(h.sieve.mat,t(h.sieve[[t]])) }
-        if(is.na(sieve.mat)) { ragged.t <- 0 } else { ragged.t <- dim(sieve.mat)[2] }
+        if(is.na(c.sieve.mat)) { ragged.t <- 0 } else { ragged.t <- dim(c.sieve.mat)[2] }
 # HERE : needed?
         # determine whether full info, or partial/completely missing
         #  base case: full info
@@ -360,7 +373,7 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
         # updating
 #        cast.index.t <- intersect(cast.indices,seq(t.hash+1,t))
         cast.index.t <- c(cast.index.t,t)
-        preds.x <- z.real[,1:t,drop=FALSE]
+        preds.z <- z.real[,1:t,drop=FALSE]
         
         #  get fore and aft predictors based on observations (t.hash+1):t
         #  Notes: in non-stationary case, we obtain predictors for time t+1,
@@ -370,22 +383,22 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
         if(t==(t.hash+d+1))
         {
           
-          x.varinv <- solve(x.acf[,1,])
-          u.seq <- x.varinv %*% x.acf[,2,]
-          l.seq <- x.varinv %*% t(x.acf[,2,])
-          gam.Seq <- x.acf[,2,]
-          gam.Flip <- x.acf[,2,]
-          c.mat <- x.acf[,1,] - t(gam.Flip) %*% u.seq
-          d.mat <- x.acf[,1,] - gam.Seq %*% l.seq
+          z.varinv <- solve(z.acf[,1,])
+          u.seq <- z.varinv %*% z.acf[,2,]
+          l.seq <- z.varinv %*% t(z.acf[,2,])
+          gam.Seq <- z.acf[,2,]
+          gam.Flip <- z.acf[,2,]
+          c.mat <- z.acf[,1,] - t(gam.Flip) %*% u.seq
+          d.mat <- z.acf[,1,] - gam.Seq %*% l.seq
           a.seq <- delta.lead %*% u.seq
           b.seq <- delta.lead %*% l.seq
           
-          u.qes <- x.varinv %*% t(x.acf[,2,])
-          l.qes <- x.varinv %*% x.acf[,2,]
-          gam.qeS <- t(x.acf[,2,])
-          gam.pilF <- t(x.acf[,2,])
-          c.tam <- x.acf[,1,] - t(gam.pilF) %*% u.qes
-          d.tam <- x.acf[,1,] - gam.qeS %*% l.qes
+          u.qes <- z.varinv %*% t(z.acf[,2,])
+          l.qes <- z.varinv %*% z.acf[,2,]
+          gam.qeS <- t(z.acf[,2,])
+          gam.pilF <- t(z.acf[,2,])
+          c.tam <- z.acf[,1,] - t(gam.pilF) %*% u.qes
+          d.tam <- z.acf[,1,] - gam.qeS %*% l.qes
           a.qes <- delta.lead %*% u.qes
           b.qes <- delta.lead %*% l.qes
           
@@ -394,37 +407,37 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
           if(t.star == T)
           {
             
-            pacf <- x.acf[,t+1-d-t.hash,] - gam.Seq %*% u.seq
+            pacf <- z.acf[,t+1-d-t.hash,] - gam.Seq %*% u.seq
             l.factor <- solve(c.mat) %*% t(pacf)
             new.l <- l.seq - u.seq %*% l.factor
             u.factor <- solve(d.mat) %*% pacf
             new.u <- u.seq - l.seq %*% u.factor
             l.seq <- rbind(l.factor,new.l)
             u.seq <- rbind(new.u,u.factor)
-            gam.Seq <- cbind(x.acf[,t+1-d-t.hash,],gam.Seq)
-            gam.Flip <- rbind(gam.Flip,x.acf[,t+1-d-t.hash,])
-            c.mat <- x.acf[,1,] - t(gam.Flip) %*% u.seq
-            d.mat <- x.acf[,1,] - gam.Seq %*% l.seq
+            gam.Seq <- cbind(z.acf[,t+1-d-t.hash,],gam.Seq)
+            gam.Flip <- rbind(gam.Flip,z.acf[,t+1-d-t.hash,])
+            c.mat <- z.acf[,1,] - t(gam.Flip) %*% u.seq
+            d.mat <- z.acf[,1,] - gam.Seq %*% l.seq
             a.next <- a.seq - b.seq %*% u.factor
             b.next <- b.seq - a.seq %*% l.factor
-            a.seq <- rbind(a.next,0*diag(N)) + (c(rep(0,t-d-1-t.hash),delta[(d+1):1]) %x% diag(N)) %*% u.factor
-            b.seq <- rbind(0*diag(N),b.next) + (c(delta[(d+1):1],rep(0,t-d-1-t.hash)) %x% diag(N)) %*% l.factor
+            a.seq <- rbind(a.next,0*diag(M)) + (c(rep(0,t-d-1-t.hash),delta[(d+1):1]) %x% diag(M)) %*% u.factor
+            b.seq <- rbind(0*diag(M),b.next) + (c(delta[(d+1):1],rep(0,t-d-1-t.hash)) %x% diag(M)) %*% l.factor
             
-            fcap <- t(x.acf[,t+1-d-t.hash,]) - gam.qeS %*% u.qes
+            fcap <- t(z.acf[,t+1-d-t.hash,]) - gam.qeS %*% u.qes
             l.rotcaf <- solve(c.tam) %*% t(fcap)
             wen.l <- l.qes - u.qes %*% l.rotcaf
             u.rotcaf <- solve(d.tam) %*% fcap
             wen.u <- u.qes - l.qes %*% u.rotcaf
             l.qes <- rbind(l.rotcaf,wen.l)
             u.qes <- rbind(wen.u,u.rotcaf)
-            gam.qeS <- cbind(t(x.acf[,t+1-d-t.hash,]),gam.qeS)
-            gam.pilF <- rbind(gam.pilF,t(x.acf[,t+1-d-t.hash,]))
-            c.tam <- x.acf[,1,] - t(gam.pilF) %*% u.qes
-            d.tam <- x.acf[,1,] - gam.qeS %*% l.qes
+            gam.qeS <- cbind(t(z.acf[,t+1-d-t.hash,]),gam.qeS)
+            gam.pilF <- rbind(gam.pilF,t(z.acf[,t+1-d-t.hash,]))
+            c.tam <- z.acf[,1,] - t(gam.pilF) %*% u.qes
+            d.tam <- z.acf[,1,] - gam.qeS %*% l.qes
             a.next <- a.qes - b.qes %*% u.rotcaf
             b.next <- b.qes - a.qes %*% l.rotcaf
-            a.qes <- rbind(0*diag(N),a.next) + (c(delta[(d+1):1],rep(0,t-d-1-t.hash)) %x% diag(N)) %*% u.rotcaf
-            b.qes <- rbind(b.next,0*diag(N)) + (c(rep(0,t-d-1-t.hash),delta[(d+1):1]) %x% diag(N)) %*% l.rotcaf
+            a.qes <- rbind(0*diag(M),a.next) + (c(delta[(d+1):1],rep(0,t-d-1-t.hash)) %x% diag(M)) %*% u.rotcaf
+            b.qes <- rbind(b.next,0*diag(M)) + (c(rep(0,t-d-1-t.hash),delta[(d+1):1]) %x% diag(M)) %*% l.rotcaf
             
           }
           if(sqrt(sum(diag(l.factor %*% t(l.factor)))) < thresh)
@@ -432,13 +445,13 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
             t.star <- min(t.star,t)
           }
         }
-        t.len <- dim(b.seq)[1]/N
-        l.pred <- t(-1*delta[1]^{-1}*c(rep(0,t.len-d),delta[(d+1):2]) %x% diag(N))
-        l.derp <- t(-1*delta[d+1]^{-1}*c(delta[d:1],rep(0,t.len-d)) %x% diag(N))
+        t.len <- dim(b.seq)[1]/M
+        l.pred <- t(-1*delta[1]^{-1}*c(rep(0,t.len-d),delta[(d+1):2]) %x% diag(M))
+        l.derp <- t(-1*delta[d+1]^{-1}*c(delta[d:1],rep(0,t.len-d)) %x% diag(M))
         l.pred <- l.pred + delta[1]^{-1}*t(b.seq)
         l.derp <- l.derp + delta[d+1]^{-1}*t(b.qes)
-        v.pred <- delta[1]^{-2}*(x.acf[,1,] - matrix(aperm(x.acf[,(t.len-d+1):2,,drop=FALSE],c(1,3,2)),nrow=N) %*% l.seq)
-        v.derp <- delta[d+1]^{-2}*(x.acf[,1,] - matrix(aperm(x.acf[,(t.len-d+1):2,,drop=FALSE],c(3,1,2)),nrow=N) %*% l.qes)
+        v.pred <- delta[1]^{-2}*(z.acf[,1,] - matrix(aperm(z.acf[,(t.len-d+1):2,,drop=FALSE],c(1,3,2)),nrow=M) %*% l.seq)
+        v.derp <- delta[d+1]^{-2}*(z.acf[,1,] - matrix(aperm(z.acf[,(t.len-d+1):2,,drop=FALSE],c(3,1,2)),nrow=M) %*% l.qes)
       } }
     
     # Backward Pass:
