@@ -118,7 +118,7 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   #		delta: differencing polynomial (corresponds to delta(B) in Background)
   #			written in format c(delta0,delta1,...,deltad)
   #   debug: set to TRUE if lik values should be printed to screen
-  #	Notes: to get forecasts or aftcasts, assign NAs to end or beginning of c.sieve.
+  #	Notes: to get forecasts or aftcasts, assign NULL to end or beginning of c.sieve.
   #   T will be the length of the lists, and includes
   #		the spots taken by aftcasts and forecasts.  
   #	Outputs:
@@ -146,8 +146,8 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   
   ### Example
   delta <- c(1,-1)
-  N <- 3
-  M <- 3
+#  N <- 3
+#  M <- 3
   y <- list()
   y[[1]] <- list(NULL)
   y[[2]] <- list(NULL)
@@ -156,6 +156,9 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   y[[5]] <- rnorm(3)
   y[[6]] <- rnorm(3)
   y[[7]] <- list(NULL)
+  z.acf <- array(0,c(3,7,3))
+  h.sieve <- NULL
+  
   ##--------------------------
   
   # thresh <- 10^(-16)
@@ -167,21 +170,11 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   
   all.series <- seq(1,N)
   all.indices <- seq(1,T)
-  full.indices <- all.indices[lapply(y,length)==N]
-  cast.indices <- setdiff(all.indices,full.indices)
-
-# HERE :  needed?  
-#  ragged <- list()
-#  leads.rag <- NULL
-#  for(t in 1:length(cast.indices))
-#  {
-#    rag.series <- all.series[Im(z[,cast.indices[t]])==1,drop=FALSE]
-#    if(length(rag.series)<=N)
-#    {
-#      ragged[[length(ragged)+1]] <- rag.series
-#      leads.rag <- c(leads.rag,cast.indices[t])
-#    }
-#  }
+  # TO DO: even when y[[t]] has length N, it may be a linear combo of z.
+  #  There must be contiguous values of c.sieve[[t]] equal to identity...
+  #  pass new input of init value times
+#  full.indices <- all.indices[lapply(y,length)==N]
+#  cast.indices <- setdiff(all.indices,full.indices)
   
   d <- length(delta) - 1
   delta.lead <- delta[(d+1):1] %x% diag(M)
@@ -205,151 +198,91 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
     #   Note: store more than needed in preds.z, makes it easier for indexing later
     preds.z <- NULL
     for(t in 1:d) { preds.z <- cbind(preds.z,y[[t.hash+t]]) }
-#    if(t.hash > 0) { preds.z <- cbind(matrix(0,nrow=N,ncol=t.hash)) }
     if(M > N) { preds.z <- rbind(preds.z,matrix(0,nrow=(M-N),ncol=d)) }
+    if(t.hash > 0) { preds.z <- cbind(matrix(0,nrow=M,ncol=t.hash),preds.z) }
     new.covar <- NULL
     casts.z <- NULL
     casts.var <- NULL
     eps <- NULL
     Qseq <- 0
     logdet <- 0
-# HERE: modify cast.index.t, we will store everything    
     # track indices of casted variables up to present time
-#    cast.index.t <- intersect(cast.indices,seq(t.hash+1,t.hash+d))
     cast.index.t <- NULL
-    t.star <- T
     t.len <- d
     
     # Forward Pass:
     if(t.hash < T-d) {
+      
+      if(length(h.sieve) > 0) { h.sieve.mat <- rbind(h.sieve.mat,t(h.sieve[[t]])) }
+      Hbig.mat <- NULL
+      for(t in 1:(t.hash+d))
+      {
+        Hbig.mat <- rbind(cbind(Hbig.mat,matrix(0,c(dim(Hbig.mat)[1],M))),
+                          cbind(matrix(0,c(N,dim(Hbig.mat)[2])),h.sieve.m))
+      }
+      
       for(t in (t.hash+d+1):T)
       {
         c.sieve.mat <- c.sieve[[t]]
         h.sieve.mat <- diag(N)
         if(length(h.sieve) > 0) { h.sieve.mat <- rbind(h.sieve.mat,t(h.sieve[[t]])) }
+        Hbig.mat <- rbind(cbind(Hbig.mat,matrix(0,c(dim(Hbig.mat)[1],M))),
+                          cbind(matrix(0,c(N,dim(Hbig.mat)[2])),h.sieve.m))
         if(is.na(c.sieve.mat)) { ragged.t <- 0 } else { ragged.t <- dim(c.sieve.mat)[2] }
-# HERE : needed?
-        # determine whether full info, or partial/completely missing
-        #  base case: full info
-#        select.mat <- diag(N)
-#        omit.mat <- NULL
-#        raggeds <- NULL
-#        rags.ind <- leads.rag %in% t
-#        if(sum(rags.ind)>0) # partial/completely missing
-#        {
-#          raggeds <- ragged[[seq(1,length(leads.rag))[rags.ind]]]
-#          if(length(raggeds)<N) # partial missing
-#          {
-#            select.mat <- diag(N)[-raggeds,,drop=FALSE]
-#            omit.mat <- diag(N)[raggeds,,drop=FALSE]
-#          } else # completely missing
-#          {
-#            select.mat <- NULL
-#            omit.mat <- diag(N)
-#          }
-#        }
-#        non.raggeds <- setdiff(seq(1,N),raggeds)
+        cast.len <- length(cast.index.t)
         
         #  get casts and covars of observations t.hash+1:t based on sigma-field_{t.hash+1:t}
         # first, construct preds.z from known (unstored) entries and stored casts;
         #   preds.z is E [ Z_{t-1} | F_{t-1} ]
-        if(length(cast.index.t) > 0) { preds.z[,cast.index.t] <- casts.z }
+        if(cast.len > 0) { preds.z[,cast.index.t] <- casts.z }
         # obtain E [ z_t | F_{t-1} ]
         new.pred <- l.pred %*% matrix(preds.z[,(t-t.len):(t-1)],ncol=1)
         
         # second, get prediction variance, to obtain new.var given by Var [ z_t | F_{t-1} ]
         #   cast.index.tlen tracks cast indices up to now, looking back t.len time points,
-        #   where t.len is the range at which all dependence is effectively nil
-        cast.index.tlen <- intersect(cast.indices,seq(t-t.len,t-1))
-        cast.len <- length(cast.index.tlen)
-        if(cast.len==0) # no casts within t.len time points
+        #   where t.len is the length of the predictor
+        if(cast.len==0) # no casts yet
         {
           new.var <- v.pred
-        } else # at least one cast within t.len time points
+        } else # at least one cast within t.len time points  
         {
-          casts.var.array <- array(casts.var,c(N,length(cast.index.t),M,length(cast.index.t)))
-          range.t <- (length(cast.index.t)-cast.len+1):length(cast.index.t)
-          casts.var.array <- casts.var.array[,,,range.t,drop=FALSE]
-          if(t-1-t.len>0) { l.pred <- cbind(matrix(0,M,M*(t-1-t.len)),l.pred) }
-          l.array <- array(l.pred,c(M,M,t-1))
-          l.array <- l.array[,,cast.index.tlen,drop=FALSE]
-          l.pred.tlen <- matrix(l.array,nrow=M)
-          new.var <- v.pred + l.pred.tlen %*%
-            matrix(casts.var.array[,range.t,,,drop=FALSE],nrow=cast.len*N,ncol=cast.len*N) %*% t(l.pred.tlen)
+          new.var <- v.pred + l.pred %*% casts.var %*% t(l.pred)
         }
         
         # third, update casts.z by changing the stored portions of
         #   E [ Z_{t-1} | F_{t-1} ] to E [ Z_{t-1} | F_t ] and
         #   appending E [ z_t | F_t ] if partially/completely missing
-        if(cast.len>0)  # at least one cast within t.len time points
+        if(cast.len > 0)  # at least one cast within t.len time points
         {
-          if(ragged.t > 0)  # update only if full info or partially missing (do nothing if fully missing)
+          new.covar.upp <- cbind(casts.var,casts.var %*% t(l.pred))
+          new.covar.low <- cbind(l.pred %*% casts.var,new.var)
+          new.covar <- rbind(new.covar.upp,new.covar.low)
+          new.cast <- new.pred
+          if(ragged.t > 0)  # update only if not fully missing
           {
-#            new.covar.nw <- matrix(casts.var.array,nrow=length(cast.index.t)*M,ncol=cast.len*M)
-            new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*M,ncol=cast.len*M) %*% t(l.pred.tlen)
-            update <- matrix(new.covar %*% t(select.mat) %*% solve(select.mat %*% new.var %*% t(select.mat)) %*%
-                               (z.real[non.raggeds,t,drop=FALSE] - select.mat %*% new.pred),nrow=N)
-            casts.x <- casts.x + update
+            Hc.prod <- t(Hbig.mat) %*% c.sieve.mat
+            new.precis <- solve(t(Hc.prod) %*% casts.var %*% Hc.prod)
+            pred.disc <- y[[t]] - t(Hc.prod) %*% rbind(casts.z,new.pred)
+            pred.adjust <- Hc.prod %*% new.precis %*% pred.disc
+            casts.z <- casts.z + new.covar.upp %*% pred.adjust
+            new.cast <- new.cast + new.covar.low %*% pred.adjust
           }
-        }
-        if(length(raggeds)>0)   # add new cast E [ x_t | F_t ] if partially/completely missing
-        {
-          new.cast <- z.real[,t,drop=FALSE]
-          partial.cast <- omit.mat %*% new.pred
-          if(length(raggeds)<N)  # partial missing case
-          {
-            partial.cast <- partial.cast + omit.mat %*% new.var %*% t(select.mat) %*%
-              solve(select.mat %*% new.var %*% t(select.mat)) %*%
-              (z.real[non.raggeds,t,drop=FALSE] - select.mat %*% new.pred)
-          }
-          new.cast[raggeds,1] <- partial.cast
-          casts.x <- cbind(casts.x,new.cast)
+           casts.z <- cbind(casts.z,new.cast)
+          
         }
         
-        # fourth, update casts.var by changing the stored portions of
+        # fourth, update casts.var by changing  
         #   Var [ X_{t-1} | F_{t-1} ] to Var [ X_{t-1} | F_t ] and
-        #   appending new covariances if partially/completely missing
-        if(cast.len>0)  # at least one cast within t.len time points
+        #   appending new covariances if partially/completely missing.
+        #  Also, compute stored version (TO DO!)
+        if(cast.len > 0)  # at least one cast within t.len time points
         {
-          new.covar <- matrix(casts.var.array,nrow=length(cast.index.t)*N,ncol=cast.len*N) %*% t(l.pred.tlen)
-          if(length(raggeds)<N)  # update only if full info or partially missing (do nothing if fully missing)
+          if(ragged.t > 0)  # update only if not fully missing
           {
-            update <- new.covar %*% t(select.mat) %*% solve(select.mat %*% new.var %*% t(select.mat)) %*%
-              select.mat %*% t(new.covar)
-            casts.var <- casts.var - update
+            casts.var <- new.covar - new.covar %*% Hc.prod %*% new.precis %*% t(Hc.prod) %*% new.covar
           }
         }
-        if(length(raggeds)>0)   # add new covar [ x_t | F_t ] if partially/completely missing
-        {
-          proj <- diag(N) # completely missing case
-          if(length(raggeds)<N)  # partial missing case
-          {
-            proj <- diag(N) - t(select.mat) %*% solve(select.mat %*% new.var %*% t(select.mat)) %*%
-              select.mat %*% new.var
-          }
-          # now augment casts.var
-          # special case: no cast within t.len time points.
-          #   Either: (i) this is the first cast,
-          #   Or: (ii) previous casts were long ago
-          if(cast.len==0) # special case
-          {
-            if(length(casts.var)==0)  # (i) of special case
-            {
-              new.block <- NULL
-            } else  # (ii) of special case
-            {
-              new.covar <- matrix(0,nrow=length(cast.index.t)*N,ncol=N)
-              new.block <- new.covar %*% proj
-            }
-          } else
-          {
-            new.block <- new.covar %*% proj
-          }
-          # do regular case (and special case) augmentation
-          casts.var <- rbind(cbind(casts.var,new.block),
-                             t(rbind(new.block,t(new.var %*% proj))))
-        }
-        
+    
         # fifth, get ragged residuals
         if(length(raggeds)>0)  # case of partially/completely missing
         {
@@ -372,9 +305,12 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
         logdet <- logdet + log(new.det)
         
         # updating
-#        cast.index.t <- intersect(cast.indices,seq(t.hash+1,t))
-        cast.index.t <- c(cast.index.t,t)
-        preds.z <- z.real[,1:t,drop=FALSE]
+        cast.index.t <- intersect(cast.indices,seq(t.hash+1,t))
+#        cast.index.t <- c(cast.index.t,t)
+#        preds.z <- z.real[,1:t,drop=FALSE]
+        ##  TO DO...
+        new.z <- rep(0,M)
+        preds.z <- cbind(preds.z,new.z)
         
         #  get fore and aft predictors based on observations (t.hash+1):t
         #  Notes: in non-stationary case, we obtain predictors for time t+1,
@@ -405,46 +341,39 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
           
         } else # case of t.hash+d+2 <= t <= T
         {
-          if(t.star == T)
-          {
-            
-            pacf <- z.acf[,t+1-d-t.hash,] - gam.Seq %*% u.seq
-            l.factor <- solve(c.mat) %*% t(pacf)
-            new.l <- l.seq - u.seq %*% l.factor
-            u.factor <- solve(d.mat) %*% pacf
-            new.u <- u.seq - l.seq %*% u.factor
-            l.seq <- rbind(l.factor,new.l)
-            u.seq <- rbind(new.u,u.factor)
-            gam.Seq <- cbind(z.acf[,t+1-d-t.hash,],gam.Seq)
-            gam.Flip <- rbind(gam.Flip,z.acf[,t+1-d-t.hash,])
-            c.mat <- z.acf[,1,] - t(gam.Flip) %*% u.seq
-            d.mat <- z.acf[,1,] - gam.Seq %*% l.seq
-            a.next <- a.seq - b.seq %*% u.factor
-            b.next <- b.seq - a.seq %*% l.factor
-            a.seq <- rbind(a.next,0*diag(M)) + (c(rep(0,t-d-1-t.hash),delta[(d+1):1]) %x% diag(M)) %*% u.factor
-            b.seq <- rbind(0*diag(M),b.next) + (c(delta[(d+1):1],rep(0,t-d-1-t.hash)) %x% diag(M)) %*% l.factor
-            
-            fcap <- t(z.acf[,t+1-d-t.hash,]) - gam.qeS %*% u.qes
-            l.rotcaf <- solve(c.tam) %*% t(fcap)
-            wen.l <- l.qes - u.qes %*% l.rotcaf
-            u.rotcaf <- solve(d.tam) %*% fcap
-            wen.u <- u.qes - l.qes %*% u.rotcaf
-            l.qes <- rbind(l.rotcaf,wen.l)
-            u.qes <- rbind(wen.u,u.rotcaf)
-            gam.qeS <- cbind(t(z.acf[,t+1-d-t.hash,]),gam.qeS)
-            gam.pilF <- rbind(gam.pilF,t(z.acf[,t+1-d-t.hash,]))
-            c.tam <- z.acf[,1,] - t(gam.pilF) %*% u.qes
-            d.tam <- z.acf[,1,] - gam.qeS %*% l.qes
-            a.next <- a.qes - b.qes %*% u.rotcaf
-            b.next <- b.qes - a.qes %*% l.rotcaf
-            a.qes <- rbind(0*diag(M),a.next) + (c(delta[(d+1):1],rep(0,t-d-1-t.hash)) %x% diag(M)) %*% u.rotcaf
-            b.qes <- rbind(b.next,0*diag(M)) + (c(rep(0,t-d-1-t.hash),delta[(d+1):1]) %x% diag(M)) %*% l.rotcaf
-            
-          }
-          if(sqrt(sum(diag(l.factor %*% t(l.factor)))) < thresh)
-          {
-            t.star <- min(t.star,t)
-          }
+          
+          pacf <- z.acf[,t+1-d-t.hash,] - gam.Seq %*% u.seq
+          l.factor <- solve(c.mat) %*% t(pacf)
+          new.l <- l.seq - u.seq %*% l.factor
+          u.factor <- solve(d.mat) %*% pacf
+          new.u <- u.seq - l.seq %*% u.factor
+          l.seq <- rbind(l.factor,new.l)
+          u.seq <- rbind(new.u,u.factor)
+          gam.Seq <- cbind(z.acf[,t+1-d-t.hash,],gam.Seq)
+          gam.Flip <- rbind(gam.Flip,z.acf[,t+1-d-t.hash,])
+          c.mat <- z.acf[,1,] - t(gam.Flip) %*% u.seq
+          d.mat <- z.acf[,1,] - gam.Seq %*% l.seq
+          a.next <- a.seq - b.seq %*% u.factor
+          b.next <- b.seq - a.seq %*% l.factor
+          a.seq <- rbind(a.next,0*diag(M)) + (c(rep(0,t-d-1-t.hash),delta[(d+1):1]) %x% diag(M)) %*% u.factor
+          b.seq <- rbind(0*diag(M),b.next) + (c(delta[(d+1):1],rep(0,t-d-1-t.hash)) %x% diag(M)) %*% l.factor
+          
+          fcap <- t(z.acf[,t+1-d-t.hash,]) - gam.qeS %*% u.qes
+          l.rotcaf <- solve(c.tam) %*% t(fcap)
+          wen.l <- l.qes - u.qes %*% l.rotcaf
+          u.rotcaf <- solve(d.tam) %*% fcap
+          wen.u <- u.qes - l.qes %*% u.rotcaf
+          l.qes <- rbind(l.rotcaf,wen.l)
+          u.qes <- rbind(wen.u,u.rotcaf)
+          gam.qeS <- cbind(t(z.acf[,t+1-d-t.hash,]),gam.qeS)
+          gam.pilF <- rbind(gam.pilF,t(z.acf[,t+1-d-t.hash,]))
+          c.tam <- z.acf[,1,] - t(gam.pilF) %*% u.qes
+          d.tam <- z.acf[,1,] - gam.qeS %*% l.qes
+          a.next <- a.qes - b.qes %*% u.rotcaf
+          b.next <- b.qes - a.qes %*% l.rotcaf
+          a.qes <- rbind(0*diag(M),a.next) + (c(delta[(d+1):1],rep(0,t-d-1-t.hash)) %x% diag(M)) %*% u.rotcaf
+          b.qes <- rbind(b.next,0*diag(M)) + (c(rep(0,t-d-1-t.hash),delta[(d+1):1]) %x% diag(M)) %*% l.rotcaf
+        
         }
         t.len <- dim(b.seq)[1]/M
         l.pred <- t(-1*delta[1]^{-1}*c(rep(0,t.len-d),delta[(d+1):2]) %x% diag(M))
@@ -633,46 +562,39 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
           
         } else # case of 1 <= t <= t.hash and t.hash < T-d
         {
-          if(t.star == T)
-          {
+          
+          pacf <- x.acf[,T-d-t+2,] - gam.Seq %*% u.seq
+          l.factor <- solve(c.mat) %*% t(pacf)
+          new.l <- l.seq - u.seq %*% l.factor
+          u.factor <- solve(d.mat) %*% pacf
+          new.u <- u.seq - l.seq %*% u.factor
+          l.seq <- rbind(l.factor,new.l)
+          u.seq <- rbind(new.u,u.factor)
+          gam.Seq <- cbind(x.acf[,T-d-t+2,],gam.Seq)
+          gam.Flip <- rbind(gam.Flip,x.acf[,T-d-t+2,])
+          c.mat <- x.acf[,1,] - t(gam.Flip) %*% u.seq
+          d.mat <- x.acf[,1,] - gam.Seq %*% l.seq
+          a.next <- a.seq - b.seq %*% u.factor
+          b.next <- b.seq - a.seq %*% l.factor
+          a.seq <- rbind(a.next,0*diag(N)) + (c(rep(0,T-d-t),delta[(d+1):1]) %x% diag(N)) %*% u.factor
+          b.seq <- rbind(0*diag(N),b.next) + (c(delta[(d+1):1],rep(0,T-d-t)) %x% diag(N)) %*% l.factor
             
-            pacf <- x.acf[,T-d-t+2,] - gam.Seq %*% u.seq
-            l.factor <- solve(c.mat) %*% t(pacf)
-            new.l <- l.seq - u.seq %*% l.factor
-            u.factor <- solve(d.mat) %*% pacf
-            new.u <- u.seq - l.seq %*% u.factor
-            l.seq <- rbind(l.factor,new.l)
-            u.seq <- rbind(new.u,u.factor)
-            gam.Seq <- cbind(x.acf[,T-d-t+2,],gam.Seq)
-            gam.Flip <- rbind(gam.Flip,x.acf[,T-d-t+2,])
-            c.mat <- x.acf[,1,] - t(gam.Flip) %*% u.seq
-            d.mat <- x.acf[,1,] - gam.Seq %*% l.seq
-            a.next <- a.seq - b.seq %*% u.factor
-            b.next <- b.seq - a.seq %*% l.factor
-            a.seq <- rbind(a.next,0*diag(N)) + (c(rep(0,T-d-t),delta[(d+1):1]) %x% diag(N)) %*% u.factor
-            b.seq <- rbind(0*diag(N),b.next) + (c(delta[(d+1):1],rep(0,T-d-t)) %x% diag(N)) %*% l.factor
-            
-            fcap <- t(x.acf[,T-d-t+2,]) - gam.qeS %*% u.qes
-            l.rotcaf <- solve(c.tam) %*% t(fcap)
-            wen.l <- l.qes - u.qes %*% l.rotcaf
-            u.rotcaf <- solve(d.tam) %*% fcap
-            wen.u <- u.qes - l.qes %*% u.rotcaf
-            l.qes <- rbind(l.rotcaf,wen.l)
-            u.qes <- rbind(wen.u,u.rotcaf)
-            gam.qeS <- cbind(t(x.acf[,T-d-t+2,]),gam.qeS)
-            gam.pilF <- rbind(gam.pilF,t(x.acf[,T-d-t+2,]))
-            c.tam <- x.acf[,1,] - t(gam.pilF) %*% u.qes
-            d.tam <- x.acf[,1,] - gam.qeS %*% l.qes
-            a.next <- a.qes - b.qes %*% u.rotcaf
-            b.next <- b.qes - a.qes %*% l.rotcaf
-            a.qes <- rbind(0*diag(N),a.next) + (c(delta[(d+1):1],rep(0,T-d-t)) %x% diag(N)) %*% u.rotcaf
-            b.qes <- rbind(b.next,0*diag(N)) + (c(rep(0,T-d-t),delta[(d+1):1]) %x% diag(N)) %*% l.rotcaf
-            
-          }
-          if(sqrt(sum(diag(l.factor %*% t(l.factor)))) < thresh)
-          {
-            t.star <- min(t.star,t)
-          }
+          fcap <- t(x.acf[,T-d-t+2,]) - gam.qeS %*% u.qes
+          l.rotcaf <- solve(c.tam) %*% t(fcap)
+          wen.l <- l.qes - u.qes %*% l.rotcaf
+          u.rotcaf <- solve(d.tam) %*% fcap
+          wen.u <- u.qes - l.qes %*% u.rotcaf
+          l.qes <- rbind(l.rotcaf,wen.l)
+          u.qes <- rbind(wen.u,u.rotcaf)
+          gam.qeS <- cbind(t(x.acf[,T-d-t+2,]),gam.qeS)
+          gam.pilF <- rbind(gam.pilF,t(x.acf[,T-d-t+2,]))
+          c.tam <- x.acf[,1,] - t(gam.pilF) %*% u.qes
+          d.tam <- x.acf[,1,] - gam.qeS %*% l.qes
+          a.next <- a.qes - b.qes %*% u.rotcaf
+          b.next <- b.qes - a.qes %*% l.rotcaf
+          a.qes <- rbind(0*diag(N),a.next) + (c(delta[(d+1):1],rep(0,T-d-t)) %x% diag(N)) %*% u.rotcaf
+          b.qes <- rbind(b.next,0*diag(N)) + (c(rep(0,T-d-t),delta[(d+1):1]) %x% diag(N)) %*% l.rotcaf
+    
         }
         t.len <- dim(b.seq)[1]/N
         l.pred <- t(-1*delta[1]^{-1}*c(rep(0,t.len-d),delta[(d+1):2]) %x% diag(N))
