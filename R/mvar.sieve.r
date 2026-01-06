@@ -107,9 +107,13 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   #	Inputs:
   #		z.acf: array of dimension M x T x M of autocovariances for process [w_t,v_t],
   #			where there are M series, of total length T each. Assumes M >= N.
+  #   w.acf: array of dimension N x T x N of autocovariances for process w_t,
+  #     the differenced "population" process
+  #   v.acf: array of dimension (M-N) x T x (M-N) of autocovariances for process v_t,
+  #     the "sampling error" process. This is NULL when M=N.
   #		y: list with T elements, each of which is a vector of variable length r <= N,
-  #			or NULL (r=0 case), representing available information at each time t in {1,...,T}.
-  #   c.sieve: list with T elements, each of which is a block vector or an NA.
+  #			or NA (r=0 case), representing available information at each time t in {1,...,T}.
+  #   c.sieve: list with T elements, each of which is a block vector or a NA.
   #     Element t for t in {1,...,T} has dimension Nt x r, where r is variable
   #     depending on t (and can be 0). Represents mapping from process to observation.
   #     !! Must have dim(c.sieve[[t]])[2] = dim(y[[t]])[1].
@@ -118,7 +122,7 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   #		delta: differencing polynomial (corresponds to delta(B) in Background)
   #			written in format c(delta0,delta1,...,deltad)
   #   debug: set to TRUE if lik values should be printed to screen
-  #	Notes: to get forecasts or aftcasts, assign NULL to end or beginning of c.sieve.
+  #	Notes: to get forecasts or aftcasts, assign NA to end or beginning of c.sieve.
   #   T will be the length of the lists, and includes
   #		the spots taken by aftcasts and forecasts.  
   #	Outputs:
@@ -149,14 +153,23 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
 #  N <- 3
 #  M <- 3
   y <- list()
-  y[[1]] <- list(NULL)
-  y[[2]] <- list(NULL)
+  y[[1]] <- NA
+  y[[2]] <- NA
   y[[3]] <- rnorm(2)
   y[[4]] <- rnorm(3)
   y[[5]] <- rnorm(3)
   y[[6]] <- rnorm(3)
-  y[[7]] <- list(NULL)
-  z.acf <- array(0,c(3,7,3))
+  y[[7]] <- NA
+  c.sieve <- list()
+  c.sieve[[1]] <- NA
+  c.sieve[[2]] <- NA
+  c.sieve[[3]] <- diag(9)[,c(7,9)]
+  c.sieve[[4]] <- diag(12)[,c(10,11,12)]
+  c.sieve[[5]] <- diag(15)[,c(13,14,15)]
+  c.sieve[[6]] <- diag(18)[,c(16,17,18)]
+  c.sieve[[7]] <- NA
+  w.acf <- array(0,c(3,7,3))
+  v.acf <- NULL
   h.sieve <- NULL
   
   ##--------------------------
@@ -164,22 +177,31 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   # thresh <- 10^(-16)
   thresh <- -1
   T <- length(y)
-  M <- dim(z.acf)[1]
-#  N <- dim(c.sieve[[1]])[1]
-  if(length(h.sieve) > 0) { N <- dim(h.sieve[[1]])[2] } else { N <- M }
+  N <- dim(w.acf)[1]
+  if(length(v.acf)==0) { M <- N } else { M <- N + dim(v.acf)[1] }
+#  if(length(h.sieve) > 0) { N <- dim(h.sieve[[1]])[2] } else { N <- M }
+  d <- length(delta) - 1
+  delta.lead <- delta[(d+1):1] %x% diag(N)
   
   all.series <- seq(1,N)
   all.indices <- seq(1,T)
-  # TO DO: even when y[[t]] has length N, it may be a linear combo of z.
-  #  There must be contiguous values of c.sieve[[t]] equal to identity...
-  #  pass new input of init value times
-#  full.indices <- all.indices[lapply(y,length)==N]
-#  cast.indices <- setdiff(all.indices,full.indices)
+  # We determine which indices correspond to fully observed data;
+  # match.sieve determines which elements of c.sieve correspond to the 
+  # last N columns of an identity matrix (i.e. corresponding y is fully observed)
+  match.sieve <- function(t) 
+  { 
+    eye <- diag(N*t)[,(N*(t-1)+1):(N*t)]
+    val <- FALSE
+    if(!all(is.na(c.sieve[[t]]))) {
+    if(all(dim(c.sieve[[t]]) == dim(eye)))
+    {
+      val <- all(c.sieve[[t]] == eye)
+    } } 
+    return(val)
+  }
+  full.indices <- all.indices[do.call(c,lapply(all.indices, match.sieve))]
+  cast.indices <- setdiff(all.indices,full.indices)
   
-  d <- length(delta) - 1
-  delta.lead <- delta[(d+1):1] %x% diag(M)
- 
-  # This version does not presume that the first d values are not missing
   # Find t.hash, earliest time for which d contiguous values follow,
   #	such that data at times t.hash+1,...,t.hash+d is fully observed
   t.hash <- NULL
@@ -189,20 +211,33 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
   
   if(d > 0) {
     # t=t.hash+d case as initialization
-    #  get predictors based on observations t.hash+1:t
+    #  get predictors based on observations t.hash+1:t.hash+d
+    # HERE update predictors for ut and vt
     l.pred <- t(-1*delta[1]^{-1}*delta[(d+1):2] %x% diag(M))
     l.derp <- t(-1*delta[d+1]^{-1}*delta[d:1] %x% diag(M))
     v.pred <- as.matrix(delta[1]^{-2}*z.acf[,1,])
     v.derp <- as.matrix(delta[d+1]^{-2}*z.acf[,1,])
-    #  get casts and covars of observations t.hash+1:t based on sigma-field_{t.hash+1:t}
-    #   Note: store more than needed in preds.z, makes it easier for indexing later
-    preds.z <- NULL
-    for(t in 1:d) { preds.z <- cbind(preds.z,y[[t.hash+t]]) }
-    if(M > N) { preds.z <- rbind(preds.z,matrix(0,nrow=(M-N),ncol=d)) }
-    if(t.hash > 0) { preds.z <- cbind(matrix(0,nrow=M,ncol=t.hash),preds.z) }
-    new.covar <- NULL
+    
+    # get initial H matrix
+    Hbig.mat <- NULL
+    for(t in (t.hash+1):(t.hash+d))
+    {
+      h.sieve.mat <- diag(N)
+      if(length(h.sieve) > 0) { h.sieve.mat <- rbind(h.sieve.mat,t(h.sieve[[t]])) }
+      Hbig.mat <- rbind(cbind(Hbig.mat,matrix(0,c(dim(Hbig.mat)[1],M))),
+                        cbind(matrix(0,c(N,dim(Hbig.mat)[2])),h.sieve.mat))
+    }
+    
+    #  get casts and covars of observations t.hash+1:t based on sigma-field_{t.hash+1:t};
+    #  these are the initializations for casting
+    # HERE complete
     casts.z <- NULL
-    casts.var <- NULL
+    for(t in 1:d) { casts.z <- cbind(casts.z,y[[t.hash+t]]) }
+    if(M > N) { casts.z <- rbind(casts.z,matrix(0,nrow=(M-N),ncol=d)) }
+#    if(t.hash > 0) { preds.z <- cbind(matrix(0,nrow=M,ncol=t.hash),preds.z) }
+    new.covar <- NULL
+#    casts.z <- NULL
+#    casts.var <- NULL
     eps <- NULL
     Qseq <- 0
     logdet <- 0
@@ -213,22 +248,14 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
     # Forward Pass:
     if(t.hash < T-d) {
       
-      if(length(h.sieve) > 0) { h.sieve.mat <- rbind(h.sieve.mat,t(h.sieve[[t]])) }
-      Hbig.mat <- NULL
-      for(t in 1:(t.hash+d))
-      {
-        Hbig.mat <- rbind(cbind(Hbig.mat,matrix(0,c(dim(Hbig.mat)[1],M))),
-                          cbind(matrix(0,c(N,dim(Hbig.mat)[2])),h.sieve.m))
-      }
-      
       for(t in (t.hash+d+1):T)
       {
         c.sieve.mat <- c.sieve[[t]]
         h.sieve.mat <- diag(N)
         if(length(h.sieve) > 0) { h.sieve.mat <- rbind(h.sieve.mat,t(h.sieve[[t]])) }
         Hbig.mat <- rbind(cbind(Hbig.mat,matrix(0,c(dim(Hbig.mat)[1],M))),
-                          cbind(matrix(0,c(N,dim(Hbig.mat)[2])),h.sieve.m))
-        if(is.na(c.sieve.mat)) { ragged.t <- 0 } else { ragged.t <- dim(c.sieve.mat)[2] }
+                          cbind(matrix(0,c(N,dim(Hbig.mat)[2])),h.sieve.mat))
+        if(all(is.na(c.sieve.mat))) { ragged.t <- 0 } else { ragged.t <- dim(c.sieve.mat)[2] }
         cast.len <- length(cast.index.t)
         
         #  get casts and covars of observations t.hash+1:t based on sigma-field_{t.hash+1:t}
@@ -239,20 +266,20 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
         new.pred <- l.pred %*% matrix(preds.z[,(t-t.len):(t-1)],ncol=1)
         
         # second, get prediction variance, to obtain new.var given by Var [ z_t | F_{t-1} ]
-        #   cast.index.tlen tracks cast indices up to now, looking back t.len time points,
-        #   where t.len is the length of the predictor
         if(cast.len==0) # no casts yet
         {
           new.var <- v.pred
-        } else # at least one cast within t.len time points  
+        } else # at least one cast has occurred 
         {
           new.var <- v.pred + l.pred %*% casts.var %*% t(l.pred)
         }
         
         # third, update casts.z by changing the stored portions of
-        #   E [ Z_{t-1} | F_{t-1} ] to E [ Z_{t-1} | F_t ] and
-        #   appending E [ z_t | F_t ] if partially/completely missing
-        if(cast.len > 0)  # at least one cast within t.len time points
+        #   E [ Z_{t-1} | F_{t-1} ] to E [ Z_{t-1} | F_t ] and appending E [ z_t | F_t ] 
+        # fourth, update casts.var by changing  
+        #   Var [ X_{t-1} | F_{t-1} ] to Var [ X_{t-1} | F_t ] and
+        #   appending new covariances if partially/completely missing.
+        if(cast.len > 0)  # at least one cast has occurred
         {
           new.covar.upp <- cbind(casts.var,casts.var %*% t(l.pred))
           new.covar.low <- cbind(l.pred %*% casts.var,new.var)
@@ -266,23 +293,12 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
             pred.adjust <- Hc.prod %*% new.precis %*% pred.disc
             casts.z <- casts.z + new.covar.upp %*% pred.adjust
             new.cast <- new.cast + new.covar.low %*% pred.adjust
-          }
-           casts.z <- cbind(casts.z,new.cast)
-          
-        }
-        
-        # fourth, update casts.var by changing  
-        #   Var [ X_{t-1} | F_{t-1} ] to Var [ X_{t-1} | F_t ] and
-        #   appending new covariances if partially/completely missing.
-        #  Also, compute stored version (TO DO!)
-        if(cast.len > 0)  # at least one cast within t.len time points
-        {
-          if(ragged.t > 0)  # update only if not fully missing
-          {
             casts.var <- new.covar - new.covar %*% Hc.prod %*% new.precis %*% t(Hc.prod) %*% new.covar
           }
+          casts.z <- cbind(casts.z,new.cast)
         }
-    
+
+        # HERE
         # fifth, get ragged residuals
         if(length(raggeds)>0)  # case of partially/completely missing
         {
