@@ -230,13 +230,12 @@ mvar.sieve <- function(z.acf, y, c.sieve, h.sieve, delta, debug=FALSE)
     
     #  get casts and covars of observations t.hash+1:t based on sigma-field_{t.hash+1:t};
     #  these are the initializations for casting
-    # HERE complete
     casts.z <- NULL
     for(t in 1:d) { casts.z <- cbind(casts.z,y[[t.hash+t]]) }
     if(M > N) { casts.z <- rbind(casts.z,matrix(0,nrow=(M-N),ncol=d)) }
 #    if(t.hash > 0) { preds.z <- cbind(matrix(0,nrow=M,ncol=t.hash),preds.z) }
-    new.covar <- NULL
-#    casts.z <- NULL
+    ## modify HERE
+    
 #    casts.var <- NULL
     eps <- NULL
     Qseq <- 0
