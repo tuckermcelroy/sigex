@@ -50,7 +50,7 @@ specFact <- function(poly)
 	##########################################################################################
 
 	p <- length(poly)-1
-	roots <- polyroot(poly)
+	roots <- zapsmall(polyroot(poly),14)
 	theta <- 1
 	prod <- poly[p+1]
 	toggle <- 1
@@ -72,8 +72,9 @@ specFact <- function(poly)
 			{
 				theta <- polymult(theta,c(1,-roots[i]))
 				prod <- prod/(-roots[i])
-				toggle <- -1*toggle
-			} }
+			} 
+			toggle <- -1*toggle
+			}
 		} }
 	}
 	theta <- Re(theta)*sqrt(Re(prod))
