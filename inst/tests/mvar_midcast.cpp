@@ -31,9 +31,14 @@ IntegerVector getRagIndex(ComplexVector zval)
 }
 
 // [[Rcpp::export]]
+// want a function that takes input vector x, returns a subset of it
+// with components retained such that those same components of y satisfy
+// an equality condition z
 IntegerVector subsetting(IntegerVector x, IntegerVector y, double z) 
 {
-  return x[y > z];
+  
+  
+//  return x[y > z];
 }
 
 // [[Rcpp::export]] 
@@ -125,6 +130,7 @@ List mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, bool d
 //####################################################################
 
 //  double thresh = 10E-16;
+  int thresh = -1;
   int N = z.nrow();
   int T = z.ncol();
   arma::mat idmat = arma::eye<arma::mat>(N,N);
@@ -133,6 +139,7 @@ List mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, bool d
   for(int i = 0; i < N; i++) { all_series [i] = i+1; } 
   // All indices for the time series' extended sample
   IntegerVector all_indices (T,1);
+  for(int i = 0; i < T; i++) { all_indices [i] = i+1; } 
   // Subset of indices for which there is no missing values
   IntegerVector full_indices;
   // Subset of indices for which there is at least one missing value

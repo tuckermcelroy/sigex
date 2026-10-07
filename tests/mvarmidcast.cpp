@@ -1,6 +1,7 @@
 // Use the RcppArmadillo package
 // Requires different header file from Rcpp.h
 #include <RcppArmadillo.h>
+#include <complex>
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
@@ -142,6 +143,42 @@ List mvar_midcast(arma::cube x_acf, arma::mat z, arma::vec delta, bool debug)
   int T = z.n_cols;
   IntegerVector all_series = seq(1,N);
   IntegerVector all_indices = seq(1,T);
+  
+  
+  // [[Rcpp::export]]
+  IntegerVector filter_indices(ComplexMatrix z, IntegerVector all_indices) {
+    int num_rows = z.nrow(); //
+    int num_cols = z.ncol(); //
+    
+    // Vector to collect indices that meet the criteria
+    std::vector<int> kept_indices;
+    kept_indices.reserve(num_cols); // Pre-allocate maximum possible size for speed
+    
+    // Loop over each column (matches colSums behavior)
+    for (int j = 0; j < num_cols; j++) {
+      bool has_im_equal_to_one = false;
+      
+      // Loop down the current column
+      for (int i = 0; i < num_rows; i++) {
+        // Rcpp complex matrices store std::complex values
+        std::complex<double> element = z(i, j); 
+        
+        if (element.imag() == 1.0) {
+          has_im_equal_to_one = true;
+          break; // Performance boost: Stop checking this column immediately!
+        }
+      }
+      
+      // If NO elements had an imaginary part of 1, keep this column's index
+      // Note: C++ uses 0-based indexing; ensure all_indices matches your intent
+      if (!has_im_equal_to_one) {
+        kept_indices.push_back(all_indices[j]);
+      }
+    }
+    
+    // Wrap back into an R-friendly IntegerVector to return to R
+    return wrap(kept_indices);
+  }
   
   
 // HERE
