@@ -1,21 +1,91 @@
 // Use the RcppArmadillo package 
 // Requires different header file from Rcpp.h 
 #include <RcppArmadillo.h> 
+#include <algorithm> // Required for std::set_difference
+#include <iterator>  // Required for std::back_inserter
+#include <complex>
+
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-arma::vec getRe(arma::cx_vec x) {
-  return arma::real(x);
+arma::vec getRe(ComplexVector x)
+{
+  arma::cx_vec x_arma = as<arma::cx_vec>(x);
+  arma::vec x_real = arma::real(x_arma);
+  return x_real;
 }
 
 // [[Rcpp::export]]
-arma::vec getIm(arma::cx_vec x) {
-  return arma::imag(x);
+arma::vec getIm(ComplexVector x) 
+{
+  arma::cx_vec x_arma = as<arma::cx_vec>(x);
+  arma::vec x_imag = arma::imag(x_arma);
+  return x_imag;  
 }
 
+// DEPRECATE - unneeded?
+// // [[Rccp::export]]
+// IntegerVector get_full_indices(ComplexMatrix z, IntegerVector all_indices)
+// {
+//   int num_rows = z.nrow(); 
+//   int num_cols = z.ncol(); 
+//   
+//   // Vector to collect indices that meet the criteria
+//   std::vector<int> kept_indices;
+//   kept_indices.reserve(num_rows); // Pre-allocate maximum possible size for speed
+//   
+//   // Loop over each row (matches colSums behavior)
+//   for (int i = 0; i < num_rows; i++) {
+//     bool has_im_equal_to_one = false;
+//     ComplexVector zvec = z.row(i);
+//     arma::vec imPart = getIm(zval);
+//     
+//     // Loop over columns of that row
+//     for (int j = 0; j < num_cols; j++) {
+//       if(imPart(j) == 1)  // This means zval[j] is a missing value
+//       {
+//         has_im_equal_to_one = true;
+//         break; // Performance boost: Stop checking this column immediately!
+//       }
+//     }
+//     
+//     // If NO elements had an imaginary part of 1, keep this column's index
+//     // Note: C++ uses 0-based indexing; ensure all_indices matches your intent
+//     if (!has_im_equal_to_one) {
+//       kept_indices.push_back(all_indices[j]);
+//     }
+//   }
+//   
+//   // Wrap back into an R-friendly IntegerVector to return to R
+//   return wrap(kept_indices);
+// }
+
+// DEPRECATE - unneeded?
+// // [[Rcpp::export]]
+// IntegerVector get_cast_indices(IntegerVector all_indices, IntegerVector full_indices) {
+//   // C++ set_difference requires inputs to be sorted
+//   IntegerVector all_sorted = clone(all_indices);
+//   IntegerVector full_sorted = clone(full_indices);
+//   std::sort(all_sorted.begin(), all_sorted.end());
+//   std::sort(full_sorted.begin(), full_sorted.end());
+//   
+//   // Create a destination vector container
+//   std::vector<int> result;
+//   
+//   // Perform the set difference
+//   std::set_difference(
+//     all_sorted.begin(), all_sorted.end(),
+//     full_sorted.begin(), full_sorted.end(),
+//     std::back_inserter(result)
+//   );
+//   
+//   // Convert back to Rcpp IntegerVector and return
+//   return wrap(result);
+// }
+
 // [[Rcpp::export]]
-IntegerVector getRagIndex(ComplexVector zval)
+IntegerVector get_rag_index(ComplexVector zval)
 {
   int N = zval.length();
   arma::vec imPart = getIm(zval);
@@ -26,19 +96,8 @@ IntegerVector getRagIndex(ComplexVector zval)
     { 
       rag_series.push_back(k);  
     }
-  }
+  } // else no missing values in zval, and rag_series is empty
   return rag_series;
-}
-
-// [[Rcpp::export]]
-// want a function that takes input vector x, returns a subset of it
-// with components retained such that those same components of y satisfy
-// an equality condition z
-IntegerVector subsetting(IntegerVector x, IntegerVector y, double z) 
-{
-  
-  
-//  return x[y > z];
 }
 
 // [[Rcpp::export]] 
@@ -56,8 +115,8 @@ List mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, bool d
   
 //***********************************************************************
 //
-//	mvar.midcast.cpp
-// 	    Copyright (C) 2020  Tucker McElroy
+//	mvar_midcast.cpp
+// 	    Copyright (C) 2026  Tucker McElroy
 //
 //    This program is free software: you can redistribute it and/or modify
 //    it under the terms of the GNU General Public License as published by
@@ -137,13 +196,17 @@ List mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, bool d
 
   IntegerVector all_series (N,1);
   for(int i = 0; i < N; i++) { all_series [i] = i+1; } 
+
   // All indices for the time series' extended sample
   IntegerVector all_indices (T,1);
   for(int i = 0; i < T; i++) { all_indices [i] = i+1; } 
-  // Subset of indices for which there is no missing values
+
+  // Subset of indices for which there are no missing values
   IntegerVector full_indices;
+
   // Subset of indices for which there is at least one missing value
-  IntegerVector cast_indices;
+  IntegerVector cast_indices; 
+    
   // ragged is N x T  boolean matrix, with FALSE if corresponding
   //  value in z is missing.  In the R version, ragged was a list
   //  object but cpp can't do it.  
@@ -159,7 +222,7 @@ List mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, bool d
   { 
     int tp1 = t+1;
     all_indices[t] = tp1; 
-    IntegerVector rag_series = getRagIndex(z(_,t));
+    IntegerVector rag_series = get_rag_index(z(_,t));
     if(rag_series.length() == 0)  // In this case, z[_,t] had no missing values
     { 
       full_indices.push_back(tp1);
@@ -176,10 +239,19 @@ List mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, bool d
   
   // d is the degree of the differencing polynomial
   int d = delta.length() - 1;
+  NumericVector delta_rev = rev(delta);
+  arma::vec delta_flip = as<arma::vec>(delta_rev);
+  arma::mat delta_lead = kronprod(delta_flip,idmat);
+  
+  // Get real part of the z matrix
+  arma::cx_mat z_arma = as<arma::cx_mat>(z);
+  arma::mat z_real = arma::real(z_arma);
  
-// This version does not presume that the first d values are not missing 
-// Find t.hash, earliest time for which d contiguous values follow,
-//	such that data at times t.hash+1,...,t.hash+d exists
+// HERE   
+ 
+  // We do not presume that the first d values are not missing 
+  // Find t.hash, earliest time for which d contiguous values follow,
+  //	such that data at times t.hash+1,...,t.hash+d exists
   int t_hash = 0;
   IntegerVector ind_data = cast_indices;
   ind_data.push_front(0);
