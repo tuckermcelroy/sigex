@@ -1,26 +1,39 @@
 spec_factor <- function(poly,eps=10^{-3})
 {
-  # Spectral factorization of symmetric 2-sided polynomial
+  ############################################################
+  # spec_factor by Tucker McElroy, October 2026
+  # Purpose: compute spectral factorization of a given
+  #   symmetric 2-sided polynomial
+  # Inputs:
+  #   poly: input vector of coefficients, of length 2*p.2+1
+  #     NOTE: must be symmetric (poly == rev(poly)) and 
+  #           must be non-negative definite ( FT(poly) >= 0 )
+  #   eps: minimum phase distance between root clusters
+  # Outputs:
+  #   factor: output vector of coefficients, of length p.2+1,
+  #     such that poly == polymult(factor,rev(factor))
+  # Requires: polymult
   
   p <- length(poly)-1  # needs p even
   theta <- 1
   prod <- poly[p+1]
   roots <- polyroot(poly)
 #  roots <- round(roots,digits=8)
-  print(roots)
 
-  # need to make sure that all roots have 0 <= Arg <= pi, 
-  # by conjugating those that have negative argument
-  roots <- Re(roots) + 1i*abs(Im(roots))
-
+  # need to make sure that all roots have -pi < Arg <= pi, 
+  # by adding 2 pi to any argument equal to -pi
+  roots.arg <- Arg(roots)
+  ind.mpi <- which(roots.arg==-pi)
+  if(length(ind.mpi)>0) { roots.arg[ind.mpi] <- roots.arg[ind.mpi] + 2*pi }
+  
   # sort roots by Arg
-  roots.ind <- order(Arg(roots))
+  roots.ind <- order(roots.arg)
   roots <- roots[roots.ind]
   roots.mat <- matrix(roots,nrow=2)
   p.2 <- dim(roots.mat)[2] # should be p/2
   
   # find root clusters and build polynomial factor
-  cluster.begs <- c(0,which(diff(Arg(roots))>eps))/2 +1
+  cluster.begs <- c(0,which(diff(Arg(roots))>eps)/2) +1
   for(j in 1:length(cluster.begs))
   {
     if(j == length(cluster.begs))
@@ -30,11 +43,8 @@ spec_factor <- function(poly,eps=10^{-3})
     {
       cluster.end <- cluster.begs[j+1]-1
     }
-    # Get all roots of the cluster, but the bottom row must be conjugated?
-    cluster.roots <- roots.mat[1,cluster.begs[j]:cluster.end]
-    cluster.roots <- c(cluster.root,
-                       Conj(roots.mat[2,cluster.begs[j]:cluster.end]))
-    
+    # Get all roots of the cluster
+    cluster.roots <- roots.mat[,cluster.begs[j]:cluster.end]
     # sort cluster roots by modulus, should have an even number of roots
     cluster.roots <- cluster.roots[order(Mod(cluster.roots))] 
     # associate first half of cluster roots with the factor
@@ -45,15 +55,18 @@ spec_factor <- function(poly,eps=10^{-3})
     }
   }
 
-  theta <- Re(theta)*sqrt(Re(prod))
-  return(theta)
+  factor <- Re(theta)*sqrt(Re(prod))
+  return(factor)
 }
 
-  
-poly <- polymult(c(1,0,1),c(-1,2,-1))
-rho <- .9
+## Test  
+poly <- polymult(c(1,0,1),c(1,0,1))
+poly <- polymult(poly,c(-1,2,-1))
+rho <- .3
 poly <- polymult(poly,c(rho^2,0,1+rho^4,0,rho^2))
-  
+factor <- spec_factor(poly)
+print(rbind(poly,polymult(factor,rev(factor))))
+
   
 ## SCRAP
 
