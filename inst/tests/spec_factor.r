@@ -43,7 +43,8 @@ spec_factor <- function(poly,eps=10^{-3})
   p.2 <- dim(roots.mat)[2] # should be p/2
   
   # find root clusters and build polynomial factor
-  cluster.begs <- c(0,which(diff(Arg(roots))>eps)/2) +1
+#  cluster.begs <- c(0,which(diff(Arg(roots))>eps)/2) +1
+  cluster.begs <- c(0,which(diff(sort(roots.arg))>eps)/2) +1
   for(j in 1:length(cluster.begs))
   {
     if(j == length(cluster.begs))
