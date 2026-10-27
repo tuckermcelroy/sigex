@@ -55,7 +55,7 @@ arma::mat kronprod(arma::mat A, arma::mat B) { return kron(A,B); }
 arma::vec vec2mat(arma::vec x) { return(x) ; }
 
 // [[Rcpp::export]]
-int mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, bool debug = false) 
+arma::mat mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, bool debug = false) 
 {
   
   //***********************************************************************
@@ -98,7 +98,7 @@ int mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, bool de
   //		time index 1, and is marked by t.hash.  In this case, we must
   //		also do a backward pass, involving aftcasts.
   //	Inputs:
-  //		x_acf: array of dimension N x N x T of autocovariances for process w_t,
+  //		x_acf: array of dimension N x T x N of autocovariances for process w_t,
   //			where there are N series, of total length T each.
   //		z: raw data as N x T matrix with missing values at various time points.
   //			Missing values are at any 1 <= t <= T, and occur for some of the N series
@@ -138,6 +138,7 @@ int mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, bool de
   int N = z.nrow();
   int T = z.ncol();
   arma::mat idmat = arma::eye<arma::mat>(N,N);
+  arma::cube x_acf_swap = arma::permute(x_acf,0,2,1);
   
   IntegerVector all_series (N,1);
   for(int i = 0; i < N; i++) { all_series [i] = i+1; } 
@@ -196,22 +197,54 @@ int mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, bool de
   // Find t.hash, earliest time for which d contiguous values follow,
   //	such that data at times t.hash+1,...,t.hash+d exists
   int t_hash = 0;
-  IntegerVector ind_data = cast_indices;
-  ind_data.push_front(0);
-  ind_data.push_back(T+1);
-  IntegerVector gaps = diff(ind_data);
-  gaps.push_back(0);
-  
-  int gaps_max = max(gaps);
-  if(gaps_max > d)   
+  int len = 0;
+  bool d_error = true;
+  for(int t=0; t < T; t++)
   {
-    // write loop, need C indexing to work with R indexing!
-    NumericVector filtered = ind_data[gaps > d];
+    IntegerVector rag_series = get_rag_index(z(_,t));
+    if(rag_series.length() == 0)      
+    {
+      len = len + 1;
+    } else
+    {
+      len = 0;
+    }
+    if(len == d)
+    {
+      t_hash = t+1-d;
+      t = T;
+      d_error = false;
+    }
+  }
+  if(d_error == true)
+  {
+    Rcerr << "There are not " << d << " contiguous values\n";
+  }
+  Rcout << "t.hash  "  << t_hash << "\n";
+  
+  //  Main code block for nonstationary case (d > 0)      
+//  if(d > 0) 
+//  {
     
-//    t.hash <- min(ind.data[gaps > d]) 
-  }  
+    // t = t_hash + d case as initialization
+    //  get predictors based on observations t_hash+1 to t
+    arma::mat l_pred(N,N*d);
+    arma::vec del_aft = -1*rev(tail(delta,d))/delta(0);
+    arma::mat del_aft_mat = vec2mat(del_aft);
+    l_pred = kronprod(del_aft_mat,idmat);
+    l_pred = l_pred.t();
+    arma::mat l_derp(N,N*d);
+    arma::vec del_fore = -1*rev(head(delta,d))/delta(d);
+    arma::mat del_fore_mat = vec2mat(del_fore);
+    l_derp = kronprod(del_fore_mat,idmat);
+    l_derp = l_derp.t();
+    arma::mat v_pred = x_acf_swap.slice(0)/(delta(0)*delta(0));
+    arma::mat v_derp = x_acf_swap.slice(0)/(delta(d)*delta(d));
     
-  return gaps_max;
+    
+//  }
+  
+  return v_derp;
   
 }  
 

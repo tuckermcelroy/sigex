@@ -8,13 +8,14 @@ Rcpp::sourceCpp("/home/tucker-mcelroy/Documents/GitHub/sigex/inst/tests/mvar_mid
 
 z <- matrix(seq(1,15),nrow=3,ncol=5)
 z[2,1] <- 1i
-z[c(1,2),4] <- 1i
+z[c(1,2),3] <- 1i
 
 x.acf <- array(0,c(3,5,3))
-x.acf[,1,] <- diag(3)
+x.acf[,1,] <- 2*diag(3) + c(1,2,-1) %x% t(c(1,2,-1))
 
+delta <- c(1,-2,1)
 delta <- c(1,-1)
-
+delta <- c(1,0,0,-1)
 
 ## Tests of helper functions
 
@@ -40,34 +41,6 @@ print(mvar_midcast(x.acf,z,delta))
 ## Other code chunks:
 
 
-if(max(gaps) > d) 
-{ 
-  t_hash = min(subsetting(ind_data,gaps,d));
-} else
-{
-  Rcerr << "There are not " << d << " contiguous values\n";
-}  
-
-//  Rcout << "t.hash  "  << t_hash;
-
-//  Main code block for nonstationary case (d > 0)      
-if(d > 0) 
-{
-  
-  // t = t_hash + d case as initialization
-  //  get predictors based on observations t_hash+1 to t
-  arma::mat l_pred (N,N*d);
-  arma::vec del_aft = -1*rev(tail(delta,d))/delta(0);
-  arma::mat del_aft_mat = vec2mat(del_aft);
-  l_pred = kronprod(del_aft_mat,idmat);
-  l_pred = l_pred.t();
-  arma::mat l_derp (N,N*d);
-  arma::vec del_fore = -1*rev(head(delta,d))/delta(d);
-  arma::mat del_fore_mat = vec2mat(del_fore);
-  l_derp = kronprod(del_fore_mat,idmat);
-  l_derp = l_derp.t();
-  arma::mat v_pred = x_acf.slice(0)/(delta(0)*delta(0));
-  arma::mat v_derp = x_acf.slice(0)/(delta(d)*delta(d));
   
   //  get casts and covars of observations t_hash+1 to t based
   //    on sigma-field_{t_hash+1:t}
@@ -197,3 +170,17 @@ return L;
 //   // Convert back to Rcpp IntegerVector and return
 //   return wrap(result);
 // }
+
+// DEPRECATE
+// IntegerVector ind_data = cast_indices;
+// ind_data.push_front(0);
+// ind_data.push_back(T+1);
+// IntegerVector gaps = diff(ind_data);
+// gaps.push_back(0);
+// if(max(gaps) > d) 
+// { 
+//  t_hash = min(subsetting(ind_data,gaps,d));
+// } else
+// {
+//  Rcerr << "There are not " << d << " contiguous values\n";
+//}  
