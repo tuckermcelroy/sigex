@@ -39,70 +39,7 @@ print(mvar_midcast(x.acf,z,delta))
 
 ## Other code chunks:
 
-IntegerVector all_series (N,1);
-for(int i = 0; i < N; i++) { all_series [i] = i+1; } 
 
-// All indices for the time series' extended sample
-  IntegerVector all_indices (T,1);
-  for(int i = 0; i < T; i++) { all_indices [i] = i+1; } 
-
-  // Subset of indices for which there are no missing values
-  IntegerVector full_indices;
-
-  // Subset of indices for which there is at least one missing value
-  IntegerVector cast_indices; 
-    
-  // ragged is N x T  boolean matrix, with FALSE if corresponding
-  //  value in z is missing.  In the R version, ragged was a list
-  //  object but cpp can't do it.  
-LogicalMatrix ragged (N,T);
-ragged.fill(TRUE);
-
-// This loop computes full_indices and cast_indices from all_indices,
-//  by determining whether there are any missing values at index t.
-//  Note: cast_indices and full_indices can be empty (length zero vector).
-//  rag_series gets component indices of missing values at index t,
-//   by checking whether the imaginary part of column t of z equals 1.
-for(int t = 0; t < T; t++) 
-{ 
-  int tp1 = t+1;
-  all_indices[t] = tp1; 
-  IntegerVector rag_series = get_rag_index(z(_,t));
-  if(rag_series.length() == 0)  // In this case, z[_,t] had no missing values
-  { 
-    full_indices.push_back(tp1);
-  } else              // In this case, z[,t] had some missing values
-  {
-    cast_indices.push_back(tp1);
-    for(int k = 0; k < rag_series.length(); k++)
-    {
-      int j = rag_series[k];
-      ragged(j,t) = FALSE;
-    }
-  }
-}
-
-// d is the degree of the differencing polynomial
-int d = delta.length() - 1;
-NumericVector delta_rev = rev(delta);
-arma::vec delta_flip = as<arma::vec>(delta_rev);
-arma::mat delta_lead = kronprod(delta_flip,idmat);
-
-// Get real part of the z matrix
-arma::cx_mat z_arma = as<arma::cx_mat>(z);
-arma::mat z_real = arma::real(z_arma);
-
-// HERE   
-
-// We do not presume that the first d values are not missing 
-// Find t.hash, earliest time for which d contiguous values follow,
-//	such that data at times t.hash+1,...,t.hash+d exists
-int t_hash = 0;
-IntegerVector ind_data = cast_indices;
-ind_data.push_front(0);
-ind_data.push_back(T+1);
-IntegerVector gaps = diff(ind_data);
-gaps.push_back(0);
 if(max(gaps) > d) 
 { 
   t_hash = min(subsetting(ind_data,gaps,d));
