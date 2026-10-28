@@ -29,6 +29,7 @@ spec_factor <- function(poly,eps=10^{-3})
   prod <- poly[p+1]
   roots <- polyroot(poly)
 #  roots <- round(roots,digits=8)
+#  roots <- pracma::roots(poly)
 
   # need to make sure that all roots have -pi < Arg <= pi, 
   # by adding 2 pi to any argument equal to -pi
@@ -72,6 +73,8 @@ spec_factor <- function(poly,eps=10^{-3})
 
 ## Test cases
 
+library(pracma)
+
 eps <- 10^{-3}
 
 ### (1+B^2)(1-B)(1+rho^2 B^2)
@@ -105,6 +108,10 @@ factor <- c(1,-1,-1,1)
 poly <- polymult(factor,rev(factor))
 print(rbind(factor,spec_factor(poly)))
 
+### (1+B)^6
+factor <- choose(6, 0:6)
+poly <- polymult(factor,rev(factor))
+print(rbind(factor,spec_factor(poly)))
 
 #####################################################
 ## SCRAP
