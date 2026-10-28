@@ -15,7 +15,7 @@ x.acf[,1,] <- 2*diag(3) + c(1,2,-1) %x% t(c(1,2,-1))
 
 delta <- c(1,-2,1)
 delta <- c(1,-1)
-delta <- c(1,0,0,-1)
+#delta <- c(1,0,0,-1)
 
 ## Tests of helper functions
 
@@ -40,29 +40,6 @@ print(mvar_midcast(x.acf,z,delta))
 
 ## Other code chunks:
 
-
-  
-  //  get casts and covars of observations t_hash+1 to t based
-  //    on sigma-field_{t_hash+1:t}
-  //   Note: store more than needed in preds_x, makes it easier 
-  //    for indexing later
-  arma::mat preds_x (N,t_hash+d);
-  for(int t = 0; t < t_hash+d; t++)
-  {
-    preds_x.col(t) = getRe(z(_,t));
-  }
-  arma::mat new_covar;
-  arma::mat casts_x;
-  arma::mat casts_var;
-  arma::mat eps;
-  double Qseq = 0;
-  double logdet = 0;
-  
-  // track indices of casted variables up to present time
-  IntegerVector init_index = seq(t_hash+1,t_hash+d);
-  IntegerVector cast_index_t = intersect(cast_indices,init_index);
-  int t_star = T;
-  int t_len = d;
   
   // Forward Pass:	
     if(t_hash < T-d) 
