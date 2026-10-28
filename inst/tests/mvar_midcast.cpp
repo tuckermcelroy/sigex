@@ -259,14 +259,61 @@ arma::mat mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, b
     double logdet = 0;
     
     // track indices of casted variables up to present time
-//    IntegerVector init_index = seq(t_hash+1,t_hash+d);
-//    IntegerVector cast_index_t = intersect(cast_indices,init_index);
-//    int t_star = T;
-//    int t_len = d;
+    IntegerVector init_index = seq(t_hash+1,t_hash+d);
+    IntegerVector cast_index_t = intersect(cast_indices,init_index);
+    int t_star = T;
+    int t_len = d;
     
-//  }
-  
-  return preds_x;
-  
-}  
+    // Forward Pass:	
+    if(t_hash < T-d) 
+    {
+      for(int t = t_hash+d+1; t <= T; t++)
+      { 
+        int tm1 = t-1;
+        // determine whether full info, or partial/completely missing
+        //  base case: full info
+        arma::mat select_mat;
+        arma::mat omit_mat;
+        LogicalVector rag_vec = ragged(_,tm1);          
+        IntegerVector raggeds;
+        IntegerVector non_raggeds;
+        for(int k = 0; k < N; k++)
+        {
+          if(rag_vec(k)) 
+          { 
+            non_raggeds.push_back(k); 
+          } else 
+          { 
+            raggeds.push_back(k); 
+          }
+        }  
+        if(raggeds.length() > 0)
+        { 
+          arma::uvec row_indices = Rcpp::as<arma::uvec>(raggeds);
+          arma::uvec col_indices = arma::regspace<arma::uvec>(0, N-1);
+          omit_mat = idmat(row_indices,col_indices); 
+        }
+        if(non_raggeds.length() > 0) 
+        { 
+          arma::uvec row_indices = Rcpp::as<arma::uvec>(non_raggeds);
+          arma::uvec col_indices = arma::regspace<arma::uvec>(0, N-1);
+          select_mat = idmat(row_indices,col_indices); 
+        }
+        
+        Rcout << "select matrix \n"  << select_mat << "\n";
+        Rcout << "omit matrix \n"  << omit_mat << "\n";
+        Rcout << "raggeds " << raggeds << "\n";       
+        Rcout << "non raggeds " << non_raggeds << "\n";       
+        
+      } 
+    }  // end forward pass clause
+    
+//}   // end d > 0  clause
+
+//  List L = List::create(ragged);
+
+//  return L;
+ return preds_x;
+
+}
 

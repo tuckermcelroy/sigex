@@ -38,50 +38,6 @@ print(mvar_midcast(x.acf,z,delta))
 
 //List mvar_midcast(arma::cube x_acf, ComplexMatrix z, NumericVector delta, bool debug = false) 
 
-## Other code chunks:
-
-  
-  // Forward Pass:	
-    if(t_hash < T-d) 
-    {
-      for(int t = t_hash+d+1; t <= T; t++)
-      { 
-        int tm1 = t-1;
-        // determine whether full info, or partial/completely missing
-        //  base case: full info
-        arma::mat select_mat;
-        arma::mat omit_mat;
-        LogicalVector rag_vec = ragged(_,tm1);          
-        IntegerVector raggeds;
-        IntegerVector non_raggeds;
-        for(int k = 0; k < N; k++)
-        {
-          if(rag_vec(k)) { non_raggeds.push_back(k+1); } else { raggeds.push_back(k+1); }
-        }  
-        //        if(raggeds.length() > 0) { omit_mat = idmat.submat(raggeds,seq(1,N)); }
-        //        if(non_raggeds.length() > 0) { select_mat = idmat.submat(non_raggeds,seq(1,N)); }
-        //if(raggeds.length() > 0) { omit_mat = idmat.submat(1,2,1,1); }
-        
-        
-        Rcout << "select matrix "  << select_mat << "\n";
-        Rcout << "omit matrix "  << omit_mat << "\n";
-        Rcout << "raggeds " << raggeds << "\n";       
-        Rcout << "non raggeds " << non_raggeds << "\n";       
-        
-        
-      } 
-    }  // end forward pass clause
-  
-}   // end d > 0  clause
-
-List L = List::create(ragged);
-
-return L;
-
-}
-
-
-
 
 
 ######################################################
